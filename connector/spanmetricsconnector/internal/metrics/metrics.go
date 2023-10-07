@@ -4,6 +4,7 @@
 package metrics // import "github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector/internal/metrics"
 
 import (
+	"math"
 	"sort"
 	"time"
 
@@ -229,6 +230,84 @@ func (h *exponentialHistogram) AddExemplar(traceID pcommon.TraceID, spanID pcomm
 	e.SetDoubleValue(value)
 }
 
+func NewPercentileMetrics() PercentileMetrics {
+	return PercentileMetrics{durations: make(map[Key]*DurationBuckets)}
+}
+
+type PercentileMetrics struct {
+	durations map[Key]*DurationBuckets
+}
+
+func (m *PercentileMetrics) GetOrCreate(key Key, attributes pcommon.Map) *DurationBuckets {
+	b, ok := m.durations[key]
+	if !ok {
+		b = &DurationBuckets{
+			attributes: attributes,
+			buckets:    make(map[float64]uint64, 100),
+		}
+		m.durations[key] = b
+	}
+	return b
+}
+
+func (m *PercentileMetrics) BuildMetrics(metric pmetric.Metric, start pcommon.Timestamp, buckets []float64) {
+	metric.SetEmptySummary()
+	dps := metric.Summary().DataPoints()
+	dps.EnsureCapacity(len(m.durations))
+	timestamp := pcommon.NewTimestampFromTime(time.Now())
+	for _, m := range m.durations {
+		dp := dps.AppendEmpty()
+		dp.SetStartTimestamp(start)
+		dp.SetTimestamp(timestamp)
+		dp.SetCount(m.count)
+		dp.SetSum(m.sum)
+
+		keys := make([]float64, 0, len(m.buckets))
+		for k := range m.buckets {
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+
+		for _, b := range buckets {
+			qv := dp.QuantileValues().AppendEmpty()
+			qv.SetQuantile(b)
+			qv.SetValue(m.calculatePercential(keys, b))
+		}
+		m.attributes.CopyTo(dp.Attributes())
+	}
+}
+
+func (m *PercentileMetrics) Reset() {
+	m.durations = make(map[Key]*DurationBuckets)
+}
+
+type DurationBuckets struct {
+	attributes pcommon.Map
+	sum        float64
+	count      uint64
+	buckets    map[float64]uint64
+}
+
+// duration is usually milliseconds
+// so we can optimize it to a bucket without recording all data
+func (b *DurationBuckets) Add(duration float64) {
+	duration = math.Round(duration)
+	b.sum += duration
+	b.count += 1
+	b.buckets[duration]++
+}
+
+func (b *DurationBuckets) calculatePercential(sortedKeys []float64, percentile float64) float64 {
+	for _, duration := range sortedKeys {
+		count := b.buckets[duration]
+		percentile -= float64(count) / float64(b.count)
+		if percentile <= 0 {
+			return duration
+		}
+	}
+	return 0
+}
+
 type Sum struct {
 	attributes pcommon.Map
 	count      uint64
@@ -236,6 +315,41 @@ type Sum struct {
 
 func (s *Sum) Add(value uint64) {
 	s.count += value
+}
+
+type SumDelta struct {
+	// current cumulative count
+	count uint64
+	// change since last count
+	delta int64
+	// diff since last delta
+	diff int64
+}
+
+// calculate the delta since the count changed
+// update the count when delta is recorded
+func (s *SumDelta) SetCount(count uint64) {
+	delta := int64(count - s.count)
+	s.diff = delta - s.delta
+	s.delta = delta
+	s.count = count
+}
+
+type SumDeltaMetrics struct {
+	metrics map[Key]*SumDelta
+}
+
+func NewSumDeltaMetrics() *SumDeltaMetrics {
+	return &SumDeltaMetrics{metrics: make(map[Key]*SumDelta)}
+}
+
+func (m *SumDeltaMetrics) GetOrCreate(key Key) *SumDelta {
+	s, ok := m.metrics[key]
+	if !ok {
+		s = &SumDelta{}
+		m.metrics[key] = s
+	}
+	return s
 }
 
 func NewSumMetrics() SumMetrics {
@@ -273,6 +387,28 @@ func (m *SumMetrics) BuildMetrics(
 		dp.SetStartTimestamp(start)
 		dp.SetTimestamp(timestamp)
 		dp.SetIntValue(int64(s.count))
+		s.attributes.CopyTo(dp.Attributes())
+	}
+}
+
+func (m *SumMetrics) BuildDeltaMetrics(
+	metric pmetric.Metric,
+	deltaMetrics *SumDeltaMetrics,
+	start pcommon.Timestamp,
+) {
+	metric.SetEmptyGauge()
+	dps := metric.Gauge().DataPoints()
+	dps.EnsureCapacity(len(m.metrics))
+	timestamp := pcommon.NewTimestampFromTime(time.Now())
+	for key, s := range m.metrics {
+		// build snapshot before the metrics are built
+		delta := deltaMetrics.GetOrCreate(key)
+		delta.SetCount(s.count)
+
+		dp := dps.AppendEmpty()
+		dp.SetStartTimestamp(start)
+		dp.SetTimestamp(timestamp)
+		dp.SetIntValue(int64(delta.diff))
 		s.attributes.CopyTo(dp.Attributes())
 	}
 }

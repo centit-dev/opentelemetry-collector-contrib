@@ -49,6 +49,9 @@ type Config struct {
 	AggregationTemporality string `mapstructure:"aggregation_temporality"`
 
 	Histogram HistogramConfig `mapstructure:"histogram"`
+	// Percentile defines the configuration for percentile aggregation.
+	// default enabled and have 5 buckets: 50, 75, 90, 99, 999
+	Percentile PercentileConfig `mapstructure:"percentile"`
 
 	// MetricsEmitInterval is the time period between when metrics are flushed or emitted to the configured MetricsExporter.
 	MetricsFlushInterval time.Duration `mapstructure:"metrics_flush_interval"`
@@ -65,6 +68,11 @@ type HistogramConfig struct {
 	Unit        metrics.Unit                `mapstructure:"unit"`
 	Exponential *ExponentialHistogramConfig `mapstructure:"exponential"`
 	Explicit    *ExplicitHistogramConfig    `mapstructure:"explicit"`
+}
+
+type PercentileConfig struct {
+	Disable bool      `mapstructure:"disable"`
+	Buckets []float64 `mapstructure:"buckets"`
 }
 
 type ExemplarsConfig struct {

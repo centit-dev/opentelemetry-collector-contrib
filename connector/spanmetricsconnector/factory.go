@@ -32,6 +32,7 @@ func createDefaultConfig() component.Config {
 		DimensionsCacheSize:    defaultDimensionsCacheSize,
 		MetricsFlushInterval:   15 * time.Second,
 		Histogram:              HistogramConfig{Disable: false, Unit: defaultUnit},
+		Percentile:             PercentileConfig{Disable: false, Buckets: []float64{.50, .75, .90, .99, .999}},
 	}
 }
 

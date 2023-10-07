@@ -34,8 +34,10 @@ const (
 
 	defaultDimensionsCacheSize = 1000
 
-	metricNameDuration = "duration"
-	metricNameCalls    = "calls"
+	metricNameDuration            = "duration"
+	metricNameDurationPercentiles = "durationPercentiles"
+	metricNameCalls               = "calls"
+	metricNameCallDeltas          = "callDeltas"
 
 	defaultUnit = metrics.Milliseconds
 )
@@ -53,7 +55,8 @@ type connectorImp struct {
 	// The starting time of the data points.
 	startTimestamp pcommon.Timestamp
 
-	resourceMetrics map[resourceKey]*resourceMetrics
+	resourceMetrics         map[resourceKey]*resourceMetrics
+	resourceMetricsSnapshot map[resourceKey]*metrics.SumDeltaMetrics
 
 	keyBuf *bytes.Buffer
 
@@ -70,6 +73,7 @@ type connectorImp struct {
 
 type resourceMetrics struct {
 	histograms metrics.HistogramMetrics
+	durations  metrics.PercentileMetrics
 	sums       metrics.SumMetrics
 	attributes pcommon.Map
 }
@@ -104,15 +108,16 @@ func newConnector(logger *zap.Logger, config component.Config, ticker *clock.Tic
 	}
 
 	return &connectorImp{
-		logger:                logger,
-		config:                *cfg,
-		startTimestamp:        pcommon.NewTimestampFromTime(time.Now()),
-		resourceMetrics:       make(map[resourceKey]*resourceMetrics),
-		dimensions:            newDimensions(cfg.Dimensions),
-		keyBuf:                bytes.NewBuffer(make([]byte, 0, 1024)),
-		metricKeyToDimensions: metricKeyToDimensionsCache,
-		ticker:                ticker,
-		done:                  make(chan struct{}),
+		logger:                  logger,
+		config:                  *cfg,
+		startTimestamp:          pcommon.NewTimestampFromTime(time.Now()),
+		resourceMetrics:         make(map[resourceKey]*resourceMetrics),
+		resourceMetricsSnapshot: make(map[resourceKey]*metrics.SumDeltaMetrics),
+		dimensions:              newDimensions(cfg.Dimensions),
+		keyBuf:                  bytes.NewBuffer(make([]byte, 0, 1024)),
+		metricKeyToDimensions:   metricKeyToDimensionsCache,
+		ticker:                  ticker,
+		done:                    make(chan struct{}),
 	}, nil
 }
 
@@ -227,7 +232,7 @@ func (p *connectorImp) exportMetrics(ctx context.Context) {
 // buildMetrics collects the computed raw metrics data and builds OTLP metrics.
 func (p *connectorImp) buildMetrics() pmetric.Metrics {
 	m := pmetric.NewMetrics()
-	for _, rawMetrics := range p.resourceMetrics {
+	for resourceKey, rawMetrics := range p.resourceMetrics {
 		rm := m.ResourceMetrics().AppendEmpty()
 		rawMetrics.attributes.CopyTo(rm.Resource().Attributes())
 
@@ -238,12 +243,27 @@ func (p *connectorImp) buildMetrics() pmetric.Metrics {
 		metric := sm.Metrics().AppendEmpty()
 		metric.SetName(buildMetricName(p.config.Namespace, metricNameCalls))
 		sums.BuildMetrics(metric, p.startTimestamp, p.config.GetAggregationTemporality())
+
+		// this is a new metric with a new name
+		metric = sm.Metrics().AppendEmpty()
+		metric.SetName(buildMetricName(p.config.Namespace, metricNameCallDeltas))
+		deltaMetrics := p.getOrCreateResourceMetricsSnapshot(resourceKey)
+		sums.BuildDeltaMetrics(metric, deltaMetrics, p.startTimestamp)
+
 		if !p.config.Histogram.Disable {
 			histograms := rawMetrics.histograms
 			metric = sm.Metrics().AppendEmpty()
 			metric.SetName(buildMetricName(p.config.Namespace, metricNameDuration))
 			metric.SetUnit(p.config.Histogram.Unit.String())
 			histograms.BuildMetrics(metric, p.startTimestamp, p.config.GetAggregationTemporality())
+		}
+
+		if !p.config.Percentile.Disable {
+			durations := rawMetrics.durations
+			metric = sm.Metrics().AppendEmpty()
+			metric.SetName(buildMetricName(p.config.Namespace, metricNameDurationPercentiles))
+			metric.SetUnit(p.config.Histogram.Unit.String())
+			durations.BuildMetrics(metric, p.startTimestamp, p.config.Percentile.Buckets)
 		}
 	}
 
@@ -258,6 +278,12 @@ func (p *connectorImp) resetState() {
 		p.startTimestamp = pcommon.NewTimestampFromTime(time.Now())
 	} else {
 		p.metricKeyToDimensions.RemoveEvictedItems()
+
+		if !p.config.Percentile.Disable {
+			for _, m := range p.resourceMetrics {
+				m.durations.Reset()
+			}
+		}
 
 		// Exemplars are only relevant to this batch of traces, so must be cleared within the lock
 		if p.config.Histogram.Disable {
@@ -288,6 +314,7 @@ func (p *connectorImp) aggregateMetrics(traces ptrace.Traces) {
 		rm := p.getOrCreateResourceMetrics(resourceAttr)
 		sums := rm.sums
 		histograms := rm.histograms
+		durations := rm.durations
 
 		unitDivider := unitDivider(p.config.Histogram.Unit)
 		serviceName := serviceAttr.Str()
@@ -316,7 +343,11 @@ func (p *connectorImp) aggregateMetrics(traces ptrace.Traces) {
 					h := histograms.GetOrCreate(key, attributes)
 					p.addExemplar(span, duration, h)
 					h.Observe(duration)
+				}
 
+				if !p.config.Percentile.Disable {
+					durationBuckets := durations.GetOrCreate(key, attributes)
+					durationBuckets.Add(duration)
 				}
 				// aggregate sums metrics
 				s := sums.GetOrCreate(key, attributes)
@@ -345,10 +376,20 @@ func (p *connectorImp) getOrCreateResourceMetrics(attr pcommon.Map) *resourceMet
 	if !ok {
 		v = &resourceMetrics{
 			histograms: initHistogramMetrics(p.config),
+			durations:  metrics.NewPercentileMetrics(),
 			sums:       metrics.NewSumMetrics(),
 			attributes: attr,
 		}
 		p.resourceMetrics[key] = v
+	}
+	return v
+}
+
+func (p *connectorImp) getOrCreateResourceMetricsSnapshot(key resourceKey) *metrics.SumDeltaMetrics {
+	v, ok := p.resourceMetricsSnapshot[key]
+	if !ok {
+		v = metrics.NewSumDeltaMetrics()
+		p.resourceMetricsSnapshot[key] = v
 	}
 	return v
 }
