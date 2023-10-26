@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	opEqual              = "="
+	OpEqual              = "="
 	opNotEqual           = "!="
 	opGreaterThan        = ">"
 	opGreaterThanOrEqual = ">="
@@ -50,7 +50,7 @@ func (definition *SpanGroupDefinition) Match(attributes *map[string]interface{})
 	value, exists := (*attributes)[definition.Column]
 	switch definition.Op {
 	// number or string
-	case opEqual,
+	case OpEqual,
 		opNotEqual,
 		// number
 		opGreaterThan,
@@ -102,7 +102,7 @@ func CreateDefinitionValue(value interface{}) GroupDefinitionValue {
 	case string:
 		return GroupDefinitionValue{StringValues: []string{raw}}
 	case bool:
-		return GroupDefinitionValue{boolValue: value.(bool)}
+		return GroupDefinitionValue{boolValue: raw}
 	}
 
 	// check if an array
@@ -153,7 +153,7 @@ func (value *GroupDefinitionValue) compare(op string, actual interface{}) bool {
 // expected is the value in the definition
 func compareNumber(op string, expected float64, actual float64) bool {
 	switch op {
-	case opEqual:
+	case OpEqual:
 		return actual == expected
 	case opNotEqual:
 		return actual != expected
@@ -174,7 +174,7 @@ func compareNumber(op string, expected float64, actual float64) bool {
 // expected is the value in the definition
 func compareString(op string, expected string, actual string) bool {
 	switch op {
-	case opEqual:
+	case OpEqual:
 		return actual == expected
 	case opNotEqual:
 		return actual != expected
