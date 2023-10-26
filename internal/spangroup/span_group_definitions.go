@@ -1,9 +1,7 @@
-package client
+package spangroup
 
 import (
 	"strings"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/schema"
 )
 
 const (
@@ -23,66 +21,9 @@ const (
 	opDoesNotExist       = "does-not-exist"
 )
 
-type ExceptionCategoryDefinitions []ExceptionCategoryDefinition
+type SpanGroupDefinitions []SpanGroupDefinition
 
-func CreateExceptionCategoryDefinitions(data []schema.ExceptionDefinitionCondition) ExceptionCategoryDefinitions {
-	definitions := make([]ExceptionCategoryDefinition, 0, len(data))
-	for _, item := range data {
-		definitions = append(definitions, ExceptionCategoryDefinition{
-			column: item.Column,
-			op:     item.Op,
-			value:  getDefinitionValue(&item),
-		})
-	}
-	return definitions
-}
-
-func getDefinitionValue(item *schema.ExceptionDefinitionCondition) ExceptionDefinitionValue {
-	value := item.Value
-	if value == nil {
-		return ExceptionDefinitionValue{}
-	}
-	switch raw := value.(type) {
-	case float64:
-		return ExceptionDefinitionValue{numberValues: []float64{raw}}
-	case string:
-		return ExceptionDefinitionValue{StringValues: []string{raw}}
-	case bool:
-		return ExceptionDefinitionValue{boolValue: value.(bool)}
-	}
-
-	// check if an array
-	arr, isArray := value.([]interface{})
-	if !isArray {
-		return ExceptionDefinitionValue{}
-	}
-
-	// try to convert it to a number array or a string array
-	numberArray := make([]float64, 0, len(arr))
-	stringArray := make([]string, 0, len(arr))
-	for _, item := range arr {
-		// if the array contains both numbers and strings, it's invalid
-		if len(numberArray) > 0 && len(stringArray) > 0 {
-			return ExceptionDefinitionValue{}
-		}
-		switch rawItem := item.(type) {
-		case float64:
-			numberArray = append(numberArray, rawItem)
-		case string:
-			stringArray = append(stringArray, rawItem)
-		default:
-			// if the array contains other types, it's invalid
-			return ExceptionDefinitionValue{}
-		}
-	}
-
-	return ExceptionDefinitionValue{
-		numberValues: numberArray,
-		StringValues: stringArray,
-	}
-}
-
-func (definitions *ExceptionCategoryDefinitions) Match(attributes *map[string]interface{}) bool {
+func (definitions *SpanGroupDefinitions) Match(attributes *map[string]interface{}) bool {
 	for _, definition := range *definitions {
 		if !definition.Match(attributes) {
 			return false
@@ -91,23 +32,23 @@ func (definitions *ExceptionCategoryDefinitions) Match(attributes *map[string]in
 	return true
 }
 
-type ExceptionCategoryDefinition struct {
-	column string
-	op     string
-	value  ExceptionDefinitionValue
+type SpanGroupDefinition struct {
+	Column string
+	Op     string
+	Value  GroupDefinitionValue
 }
 
-func CreateExceptionCategoryDefinition(column string, op string, value string) ExceptionCategoryDefinition {
-	return ExceptionCategoryDefinition{
-		column: column,
-		op:     op,
-		value:  ExceptionDefinitionValue{StringValues: []string{value}},
+func CreateSpanGroupDefinition(column string, op string, value string) SpanGroupDefinition {
+	return SpanGroupDefinition{
+		Column: column,
+		Op:     op,
+		Value:  GroupDefinitionValue{StringValues: []string{value}},
 	}
 }
 
-func (definition *ExceptionCategoryDefinition) Match(attributes *map[string]interface{}) bool {
-	value, exists := (*attributes)[definition.column]
-	switch definition.op {
+func (definition *SpanGroupDefinition) Match(attributes *map[string]interface{}) bool {
+	value, exists := (*attributes)[definition.Column]
+	switch definition.Op {
 	// number or string
 	case opEqual,
 		opNotEqual,
@@ -121,7 +62,7 @@ func (definition *ExceptionCategoryDefinition) Match(attributes *map[string]inte
 		opDoesNotContain,
 		opStartsWith,
 		opDoesNotStartWith:
-		return exists && definition.value.compare(definition.op, value)
+		return exists && definition.Value.compare(definition.Op, value)
 	// array
 	case opIn, opNotIn:
 		if !exists {
@@ -129,9 +70,9 @@ func (definition *ExceptionCategoryDefinition) Match(attributes *map[string]inte
 		}
 		switch raw := value.(type) {
 		case float64:
-			return arrayContain(definition.op, definition.value.numberValues, raw)
+			return arrayContain(definition.Op, definition.Value.numberValues, raw)
 		case string:
-			return arrayContain(definition.op, definition.value.StringValues, raw)
+			return arrayContain(definition.Op, definition.Value.StringValues, raw)
 		}
 		return false
 	case opExists:
@@ -140,18 +81,62 @@ func (definition *ExceptionCategoryDefinition) Match(attributes *map[string]inte
 		return !exists
 	default:
 		raw, ok := value.(bool)
-		return ok && definition.value.boolValue == raw
+		return ok && definition.Value.boolValue == raw
 	}
 }
 
 // union types of float64, string, bool
-type ExceptionDefinitionValue struct {
+type GroupDefinitionValue struct {
 	numberValues []float64
 	StringValues []string
 	boolValue    bool
 }
 
-func (value *ExceptionDefinitionValue) compare(op string, actual interface{}) bool {
+func CreateDefinitionValue(value interface{}) GroupDefinitionValue {
+	if value == nil {
+		return GroupDefinitionValue{}
+	}
+	switch raw := value.(type) {
+	case float64:
+		return GroupDefinitionValue{numberValues: []float64{raw}}
+	case string:
+		return GroupDefinitionValue{StringValues: []string{raw}}
+	case bool:
+		return GroupDefinitionValue{boolValue: value.(bool)}
+	}
+
+	// check if an array
+	arr, isArray := value.([]interface{})
+	if !isArray {
+		return GroupDefinitionValue{}
+	}
+
+	// try to convert it to a number array or a string array
+	numberArray := make([]float64, 0, len(arr))
+	stringArray := make([]string, 0, len(arr))
+	for _, item := range arr {
+		// if the array contains both numbers and strings, it's invalid
+		if len(numberArray) > 0 && len(stringArray) > 0 {
+			return GroupDefinitionValue{}
+		}
+		switch rawItem := item.(type) {
+		case float64:
+			numberArray = append(numberArray, rawItem)
+		case string:
+			stringArray = append(stringArray, rawItem)
+		default:
+			// if the array contains other types, it's invalid
+			return GroupDefinitionValue{}
+		}
+	}
+
+	return GroupDefinitionValue{
+		numberValues: numberArray,
+		StringValues: stringArray,
+	}
+}
+
+func (value *GroupDefinitionValue) compare(op string, actual interface{}) bool {
 	switch raw := actual.(type) {
 	case int64:
 		return compareNumber(op, value.numberValues[0], float64(raw))

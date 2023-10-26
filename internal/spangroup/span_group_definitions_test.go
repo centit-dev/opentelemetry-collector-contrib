@@ -1,65 +1,69 @@
-package client
+package spangroup
 
 import (
 	"reflect"
 	"testing"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/schema"
 )
+
+type Definition struct {
+	Column string
+	Op     string
+	Value  interface{}
+}
 
 func Test_getDefinitionValue(t *testing.T) {
 	type args struct {
-		item *schema.ExceptionDefinitionCondition
+		item *Definition
 	}
 	tests := []struct {
 		name string
 		args args
-		want ExceptionDefinitionValue
+		want GroupDefinitionValue
 	}{
 		{
 			name: "simple-string-value",
 			args: args{
-				item: &schema.ExceptionDefinitionCondition{
+				item: &Definition{
 					Column: "column",
 					Op:     "simple-op",
 					Value:  "simple-value",
 				},
 			},
-			want: ExceptionDefinitionValue{
+			want: GroupDefinitionValue{
 				StringValues: []string{"simple-value"},
 			},
 		},
 		{
 			name: "simple-number-value",
 			args: args{
-				item: &schema.ExceptionDefinitionCondition{
+				item: &Definition{
 					Column: "column",
 					Op:     "simple-op",
 					Value:  1.,
 				},
 			},
-			want: ExceptionDefinitionValue{
+			want: GroupDefinitionValue{
 				numberValues: []float64{1.},
 			},
 		},
 		{
 			name: "simple-boolean-value",
 			args: args{
-				item: &schema.ExceptionDefinitionCondition{
+				item: &Definition{
 					Column: "column",
 					Op:     "simple-op",
 					Value:  true,
 				},
 			},
-			want: ExceptionDefinitionValue{
+			want: GroupDefinitionValue{
 				boolValue: true,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getDefinitionValue(tt.args.item); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getDefinitionValue() = %v, want %v", got, tt.want)
+			if got := CreateDefinitionValue(tt.args.item.Value); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CreateDefinitionValue() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -69,7 +73,7 @@ func TestExceptionCategoryDefinition_Match(t *testing.T) {
 	type fields struct {
 		column string
 		op     string
-		value  ExceptionDefinitionValue
+		value  GroupDefinitionValue
 	}
 	type args struct {
 		attributes *map[string]interface{}
@@ -85,7 +89,7 @@ func TestExceptionCategoryDefinition_Match(t *testing.T) {
 			fields: fields{
 				column: "span.kind",
 				op:     "=",
-				value: ExceptionDefinitionValue{
+				value: GroupDefinitionValue{
 					StringValues: []string{"value"},
 				},
 			},
@@ -101,7 +105,7 @@ func TestExceptionCategoryDefinition_Match(t *testing.T) {
 			fields: fields{
 				column: "span.kind",
 				op:     ">",
-				value: ExceptionDefinitionValue{
+				value: GroupDefinitionValue{
 					numberValues: []float64{1.},
 				},
 			},
@@ -115,10 +119,10 @@ func TestExceptionCategoryDefinition_Match(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			definition := &ExceptionCategoryDefinition{
-				column: tt.fields.column,
-				op:     tt.fields.op,
-				value:  tt.fields.value,
+			definition := &SpanGroupDefinition{
+				Column: tt.fields.column,
+				Op:     tt.fields.op,
+				Value:  tt.fields.value,
 			}
 			if got := definition.Match(tt.args.attributes); got != tt.want {
 				t.Errorf("ExceptionCategoryDefinition.Match() = %v, want %v", got, tt.want)

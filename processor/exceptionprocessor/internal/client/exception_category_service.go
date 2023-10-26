@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/spangroup"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -21,7 +22,7 @@ const (
 type ExceptionCategoryService struct {
 	logger     *zap.Logger
 	client     DatabaseClient
-	categories *ExceptionCategoryMap
+	categories *spangroup.SpanGroup
 	ticker     *time.Ticker
 }
 
@@ -44,19 +45,26 @@ func (service *ExceptionCategoryService) buildCache(context context.Context) {
 		service.logger.Error("Error when building cache: database client is nil")
 		return
 	}
-	definitions, err := service.client.FindAllDefinitions(context)
+	records, err := service.client.FindAllDefinitions(context)
 	if err != nil {
 		service.logger.Sugar().Errorf("Error when querying categories: %s\n", err)
 		return
 	}
-	data := make(map[*ExceptionCategoryDefinitions]string)
-	for _, definition := range definitions {
-		exceptionNameQuery := CreateExceptionCategoryDefinition(conventions.AttributeExceptionType, "=", definition.LongName)
-		conditions := CreateExceptionCategoryDefinitions(definition.RelatedMiddlewareConditions)
-		conditions = append(conditions, exceptionNameQuery)
-		data[&conditions] = definition.Edges.ExceptionCategory.Name
+	data := make(map[*spangroup.SpanGroupDefinitions]string)
+	for _, definition := range records {
+		exceptionNameQuery := spangroup.CreateSpanGroupDefinition(conventions.AttributeExceptionType, "=", definition.LongName)
+		definitions := spangroup.SpanGroupDefinitions{}
+		for _, item := range definition.RelatedMiddlewareConditions {
+			definitions = append(definitions, spangroup.SpanGroupDefinition{
+				Column: item.Column,
+				Op:     item.Op,
+				Value:  spangroup.CreateDefinitionValue(item.Value),
+			})
+		}
+		definitions = append(definitions, exceptionNameQuery)
+		data[&definitions] = definition.Edges.ExceptionCategory.Name
 	}
-	service.categories = CreateExceptionCategoryMap(data)
+	service.categories = spangroup.CreateSpanGroup(data)
 }
 
 // implement processorhelper.ProcessTracesFunc

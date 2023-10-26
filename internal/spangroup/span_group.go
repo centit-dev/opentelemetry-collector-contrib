@@ -1,19 +1,19 @@
-package client
+package spangroup
 
 // an exception category can be found by multiple keys and the exception full name
-type ExceptionCategoryMap struct {
-	value map[*ExceptionCategoryDefinitions][]string
+type SpanGroup struct {
+	value map[*SpanGroupDefinitions][]string
 }
 
-func CreateExceptionCategoryMap(data map[*ExceptionCategoryDefinitions]string) *ExceptionCategoryMap {
-	m := make(map[*ExceptionCategoryDefinitions][]string)
+func CreateSpanGroup(data map[*SpanGroupDefinitions]string) *SpanGroup {
+	m := make(map[*SpanGroupDefinitions][]string)
 	for keys, value := range data {
 		m[keys] = append(m[keys], value)
 	}
-	return &ExceptionCategoryMap{m}
+	return &SpanGroup{m}
 }
 
-func (m *ExceptionCategoryMap) Get(attributes *map[string]interface{}) []string {
+func (m *SpanGroup) Get(attributes *map[string]interface{}) []string {
 	matches := make(map[string]int)
 	for definitions, values := range m.value {
 		if definitions.Match(attributes) {
@@ -29,7 +29,7 @@ func (m *ExceptionCategoryMap) Get(attributes *map[string]interface{}) []string 
 	return result
 }
 
-func (m *ExceptionCategoryMap) IsEmpty() bool {
+func (m *SpanGroup) IsEmpty() bool {
 	if m == nil {
 		return true
 	}
