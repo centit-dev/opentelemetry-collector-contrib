@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/spangroup"
@@ -14,8 +13,6 @@ import (
 
 const (
 	appTypeKey = "app.type"
-	tomcatName = "tomcat"
-	nettyName  = "netty"
 )
 
 type AppTypeService struct {
@@ -89,29 +86,15 @@ func (service *AppTypeService) ProcessTraces(ctx context.Context, traces ptrace.
 
 func (service *AppTypeService) processSpan(resources *pcommon.Map, scope *pcommon.InstrumentationScope, span *ptrace.Span) {
 	attributes := span.Attributes()
-	// check java application container
-	if strings.Contains(scope.Name(), tomcatName) {
-		attributes.PutStr(appTypeKey, tomcatName)
-		return
-	}
-	// TODO add netty test case
-	if strings.Contains(scope.Name(), nettyName) {
-		attributes.PutStr(appTypeKey, nettyName)
-		return
-	}
-
-	// if it isn't a java application, it could be a middleware or db
 	if service.groups.IsEmpty() {
 		return
 	}
 	// check db.system
-	dbSystem, ok := attributes.Get(conventions.AttributeDBSystem)
+	_, ok := attributes.Get(conventions.AttributeDBSystem)
 	if !ok {
 		return
 	}
 	queries := make(map[string]interface{}, resources.Len()+attributes.Len())
-	// required
-	queries[conventions.AttributeDBSystem] = dbSystem.AsString()
 	// not all required
 	resources.Range(func(k string, v pcommon.Value) bool {
 		queries[k] = v.AsRaw()
