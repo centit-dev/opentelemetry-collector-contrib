@@ -5,7 +5,7 @@ go 1.20
 require (
 	entgo.io/ent v0.12.5
 	github.com/lib/pq v1.10.9
-	github.com/open-telemetry/opentelemetry-collector-contrib/internal/spangroup v0.89.0
+	github.com/teanoon/opentelemetry-collector-contrib/pkg/spangroup v0.89.0
 	go.opentelemetry.io/collector/component v0.89.0
 	go.opentelemetry.io/collector/consumer v0.89.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0018
@@ -54,4 +54,4 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 )
 
-replace github.com/open-telemetry/opentelemetry-collector-contrib/internal/spangroup => ../../internal/spangroup
+replace github.com/teanoon/opentelemetry-collector-contrib/pkg/spangroup => ../../pkg/spangroup

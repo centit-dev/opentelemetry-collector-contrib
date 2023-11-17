@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/spangroup"
+	"github.com/teanoon/opentelemetry-collector-contrib/pkg/spangroup"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
