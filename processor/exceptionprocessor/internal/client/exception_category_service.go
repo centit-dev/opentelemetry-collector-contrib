@@ -22,7 +22,7 @@ const (
 type ExceptionCategoryService struct {
 	logger     *zap.Logger
 	repository ExceptionCategoryRepository
-	categories *spangroup.SpanGroup
+	categories *spangroup.SpanGroups
 	ticker     *time.Ticker
 }
 

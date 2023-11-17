@@ -18,7 +18,7 @@ const (
 type AppTypeService struct {
 	logger *zap.Logger
 	client DatabaseClient
-	groups *spangroup.SpanGroup
+	groups *spangroup.SpanGroups
 	ticker *time.Ticker
 }
 

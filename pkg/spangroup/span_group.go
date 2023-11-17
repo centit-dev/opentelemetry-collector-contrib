@@ -1,19 +1,23 @@
 package spangroup
 
-// an exception category can be found by multiple keys and the exception full name
-type SpanGroup struct {
+// a group can have multiple groups of definitions
+// each group of definitions have multiple definitions
+// each definition has a column, an operator and a value that matches a list of spans
+// this makes a group of definitions groups spans by requiring them to match all definitions in this group
+// the grouped spans are labeled by the values of the map, eg, the group names
+type SpanGroups struct {
 	value map[*SpanGroupDefinitions][]string
 }
 
-func CreateSpanGroup(data map[*SpanGroupDefinitions]string) *SpanGroup {
+func CreateSpanGroup(data map[*SpanGroupDefinitions]string) *SpanGroups {
 	m := make(map[*SpanGroupDefinitions][]string)
 	for keys, value := range data {
 		m[keys] = append(m[keys], value)
 	}
-	return &SpanGroup{m}
+	return &SpanGroups{m}
 }
 
-func (m *SpanGroup) Get(attributes *map[string]interface{}) []string {
+func (m *SpanGroups) Get(attributes *map[string]interface{}) []string {
 	matches := make(map[string]int)
 	for definitions, values := range m.value {
 		if definitions.Match(attributes) {
@@ -29,7 +33,7 @@ func (m *SpanGroup) Get(attributes *map[string]interface{}) []string {
 	return result
 }
 
-func (m *SpanGroup) IsEmpty() bool {
+func (m *SpanGroups) IsEmpty() bool {
 	if m == nil {
 		return true
 	}
