@@ -67,9 +67,10 @@ func createService(cfg component.Config, logger *zap.Logger) (*client.ExceptionC
 		logger.Sugar().Errorf("Error when creating %s: %s\n", Type, err)
 		return nil, err
 	}
+	repo := client.NewExceptionCategoryRepository(databaseClient)
 
 	// create category service
-	service = client.CreateCategoryService(databaseClient, config.CacheTtlMinutes, logger)
+	service = client.CreateCategoryService(repo, config.CacheTtlMinutes, logger)
 	sharedServices[ServiceCacheKey] = service
 	return service, nil
 }

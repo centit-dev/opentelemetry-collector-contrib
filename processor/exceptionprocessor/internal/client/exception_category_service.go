@@ -21,14 +21,14 @@ const (
 
 type ExceptionCategoryService struct {
 	logger     *zap.Logger
-	client     DatabaseClient
+	repository ExceptionCategoryRepository
 	categories *spangroup.SpanGroup
 	ticker     *time.Ticker
 }
 
-func CreateCategoryService(client DatabaseClient, cacheTtlMinutes time.Duration, logger *zap.Logger) *ExceptionCategoryService {
+func CreateCategoryService(repository ExceptionCategoryRepository, cacheTtlMinutes time.Duration, logger *zap.Logger) *ExceptionCategoryService {
 	ticker := time.NewTicker(cacheTtlMinutes * time.Minute)
-	service := &ExceptionCategoryService{logger, client, nil, ticker}
+	service := &ExceptionCategoryService{logger, repository, nil, ticker}
 	go func() {
 		// build cache asynchronously for every 5 minutes so the first few batches won't be tagged and blocked
 		defer ticker.Stop()
@@ -41,11 +41,11 @@ func CreateCategoryService(client DatabaseClient, cacheTtlMinutes time.Duration,
 }
 
 func (service *ExceptionCategoryService) buildCache(context context.Context) {
-	if service.client == nil {
+	if service.repository == nil {
 		service.logger.Error("Error when building cache: database client is nil")
 		return
 	}
-	records, err := service.client.FindAllDefinitions(context)
+	records, err := service.repository.FindAllDefinitions(context)
 	if err != nil {
 		service.logger.Sugar().Errorf("Error when querying categories: %s\n", err)
 		return
@@ -192,7 +192,7 @@ func (service *ExceptionCategoryService) updateAttributes(attributes *pcommon.Ma
 }
 
 // implement Shutdown from component.Component
-func (service *ExceptionCategoryService) Shutdown(_ context.Context) error {
+func (service *ExceptionCategoryService) Shutdown(ctx context.Context) error {
 	service.ticker.Stop()
-	return service.client.Shutdown()
+	return service.repository.Shutdown(ctx)
 }
