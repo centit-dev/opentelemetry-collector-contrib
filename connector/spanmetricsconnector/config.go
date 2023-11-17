@@ -61,6 +61,9 @@ type Config struct {
 
 	// Exemplars defines the configuration for exemplars.
 	Exemplars ExemplarsConfig `mapstructure:"exemplars"`
+
+	// Events defines the configuration for events section of spans.
+	Events EventsConfig `mapstructure:"events"`
 }
 
 type HistogramConfig struct {
@@ -88,13 +91,22 @@ type ExplicitHistogramConfig struct {
 	Buckets []time.Duration `mapstructure:"buckets"`
 }
 
+type EventsConfig struct {
+	// Enabled is a flag to enable events.
+	Enabled bool `mapstructure:"enabled"`
+	// Dimensions defines the list of dimensions to add to the events metric.
+	Dimensions []Dimension `mapstructure:"dimensions"`
+}
+
 var _ component.ConfigValidator = (*Config)(nil)
 
 // Validate checks if the processor configuration is valid
 func (c Config) Validate() error {
-	err := validateDimensions(c.Dimensions)
-	if err != nil {
-		return err
+	if err := validateDimensions(c.Dimensions); err != nil {
+		return fmt.Errorf("failed validating dimensions: %w", err)
+	}
+	if err := validateEventDimensions(c.Events.Enabled, c.Events.Dimensions); err != nil {
+		return fmt.Errorf("failed validating event dimensions: %w", err)
 	}
 
 	if c.DimensionsCacheSize <= 0 {
@@ -107,6 +119,7 @@ func (c Config) Validate() error {
 	if c.Histogram.Explicit != nil && c.Histogram.Exponential != nil {
 		return errors.New("use either `explicit` or `exponential` buckets histogram")
 	}
+
 	return nil
 }
 
@@ -134,4 +147,15 @@ func validateDimensions(dimensions []Dimension) error {
 	}
 
 	return nil
+}
+
+// validateEventDimensions checks for empty and duplicates for the dimensions configured.
+func validateEventDimensions(enabled bool, dimensions []Dimension) error {
+	if !enabled {
+		return nil
+	}
+	if len(dimensions) == 0 {
+		return fmt.Errorf("no dimensions configured for events")
+	}
+	return validateDimensions(dimensions)
 }
