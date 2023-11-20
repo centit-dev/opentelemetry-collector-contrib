@@ -129,6 +129,7 @@ func formatMap(attributes *schema.Attributes) string {
 	data, _ := attributes.Value()
 	bytes, _ := json.Marshal(data)
 	value := string(bytes)
+	value = strings.ReplaceAll(value, "'", "\\'")
 	value = strings.ReplaceAll(value, "\"", "'")
 	return value
 }
