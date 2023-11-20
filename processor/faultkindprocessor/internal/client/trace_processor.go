@@ -6,16 +6,18 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	conventions "go.opentelemetry.io/collector/semconv/v1.18.0"
+	"go.uber.org/zap"
 )
 
 const faultKindKey = "fault.kind"
 
 type TraceProcessor struct {
+	logger  *zap.Logger
 	service FaultKindService
 }
 
-func CreateTraceProcessor(service FaultKindService) *TraceProcessor {
-	return &TraceProcessor{service}
+func CreateTraceProcessor(logger *zap.Logger, service FaultKindService) *TraceProcessor {
+	return &TraceProcessor{logger, service}
 }
 
 func (p *TraceProcessor) Start(ctx context.Context, _ component.Host) error {

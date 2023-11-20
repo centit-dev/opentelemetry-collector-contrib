@@ -38,7 +38,7 @@ func createTraceProcessor(ctx context.Context, params processor.CreateSettings, 
 
 	repository := client.CreateFaultKindRepositoryImpl(databaseClient)
 	service := client.CreateFaultKindServiceImpl(params.Logger, repository, config.CacheTtlMinutes)
-	processor := client.CreateTraceProcessor(service)
+	processor := client.CreateTraceProcessor(params.Logger, service)
 	// create trace processor with process func
 	return processorhelper.NewTracesProcessor(
 		ctx,

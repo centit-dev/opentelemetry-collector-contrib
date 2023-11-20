@@ -90,6 +90,7 @@ func (s *FaultKindServiceImpl) buildCache(ctx context.Context) error {
 		data[&group] = faultKind.String()
 	}
 	build(definitions.Business, BusinessFault)
+	build(definitions.System, SystemFault)
 	s.groups = spangroup.CreateSpanGroup(data)
 
 	return nil
