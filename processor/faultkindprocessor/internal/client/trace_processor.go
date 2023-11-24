@@ -26,6 +26,9 @@ func (p *TraceProcessor) Start(ctx context.Context, _ component.Host) error {
 }
 
 func (p *TraceProcessor) ProcessTraces(ctx context.Context, traces ptrace.Traces) (ptrace.Traces, error) {
+	if !p.service.IsConfigured(ctx) {
+		return traces, nil
+	}
 	slice := traces.ResourceSpans()
 	for i := 0; i < slice.Len(); i++ {
 		resourceSpans := slice.At(i)

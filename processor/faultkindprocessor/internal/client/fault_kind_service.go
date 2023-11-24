@@ -36,6 +36,7 @@ func (f FaultKind) String() string {
 
 type FaultKindService interface {
 	Start(ctx context.Context)
+	IsConfigured(ctx context.Context) bool
 	MatchFaultKind(ctx context.Context, resourceAttributes *map[string]any, spanAttributes *map[string]any) string
 	Shutdown(ctx context.Context) error
 }
@@ -94,6 +95,10 @@ func (s *FaultKindServiceImpl) buildCache(ctx context.Context) error {
 	s.groups = spangroup.CreateSpanGroup(data)
 
 	return nil
+}
+
+func (s *FaultKindServiceImpl) IsConfigured(ctx context.Context) bool {
+	return s.groups != nil
 }
 
 func (s *FaultKindServiceImpl) MatchFaultKind(ctx context.Context, resourceAttributes *map[string]any, spanAttributes *map[string]any) string {
