@@ -51,9 +51,6 @@ func createTracesExporter(
 	repository := internal.CreateSpanAggregationRepositoryImpl(client, set.Logger)
 	service := internal.CreateSpanAggregationServiceImpl(&c.CacheConfig, &c.BatchConfig, repository, set.Logger)
 	exporter := internal.CreateTraceExporter(service, set.Logger)
-	if err != nil {
-		return nil, fmt.Errorf("cannot configure span aggregation traces exporter: %w", err)
-	}
 
 	return exporterhelper.NewTracesExporter(
 		ctx,

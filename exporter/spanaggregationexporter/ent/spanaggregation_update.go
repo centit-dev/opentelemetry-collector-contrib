@@ -35,9 +35,25 @@ func (sau *SpanAggregationUpdate) SetTimestamp(t time.Time) *SpanAggregationUpda
 	return sau
 }
 
+// SetNillableTimestamp sets the "Timestamp" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillableTimestamp(t *time.Time) *SpanAggregationUpdate {
+	if t != nil {
+		sau.SetTimestamp(*t)
+	}
+	return sau
+}
+
 // SetTraceId sets the "TraceId" field.
 func (sau *SpanAggregationUpdate) SetTraceId(s string) *SpanAggregationUpdate {
 	sau.mutation.SetTraceId(s)
+	return sau
+}
+
+// SetNillableTraceId sets the "TraceId" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillableTraceId(s *string) *SpanAggregationUpdate {
+	if s != nil {
+		sau.SetTraceId(*s)
+	}
 	return sau
 }
 
@@ -47,9 +63,25 @@ func (sau *SpanAggregationUpdate) SetParentSpanId(s string) *SpanAggregationUpda
 	return sau
 }
 
+// SetNillableParentSpanId sets the "ParentSpanId" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillableParentSpanId(s *string) *SpanAggregationUpdate {
+	if s != nil {
+		sau.SetParentSpanId(*s)
+	}
+	return sau
+}
+
 // SetPlatformName sets the "PlatformName" field.
 func (sau *SpanAggregationUpdate) SetPlatformName(s string) *SpanAggregationUpdate {
 	sau.mutation.SetPlatformName(s)
+	return sau
+}
+
+// SetNillablePlatformName sets the "PlatformName" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillablePlatformName(s *string) *SpanAggregationUpdate {
+	if s != nil {
+		sau.SetPlatformName(*s)
+	}
 	return sau
 }
 
@@ -99,9 +131,25 @@ func (sau *SpanAggregationUpdate) SetServiceName(s string) *SpanAggregationUpdat
 	return sau
 }
 
+// SetNillableServiceName sets the "ServiceName" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillableServiceName(s *string) *SpanAggregationUpdate {
+	if s != nil {
+		sau.SetServiceName(*s)
+	}
+	return sau
+}
+
 // SetSpanName sets the "SpanName" field.
 func (sau *SpanAggregationUpdate) SetSpanName(s string) *SpanAggregationUpdate {
 	sau.mutation.SetSpanName(s)
+	return sau
+}
+
+// SetNillableSpanName sets the "SpanName" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillableSpanName(s *string) *SpanAggregationUpdate {
+	if s != nil {
+		sau.SetSpanName(*s)
+	}
 	return sau
 }
 
@@ -124,6 +172,14 @@ func (sau *SpanAggregationUpdate) SetDuration(i int64) *SpanAggregationUpdate {
 	return sau
 }
 
+// SetNillableDuration sets the "Duration" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillableDuration(i *int64) *SpanAggregationUpdate {
+	if i != nil {
+		sau.SetDuration(*i)
+	}
+	return sau
+}
+
 // AddDuration adds i to the "Duration" field.
 func (sau *SpanAggregationUpdate) AddDuration(i int64) *SpanAggregationUpdate {
 	sau.mutation.AddDuration(i)
@@ -137,6 +193,14 @@ func (sau *SpanAggregationUpdate) SetGap(i int64) *SpanAggregationUpdate {
 	return sau
 }
 
+// SetNillableGap sets the "Gap" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillableGap(i *int64) *SpanAggregationUpdate {
+	if i != nil {
+		sau.SetGap(*i)
+	}
+	return sau
+}
+
 // AddGap adds i to the "Gap" field.
 func (sau *SpanAggregationUpdate) AddGap(i int64) *SpanAggregationUpdate {
 	sau.mutation.AddGap(i)
@@ -147,6 +211,14 @@ func (sau *SpanAggregationUpdate) AddGap(i int64) *SpanAggregationUpdate {
 func (sau *SpanAggregationUpdate) SetSelfDuration(i int64) *SpanAggregationUpdate {
 	sau.mutation.ResetSelfDuration()
 	sau.mutation.SetSelfDuration(i)
+	return sau
+}
+
+// SetNillableSelfDuration sets the "SelfDuration" field if the given value is not nil.
+func (sau *SpanAggregationUpdate) SetNillableSelfDuration(i *int64) *SpanAggregationUpdate {
+	if i != nil {
+		sau.SetSelfDuration(*i)
+	}
 	return sau
 }
 
@@ -277,9 +349,25 @@ func (sauo *SpanAggregationUpdateOne) SetTimestamp(t time.Time) *SpanAggregation
 	return sauo
 }
 
+// SetNillableTimestamp sets the "Timestamp" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillableTimestamp(t *time.Time) *SpanAggregationUpdateOne {
+	if t != nil {
+		sauo.SetTimestamp(*t)
+	}
+	return sauo
+}
+
 // SetTraceId sets the "TraceId" field.
 func (sauo *SpanAggregationUpdateOne) SetTraceId(s string) *SpanAggregationUpdateOne {
 	sauo.mutation.SetTraceId(s)
+	return sauo
+}
+
+// SetNillableTraceId sets the "TraceId" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillableTraceId(s *string) *SpanAggregationUpdateOne {
+	if s != nil {
+		sauo.SetTraceId(*s)
+	}
 	return sauo
 }
 
@@ -289,9 +377,25 @@ func (sauo *SpanAggregationUpdateOne) SetParentSpanId(s string) *SpanAggregation
 	return sauo
 }
 
+// SetNillableParentSpanId sets the "ParentSpanId" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillableParentSpanId(s *string) *SpanAggregationUpdateOne {
+	if s != nil {
+		sauo.SetParentSpanId(*s)
+	}
+	return sauo
+}
+
 // SetPlatformName sets the "PlatformName" field.
 func (sauo *SpanAggregationUpdateOne) SetPlatformName(s string) *SpanAggregationUpdateOne {
 	sauo.mutation.SetPlatformName(s)
+	return sauo
+}
+
+// SetNillablePlatformName sets the "PlatformName" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillablePlatformName(s *string) *SpanAggregationUpdateOne {
+	if s != nil {
+		sauo.SetPlatformName(*s)
+	}
 	return sauo
 }
 
@@ -341,9 +445,25 @@ func (sauo *SpanAggregationUpdateOne) SetServiceName(s string) *SpanAggregationU
 	return sauo
 }
 
+// SetNillableServiceName sets the "ServiceName" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillableServiceName(s *string) *SpanAggregationUpdateOne {
+	if s != nil {
+		sauo.SetServiceName(*s)
+	}
+	return sauo
+}
+
 // SetSpanName sets the "SpanName" field.
 func (sauo *SpanAggregationUpdateOne) SetSpanName(s string) *SpanAggregationUpdateOne {
 	sauo.mutation.SetSpanName(s)
+	return sauo
+}
+
+// SetNillableSpanName sets the "SpanName" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillableSpanName(s *string) *SpanAggregationUpdateOne {
+	if s != nil {
+		sauo.SetSpanName(*s)
+	}
 	return sauo
 }
 
@@ -366,6 +486,14 @@ func (sauo *SpanAggregationUpdateOne) SetDuration(i int64) *SpanAggregationUpdat
 	return sauo
 }
 
+// SetNillableDuration sets the "Duration" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillableDuration(i *int64) *SpanAggregationUpdateOne {
+	if i != nil {
+		sauo.SetDuration(*i)
+	}
+	return sauo
+}
+
 // AddDuration adds i to the "Duration" field.
 func (sauo *SpanAggregationUpdateOne) AddDuration(i int64) *SpanAggregationUpdateOne {
 	sauo.mutation.AddDuration(i)
@@ -379,6 +507,14 @@ func (sauo *SpanAggregationUpdateOne) SetGap(i int64) *SpanAggregationUpdateOne 
 	return sauo
 }
 
+// SetNillableGap sets the "Gap" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillableGap(i *int64) *SpanAggregationUpdateOne {
+	if i != nil {
+		sauo.SetGap(*i)
+	}
+	return sauo
+}
+
 // AddGap adds i to the "Gap" field.
 func (sauo *SpanAggregationUpdateOne) AddGap(i int64) *SpanAggregationUpdateOne {
 	sauo.mutation.AddGap(i)
@@ -389,6 +525,14 @@ func (sauo *SpanAggregationUpdateOne) AddGap(i int64) *SpanAggregationUpdateOne 
 func (sauo *SpanAggregationUpdateOne) SetSelfDuration(i int64) *SpanAggregationUpdateOne {
 	sauo.mutation.ResetSelfDuration()
 	sauo.mutation.SetSelfDuration(i)
+	return sauo
+}
+
+// SetNillableSelfDuration sets the "SelfDuration" field if the given value is not nil.
+func (sauo *SpanAggregationUpdateOne) SetNillableSelfDuration(i *int64) *SpanAggregationUpdateOne {
+	if i != nil {
+		sauo.SetSelfDuration(*i)
+	}
 	return sauo
 }
 
