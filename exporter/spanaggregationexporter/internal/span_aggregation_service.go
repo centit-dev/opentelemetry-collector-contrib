@@ -3,10 +3,10 @@ package internal
 import (
 	"context"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/golang-lru/v2/expirable"
+	"github.com/reactivex/rxgo/v2"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanaggregationexporter/ent"
 	"go.uber.org/zap"
 )
@@ -56,84 +56,64 @@ type SpanAggregationServiceImpl struct {
 	parentCache   *expirable.LRU[string, *ent.SpanAggregation]
 	childrenCache *expirable.LRU[string, []*ent.SpanAggregation]
 
+	batchChannel           chan rxgo.Item
+	observable             rxgo.Observable
 	intervalInMilliseconds int
 	batchSize              int
-	batchChannel           chan *channelEntry
-
-	mutex *sync.Mutex
 }
 
 func CreateSpanAggregationServiceImpl(cacheConfig *CacheConfig, batchConfig *BatchConfig, repository SpanAggregationRepository, logger *zap.Logger) *SpanAggregationServiceImpl {
 	traceCache := expirable.NewLRU[string, []*ent.SpanAggregation](cacheConfig.MaxSize, nil, time.Minute*time.Duration(cacheConfig.ExpireInMinutes))
 	parentCache := expirable.NewLRU[string, *ent.SpanAggregation](cacheConfig.MaxSize, nil, time.Minute*time.Duration(cacheConfig.ExpireInMinutes))
 	childrenCache := expirable.NewLRU[string, []*ent.SpanAggregation](cacheConfig.MaxSize, nil, time.Minute*time.Duration(cacheConfig.ExpireInMinutes))
-	mutext := &sync.Mutex{}
+	channel := make(chan rxgo.Item, 1000)
 	return &SpanAggregationServiceImpl{
-		logger, repository,
-		traceCache, parentCache, childrenCache,
-		batchConfig.BatchSize, batchConfig.IntervalInMilliseconds, make(chan *channelEntry, 100),
-		mutext,
+		logger:                 logger,
+		repository:             repository,
+		traceCache:             traceCache,
+		parentCache:            parentCache,
+		childrenCache:          childrenCache,
+		batchChannel:           channel,
+		observable:             rxgo.FromChannel(channel),
+		intervalInMilliseconds: batchConfig.IntervalInMilliseconds,
+		batchSize:              batchConfig.BatchSize,
 	}
 }
 
 func (service *SpanAggregationServiceImpl) Start(ctx context.Context) {
-	ticker := time.NewTicker(time.Millisecond * time.Duration(service.intervalInMilliseconds))
-	toCreateBatch := make([]*ent.SpanAggregation, 0, service.batchSize)
-	toUpdateBatch := make([]*ent.SpanAggregation, 0, service.batchSize)
-	// a new span is always to be created
-	// so the lightweight delete operation can have a smaller where clause
-	pending := make(map[string]int)
-
-	flushBatchFunc := func(threshold int) {
-		if len(toCreateBatch)+len(toUpdateBatch) > threshold {
-			service.logger.Debug("flushing batch")
-			err := service.repository.SaveAll(ctx, toCreateBatch, toUpdateBatch)
-			if err != nil {
-				service.logger.Error("failed to save batch", zap.Error(err))
-			}
-			for _, span := range toCreateBatch {
-				delete(pending, span.ID)
-			}
-			toCreateBatch = toCreateBatch[:0]
-			toUpdateBatch = toUpdateBatch[:0]
-		}
-	}
-
-	go func(ctx context.Context) {
-		service.logger.Debug("span aggregation service started")
-		defer service.logger.Debug("span aggregation service stopped")
-		for {
-			select {
-			case entry, ok := <-service.batchChannel:
-				service.logger.Sugar().Debugf("receiving span %v %v %v", entry.span, entry.op, ok)
-				if !ok {
-					flushBatchFunc(0)
-					break
-				}
-
-				if entry == nil {
-					break
-				}
-
-				if entry.op == create {
-					toCreateBatch = append(toCreateBatch, entry.span)
-					pending[entry.span.ID] = 1
-				} else if entry.op == update && pending[entry.span.ID] != 1 {
-					toUpdateBatch = append(toUpdateBatch, entry.span)
-				}
-				flushBatchFunc(service.batchSize)
-				ticker.Reset(time.Millisecond * time.Duration(service.intervalInMilliseconds))
-			case <-ticker.C:
-				service.logger.Debug("flushing batch by timer")
-				flushBatchFunc(0)
-			case <-ctx.Done():
-				close(service.batchChannel)
-				ticker.Stop()
-				flushBatchFunc(0)
+	service.observable.
+		BufferWithTimeOrCount(
+			rxgo.WithDuration(time.Millisecond*time.Duration(service.intervalInMilliseconds)),
+			service.batchSize).
+		DoOnNext(func(items interface{}) {
+			service.logger.Debug("received batch")
+			values, ok := items.([]interface{})
+			if !ok {
 				return
 			}
-		}
-	}(ctx)
+			seen := make(map[string]bool, len(values))
+			creates := make([]*ent.SpanAggregation, 0, len(values))
+			updates := make([]*ent.SpanAggregation, 0, len(values))
+			for _, item := range values {
+				entry, ok := item.(*channelEntry)
+				if !ok {
+					continue
+				}
+				if seen[entry.span.ID] {
+					continue
+				}
+				if entry.op == create {
+					creates = append(creates, entry.span)
+				} else if entry.op == update {
+					updates = append(updates, entry.span)
+				}
+				seen[entry.span.ID] = true
+				err := service.repository.SaveAll(ctx, creates, updates)
+				if err != nil {
+					service.logger.Error("failed to save batch", zap.Error(err))
+				}
+			}
+		}, rxgo.WithPool(10))
 }
 
 // the span is always new to the trace
@@ -150,7 +130,7 @@ func (service *SpanAggregationServiceImpl) Save(ctx context.Context, span *ent.S
 
 	for _, entry := range upsertBatch {
 		service.logger.Sugar().Debugf("saving span %v %v", entry.span, entry.op)
-		service.batchChannel <- entry
+		service.batchChannel <- rxgo.Of(entry)
 	}
 	return nil
 }
@@ -238,9 +218,6 @@ func (service *SpanAggregationServiceImpl) buildCacheByTraceId(ctx context.Conte
 	if service.traceCache.Contains(traceId) {
 		return nil
 	}
-	// TODO use lock per trace
-	service.mutex.Lock()
-	defer service.mutex.Unlock()
 
 	aggregations, err := service.repository.FindAllByTraceId(ctx, traceId)
 	if err != nil {
@@ -316,6 +293,9 @@ func (SpanAggregationServiceImpl) calculateSelfDuration(span *ent.SpanAggregatio
 }
 
 func (service *SpanAggregationServiceImpl) Shutdown(ctx context.Context) error {
+	_, cancel := service.observable.Connect(ctx)
+	cancel()
+	close(service.batchChannel)
 	service.traceCache.Purge()
 	service.parentCache.Purge()
 	service.childrenCache.Purge()

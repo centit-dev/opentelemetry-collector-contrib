@@ -2,12 +2,12 @@ package internal
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/golang-lru/v2/expirable"
+	"github.com/reactivex/rxgo/v2"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanaggregationexporter/ent"
 	"go.uber.org/zap"
 )
@@ -189,6 +189,7 @@ func TestSpanAggregationServiceImpl_Save(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			repository := CreateDummySpanAggregationRepositoryImpl(tt.cached)
+			channel := make(chan rxgo.Item, 100)
 			service := &SpanAggregationServiceImpl{
 				repository:             repository,
 				logger:                 zap.NewExample(),
@@ -197,8 +198,8 @@ func TestSpanAggregationServiceImpl_Save(t *testing.T) {
 				childrenCache:          expirable.NewLRU[string, []*ent.SpanAggregation](1000, nil, time.Minute),
 				intervalInMilliseconds: 5,
 				batchSize:              1000,
-				batchChannel:           make(chan *channelEntry, 100),
-				mutex:                  &sync.Mutex{},
+				batchChannel:           channel,
+				observable:             rxgo.FromChannel(channel),
 			}
 			ctx, cancel := context.WithCancel(context.Background())
 			service.Start(ctx)
