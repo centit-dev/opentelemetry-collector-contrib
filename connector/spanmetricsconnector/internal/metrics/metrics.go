@@ -318,41 +318,6 @@ func (s *Sum) Add(value uint64) {
 	s.count += value
 }
 
-type SumDelta struct {
-	// current cumulative count
-	count uint64
-	// change since last count
-	delta int64
-	// diff since last delta
-	diff int64
-}
-
-// calculate the delta since the count changed
-// update the count when delta is recorded
-func (s *SumDelta) SetCount(count uint64) {
-	delta := int64(count - s.count)
-	s.diff = delta - s.delta
-	s.delta = delta
-	s.count = count
-}
-
-type SumDeltaMetrics struct {
-	metrics map[Key]*SumDelta
-}
-
-func NewSumDeltaMetrics() *SumDeltaMetrics {
-	return &SumDeltaMetrics{metrics: make(map[Key]*SumDelta)}
-}
-
-func (m *SumDeltaMetrics) GetOrCreate(key Key) *SumDelta {
-	s, ok := m.metrics[key]
-	if !ok {
-		s = &SumDelta{}
-		m.metrics[key] = s
-	}
-	return s
-}
-
 func NewSumMetrics() SumMetrics {
 	return SumMetrics{metrics: make(map[Key]*Sum)}
 }
@@ -400,28 +365,6 @@ func (m *SumMetrics) BuildMetrics(
 			s.exemplars.At(i).SetTimestamp(timestamp)
 		}
 		s.exemplars.CopyTo(dp.Exemplars())
-		s.attributes.CopyTo(dp.Attributes())
-	}
-}
-
-func (m *SumMetrics) BuildDeltaMetrics(
-	metric pmetric.Metric,
-	deltaMetrics *SumDeltaMetrics,
-	start pcommon.Timestamp,
-) {
-	metric.SetEmptyGauge()
-	dps := metric.Gauge().DataPoints()
-	dps.EnsureCapacity(len(m.metrics))
-	timestamp := pcommon.NewTimestampFromTime(time.Now())
-	for key, s := range m.metrics {
-		// build snapshot before the metrics are built
-		delta := deltaMetrics.GetOrCreate(key)
-		delta.SetCount(s.count)
-
-		dp := dps.AppendEmpty()
-		dp.SetStartTimestamp(start)
-		dp.SetTimestamp(timestamp)
-		dp.SetIntValue(int64(delta.diff))
 		s.attributes.CopyTo(dp.Attributes())
 	}
 }

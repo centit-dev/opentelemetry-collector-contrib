@@ -30,6 +30,7 @@ const (
 	spanNameKey        = "span.name"   // OpenTelemetry non-standard constant.
 	spanKindKey        = "span.kind"   // OpenTelemetry non-standard constant.
 	statusCodeKey      = "status.code" // OpenTelemetry non-standard constant.
+	faultKindKey       = "fault.kind"  // OpenTelemetry non-standard constant.
 	metricKeySeparator = string(byte(0))
 
 	defaultDimensionsCacheSize = 1000
@@ -37,7 +38,6 @@ const (
 	metricNameDuration            = "duration"
 	metricNameDurationPercentiles = "durationPercentiles"
 	metricNameCalls               = "calls"
-	metricNameCallDeltas          = "callDeltas"
 	metricNameEvents              = "events"
 
 	defaultUnit = metrics.Milliseconds
@@ -56,8 +56,7 @@ type connectorImp struct {
 	// The starting time of the data points.
 	startTimestamp pcommon.Timestamp
 
-	resourceMetrics         map[resourceKey]*resourceMetrics
-	resourceMetricsSnapshot map[resourceKey]*metrics.SumDeltaMetrics
+	resourceMetrics map[resourceKey]*resourceMetrics
 
 	keyBuf *bytes.Buffer
 
@@ -115,18 +114,17 @@ func newConnector(logger *zap.Logger, config component.Config, ticker *clock.Tic
 	}
 
 	return &connectorImp{
-		logger:                  logger,
-		config:                  *cfg,
-		startTimestamp:          pcommon.NewTimestampFromTime(time.Now()),
-		resourceMetrics:         make(map[resourceKey]*resourceMetrics),
-		resourceMetricsSnapshot: make(map[resourceKey]*metrics.SumDeltaMetrics),
-		dimensions:              newDimensions(cfg.Dimensions),
-		keyBuf:                  bytes.NewBuffer(make([]byte, 0, 1024)),
-		metricKeyToDimensions:   metricKeyToDimensionsCache,
-		ticker:                  ticker,
-		done:                    make(chan struct{}),
-		eDimensions:             newDimensions(cfg.Events.Dimensions),
-		events:                  cfg.Events,
+		logger:                logger,
+		config:                *cfg,
+		startTimestamp:        pcommon.NewTimestampFromTime(time.Now()),
+		resourceMetrics:       make(map[resourceKey]*resourceMetrics),
+		dimensions:            newDimensions(cfg.Dimensions),
+		keyBuf:                bytes.NewBuffer(make([]byte, 0, 1024)),
+		metricKeyToDimensions: metricKeyToDimensionsCache,
+		ticker:                ticker,
+		done:                  make(chan struct{}),
+		eDimensions:           newDimensions(cfg.Events.Dimensions),
+		events:                cfg.Events,
 	}, nil
 }
 
@@ -241,7 +239,7 @@ func (p *connectorImp) exportMetrics(ctx context.Context) {
 // buildMetrics collects the computed raw metrics data and builds OTLP metrics.
 func (p *connectorImp) buildMetrics() pmetric.Metrics {
 	m := pmetric.NewMetrics()
-	for resourceKey, rawMetrics := range p.resourceMetrics {
+	for _, rawMetrics := range p.resourceMetrics {
 		rm := m.ResourceMetrics().AppendEmpty()
 		rawMetrics.attributes.CopyTo(rm.Resource().Attributes())
 
@@ -252,12 +250,6 @@ func (p *connectorImp) buildMetrics() pmetric.Metrics {
 		metric := sm.Metrics().AppendEmpty()
 		metric.SetName(buildMetricName(p.config.Namespace, metricNameCalls))
 		sums.BuildMetrics(metric, p.startTimestamp, p.config.GetAggregationTemporality())
-
-		// this is a new metric with a new name
-		metric = sm.Metrics().AppendEmpty()
-		metric.SetName(buildMetricName(p.config.Namespace, metricNameCallDeltas))
-		deltaMetrics := p.getOrCreateResourceMetricsSnapshot(resourceKey)
-		sums.BuildDeltaMetrics(metric, deltaMetrics, p.startTimestamp)
 
 		if !p.config.Histogram.Disable {
 			histograms := rawMetrics.histograms
@@ -425,15 +417,6 @@ func (p *connectorImp) getOrCreateResourceMetrics(attr pcommon.Map) *resourceMet
 			attributes: attr,
 		}
 		p.resourceMetrics[key] = v
-	}
-	return v
-}
-
-func (p *connectorImp) getOrCreateResourceMetricsSnapshot(key resourceKey) *metrics.SumDeltaMetrics {
-	v, ok := p.resourceMetricsSnapshot[key]
-	if !ok {
-		v = metrics.NewSumDeltaMetrics()
-		p.resourceMetricsSnapshot[key] = v
 	}
 	return v
 }
