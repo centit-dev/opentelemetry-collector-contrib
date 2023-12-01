@@ -38,6 +38,7 @@ const (
 	metricNameDuration            = "duration"
 	metricNameDurationPercentiles = "durationPercentiles"
 	metricNameCalls               = "calls"
+	metricNameErrorRates          = "errorRates"
 	metricNameEvents              = "events"
 
 	defaultUnit = metrics.Milliseconds
@@ -80,6 +81,7 @@ type resourceMetrics struct {
 	histograms metrics.HistogramMetrics
 	durations  metrics.PercentileMetrics
 	sums       metrics.SumMetrics
+	traces     metrics.ErrorRateMetrics
 	events     metrics.SumMetrics
 	attributes pcommon.Map
 }
@@ -251,6 +253,11 @@ func (p *connectorImp) buildMetrics() pmetric.Metrics {
 		metric.SetName(buildMetricName(p.config.Namespace, metricNameCalls))
 		sums.BuildMetrics(metric, p.startTimestamp, p.config.GetAggregationTemporality())
 
+		traces := rawMetrics.traces
+		metric = sm.Metrics().AppendEmpty()
+		metric.SetName(buildMetricName(p.config.Namespace, metricNameErrorRates))
+		traces.BuildMetrics(metric, p.startTimestamp)
+
 		if !p.config.Histogram.Disable {
 			histograms := rawMetrics.histograms
 			metric = sm.Metrics().AppendEmpty()
@@ -287,20 +294,17 @@ func (p *connectorImp) resetState() {
 	} else {
 		p.metricKeyToDimensions.RemoveEvictedItems()
 
-		if !p.config.Percentile.Disable {
-			for _, m := range p.resourceMetrics {
+		for _, m := range p.resourceMetrics {
+			m.traces.Reset()
+
+			if !p.config.Percentile.Disable {
 				m.durations.Reset()
 			}
-		}
 
-		// Exemplars are only relevant to this batch of traces, so must be cleared within the lock
-		if p.config.Histogram.Disable {
-			return
+			if !p.config.Histogram.Disable {
+				m.histograms.Reset(false)
+			}
 		}
-		for _, m := range p.resourceMetrics {
-			m.histograms.Reset(true)
-		}
-
 	}
 }
 
@@ -321,6 +325,7 @@ func (p *connectorImp) aggregateMetrics(traces ptrace.Traces) {
 
 		rm := p.getOrCreateResourceMetrics(resourceAttr)
 		sums := rm.sums
+		traces := rm.traces
 		histograms := rm.histograms
 		durations := rm.durations
 		events := rm.events
@@ -364,6 +369,23 @@ func (p *connectorImp) aggregateMetrics(traces ptrace.Traces) {
 					s.AddExemplar(span.TraceID(), span.SpanID(), duration)
 				}
 				s.Add(1)
+
+				// aggregate trace metrics
+				if span.ParentSpanID().IsEmpty() {
+					traceKey := p.buildTraceKey(serviceName, span)
+					traceAttributes, ok := p.metricKeyToDimensions.Get(traceKey)
+					if !ok {
+						traceAttributes = p.buildTraceAttributes(serviceName, span)
+						p.metricKeyToDimensions.Add(traceKey, traceAttributes)
+					}
+					trace := traces.GetOrCreate(traceKey, traceAttributes)
+					faultKind, ok := span.Attributes().Get(faultKindKey)
+					if ok {
+						trace.Add(1, faultKind.Str())
+					} else {
+						trace.Add(1, "")
+					}
+				}
 
 				// aggregate events metrics
 				if p.events.Enabled {
@@ -413,6 +435,7 @@ func (p *connectorImp) getOrCreateResourceMetrics(attr pcommon.Map) *resourceMet
 			histograms: initHistogramMetrics(p.config),
 			durations:  metrics.NewPercentileMetrics(),
 			sums:       metrics.NewSumMetrics(),
+			traces:     metrics.NewErrorRateMetrics(),
 			events:     metrics.NewSumMetrics(),
 			attributes: attr,
 		}
@@ -488,6 +511,23 @@ func (p *connectorImp) buildKey(serviceName string, span ptrace.Span, optionalDi
 	}
 
 	return metrics.Key(p.keyBuf.String())
+}
+
+// build the trace key like buildKey, but the span must not have a parent.
+// it groups metrics by service name, span name and fault kind so the error trending can be calculated.
+func (p *connectorImp) buildTraceKey(serviceName string, span ptrace.Span) metrics.Key {
+	p.keyBuf.Reset()
+	concatDimensionValue(p.keyBuf, serviceName, false)
+	concatDimensionValue(p.keyBuf, span.Name(), true)
+	return metrics.Key(p.keyBuf.String())
+}
+
+func (p *connectorImp) buildTraceAttributes(serviceName string, span ptrace.Span) pcommon.Map {
+	attr := pcommon.NewMap()
+	attr.EnsureCapacity(3)
+	attr.PutStr(serviceNameKey, serviceName)
+	attr.PutStr(spanNameKey, span.Name())
+	return attr
 }
 
 // getDimensionValue gets the dimension value for the given configured dimension.

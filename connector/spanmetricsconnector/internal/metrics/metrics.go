@@ -13,6 +13,12 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
+const (
+	faultKindKey       = "fault.kind"
+	businessFaultValue = "BusinessFault"
+	systemFaultValue   = "SystemFault"
+)
+
 type Key string
 
 type HistogramMetrics interface {
@@ -371,4 +377,74 @@ func (m *SumMetrics) BuildMetrics(
 
 func (m *SumMetrics) Reset() {
 	m.metrics = make(map[Key]*Sum)
+}
+
+type ErrorRate struct {
+	attributes         pcommon.Map
+	totalCount         uint64
+	businessFaultCount uint64
+	systemFaultCount   uint64
+}
+
+func (e *ErrorRate) Add(value uint64, faultKind string) {
+	e.totalCount += value
+	// hardcoding
+	if faultKind == businessFaultValue {
+		e.businessFaultCount += value
+	} else if faultKind == systemFaultValue {
+		e.systemFaultCount += value
+	}
+}
+
+type ErrorRateMetrics struct {
+	metrics map[Key]*ErrorRate
+}
+
+func NewErrorRateMetrics() ErrorRateMetrics {
+	return ErrorRateMetrics{metrics: make(map[Key]*ErrorRate)}
+}
+
+func (m *ErrorRateMetrics) GetOrCreate(key Key, attributes pcommon.Map) *ErrorRate {
+	s, ok := m.metrics[key]
+	if !ok {
+		s = &ErrorRate{
+			attributes: attributes,
+		}
+		m.metrics[key] = s
+	}
+	return s
+}
+
+func (m *ErrorRateMetrics) BuildMetrics(metric pmetric.Metric, start pcommon.Timestamp) {
+	metric.SetEmptyGauge()
+
+	dps := metric.Gauge().DataPoints()
+	dps.EnsureCapacity(len(m.metrics))
+	timestamp := pcommon.NewTimestampFromTime(time.Now())
+	for _, s := range m.metrics {
+		// business error rate
+		dp := dps.AppendEmpty()
+		dp.SetStartTimestamp(start)
+		dp.SetTimestamp(timestamp)
+		dp.SetDoubleValue(float64(s.businessFaultCount) / float64(s.totalCount))
+		s.attributes.CopyTo(dp.Attributes())
+		dp.Attributes().PutStr(faultKindKey, businessFaultValue)
+
+		// system error rate
+		dp = dps.AppendEmpty()
+		dp.SetStartTimestamp(start)
+		dp.SetTimestamp(timestamp)
+		dp.SetDoubleValue(float64(s.systemFaultCount) / float64(s.totalCount))
+		s.attributes.CopyTo(dp.Attributes())
+		dp.Attributes().PutStr(faultKindKey, systemFaultValue)
+	}
+}
+
+// Reset resets the metrics error count but keep the total count
+// because the simple linear regression algorithm uses the total count and the delta error count
+func (m *ErrorRateMetrics) Reset() {
+	for _, s := range m.metrics {
+		s.businessFaultCount = 0
+		s.systemFaultCount = 0
+	}
 }
