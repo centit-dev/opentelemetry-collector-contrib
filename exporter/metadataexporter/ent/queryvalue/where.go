@@ -65,6 +65,11 @@ func Value(v string) predicate.QueryValue {
 	return predicate.QueryValue(sql.FieldEQ(FieldValue, v))
 }
 
+// ValidDate applies equality check predicate on the "valid_date" field. It's identical to ValidDateEQ.
+func ValidDate(v time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldEQ(FieldValidDate, v))
+}
+
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.QueryValue {
 	return predicate.QueryValue(sql.FieldEQ(FieldCreateTime, v))
@@ -158,6 +163,46 @@ func ValueEqualFold(v string) predicate.QueryValue {
 // ValueContainsFold applies the ContainsFold predicate on the "value" field.
 func ValueContainsFold(v string) predicate.QueryValue {
 	return predicate.QueryValue(sql.FieldContainsFold(FieldValue, v))
+}
+
+// ValidDateEQ applies the EQ predicate on the "valid_date" field.
+func ValidDateEQ(v time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldEQ(FieldValidDate, v))
+}
+
+// ValidDateNEQ applies the NEQ predicate on the "valid_date" field.
+func ValidDateNEQ(v time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldNEQ(FieldValidDate, v))
+}
+
+// ValidDateIn applies the In predicate on the "valid_date" field.
+func ValidDateIn(vs ...time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldIn(FieldValidDate, vs...))
+}
+
+// ValidDateNotIn applies the NotIn predicate on the "valid_date" field.
+func ValidDateNotIn(vs ...time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldNotIn(FieldValidDate, vs...))
+}
+
+// ValidDateGT applies the GT predicate on the "valid_date" field.
+func ValidDateGT(v time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldGT(FieldValidDate, v))
+}
+
+// ValidDateGTE applies the GTE predicate on the "valid_date" field.
+func ValidDateGTE(v time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldGTE(FieldValidDate, v))
+}
+
+// ValidDateLT applies the LT predicate on the "valid_date" field.
+func ValidDateLT(v time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldLT(FieldValidDate, v))
+}
+
+// ValidDateLTE applies the LTE predicate on the "valid_date" field.
+func ValidDateLTE(v time.Time) predicate.QueryValue {
+	return predicate.QueryValue(sql.FieldLTE(FieldValidDate, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.

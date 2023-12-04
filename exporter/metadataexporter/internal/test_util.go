@@ -29,7 +29,8 @@ func createQueryKey() *ent.QueryKey {
 
 func createQueryValue() *ent.QueryValue {
 	return &ent.QueryValue{
-		Value: []string{"value1", "value2", "value3", "value4", "value5"}[rand.Int31n(5)],
+		Value:     []string{"value1", "value2", "value3", "value4", "value5"}[rand.Int31n(5)],
+		ValidDate: time.Now().AddDate(0, 0, 90),
 	}
 }
 

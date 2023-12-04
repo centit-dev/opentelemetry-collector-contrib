@@ -16,6 +16,8 @@ const (
 	FieldKeyID = "key_id"
 	// FieldValue holds the string denoting the value field in the database.
 	FieldValue = "value"
+	// FieldValidDate holds the string denoting the valid_date field in the database.
+	FieldValidDate = "valid_date"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
@@ -38,6 +40,7 @@ var Columns = []string{
 	FieldID,
 	FieldKeyID,
 	FieldValue,
+	FieldValidDate,
 	FieldCreateTime,
 	FieldUpdateTime,
 }
@@ -68,6 +71,11 @@ func ByKeyID(opts ...sql.OrderTermOption) OrderOption {
 // ByValue orders the results by the value field.
 func ByValue(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldValue, opts...).ToFunc()
+}
+
+// ByValidDate orders the results by the valid_date field.
+func ByValidDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldValidDate, opts...).ToFunc()
 }
 
 // ByCreateTime orders the results by the create_time field.

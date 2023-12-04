@@ -25,6 +25,7 @@ func (QueryValue) Fields() []ent.Field {
 		field.Int64("id").Unique(),
 		field.Int64("key_id"),
 		field.String("value"),
+		field.Time("valid_date"),
 		field.Time("create_time"),
 		field.Time("update_time"),
 	}

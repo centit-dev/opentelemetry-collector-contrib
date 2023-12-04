@@ -57,6 +57,20 @@ func (qvu *QueryValueUpdate) SetNillableValue(s *string) *QueryValueUpdate {
 	return qvu
 }
 
+// SetValidDate sets the "valid_date" field.
+func (qvu *QueryValueUpdate) SetValidDate(t time.Time) *QueryValueUpdate {
+	qvu.mutation.SetValidDate(t)
+	return qvu
+}
+
+// SetNillableValidDate sets the "valid_date" field if the given value is not nil.
+func (qvu *QueryValueUpdate) SetNillableValidDate(t *time.Time) *QueryValueUpdate {
+	if t != nil {
+		qvu.SetValidDate(*t)
+	}
+	return qvu
+}
+
 // SetCreateTime sets the "create_time" field.
 func (qvu *QueryValueUpdate) SetCreateTime(t time.Time) *QueryValueUpdate {
 	qvu.mutation.SetCreateTime(t)
@@ -151,6 +165,9 @@ func (qvu *QueryValueUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qvu.mutation.Value(); ok {
 		_spec.SetField(queryvalue.FieldValue, field.TypeString, value)
 	}
+	if value, ok := qvu.mutation.ValidDate(); ok {
+		_spec.SetField(queryvalue.FieldValidDate, field.TypeTime, value)
+	}
 	if value, ok := qvu.mutation.CreateTime(); ok {
 		_spec.SetField(queryvalue.FieldCreateTime, field.TypeTime, value)
 	}
@@ -230,6 +247,20 @@ func (qvuo *QueryValueUpdateOne) SetValue(s string) *QueryValueUpdateOne {
 func (qvuo *QueryValueUpdateOne) SetNillableValue(s *string) *QueryValueUpdateOne {
 	if s != nil {
 		qvuo.SetValue(*s)
+	}
+	return qvuo
+}
+
+// SetValidDate sets the "valid_date" field.
+func (qvuo *QueryValueUpdateOne) SetValidDate(t time.Time) *QueryValueUpdateOne {
+	qvuo.mutation.SetValidDate(t)
+	return qvuo
+}
+
+// SetNillableValidDate sets the "valid_date" field if the given value is not nil.
+func (qvuo *QueryValueUpdateOne) SetNillableValidDate(t *time.Time) *QueryValueUpdateOne {
+	if t != nil {
+		qvuo.SetValidDate(*t)
 	}
 	return qvuo
 }
@@ -357,6 +388,9 @@ func (qvuo *QueryValueUpdateOne) sqlSave(ctx context.Context) (_node *QueryValue
 	}
 	if value, ok := qvuo.mutation.Value(); ok {
 		_spec.SetField(queryvalue.FieldValue, field.TypeString, value)
+	}
+	if value, ok := qvuo.mutation.ValidDate(); ok {
+		_spec.SetField(queryvalue.FieldValidDate, field.TypeTime, value)
 	}
 	if value, ok := qvuo.mutation.CreateTime(); ok {
 		_spec.SetField(queryvalue.FieldCreateTime, field.TypeTime, value)

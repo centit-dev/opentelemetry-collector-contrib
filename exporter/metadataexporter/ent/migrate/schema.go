@@ -29,6 +29,7 @@ var (
 	TbQueryValueColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "value", Type: field.TypeString},
+		{Name: "valid_date", Type: field.TypeTime},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "key_id", Type: field.TypeInt64},
@@ -41,7 +42,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "tb_query_value_tb_query_key_values",
-				Columns:    []*schema.Column{TbQueryValueColumns[4]},
+				Columns:    []*schema.Column{TbQueryValueColumns[5]},
 				RefColumns: []*schema.Column{TbQueryKeyColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

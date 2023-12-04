@@ -11,6 +11,7 @@ import (
 type QueryKeyRepository interface {
 	FindAll(ctx context.Context) ([]*ent.QueryKey, error)
 	FindAllByNames(ctx context.Context, names []string) ([]*ent.QueryKey, error)
+	RefreshAllById(ctx context.Context, ids []int64, validDate time.Time) error
 	DeleteOutdated(ctx context.Context) error
 	// the collector may execute in parallel, so the key/value cache may be out of date
 	// double check the database state before creating duplicates
@@ -46,6 +47,18 @@ func (repository *QueryKeyRepositoryImpl) FindAllByNames(ctx context.Context, na
 		Where(querykey.ValidDateGTE(time.Now()), querykey.NameIn(names...)).
 		WithValues().
 		All(ctx)
+}
+
+func (repository *QueryKeyRepositoryImpl) RefreshAllById(ctx context.Context, ids []int64, validDate time.Time) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	_, err := repository.client.delegate.QueryKey.Update().
+		Where(querykey.IDIn(ids...)).
+		SetValidDate(validDate).
+		Save(ctx)
+	return err
 }
 
 func (repository *QueryKeyRepositoryImpl) DeleteOutdated(ctx context.Context) error {
@@ -100,6 +113,7 @@ func (repository *QueryKeyRepositoryImpl) RefreshState(ctx context.Context, quer
 				queryValue.ID = existing.ID
 				queryValue.KeyID = existing.KeyID
 				queryValue.Value = existing.Value
+				queryValue.ValidDate = existing.ValidDate
 				queryValue.CreateTime = existing.CreateTime
 				queryValue.UpdateTime = existing.UpdateTime
 				queryValue.Edges.Key = existing.Edges.Key
@@ -244,6 +258,7 @@ func (repository *QueryKeyRepositoryImpl) createQueryValues(ctx context.Context,
 			queryValue.Edges.Key = queryKey
 			queryValues = append(queryValues, tx.QueryValue.Create().
 				SetValue(queryValue.Value).
+				SetValidDate(queryValue.ValidDate).
 				SetCreateTime(queryValue.CreateTime).
 				SetUpdateTime(queryValue.UpdateTime).
 				SetKeyID(queryKey.ID))

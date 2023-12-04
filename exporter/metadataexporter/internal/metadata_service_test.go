@@ -11,9 +11,10 @@ import (
 // disable for integration test
 func DisabledTestMetadataServiceImpl_upsertAll(t *testing.T) {
 	client := createTestClient()
-	repo := CreateQueryKeyRepository(client)
+	keyRepo := CreateQueryKeyRepository(client)
+	valueRepo := CreateQueryValueRepository(client)
 	logger := zap.NewExample()
-	service := CreateMetadataService(&CacheConfig{}, &BatchConfig{}, 90, logger, repo)
+	service := CreateMetadataService(&CacheConfig{}, &BatchConfig{}, 90, logger, keyRepo, valueRepo)
 
 	// create all new keys and values
 	queryKeys := make([]interface{}, 0, 15)

@@ -48,7 +48,14 @@ func createMetadataExporter(
 		return nil, fmt.Errorf("cannot create postgres sql client: %w", err)
 	}
 	queryKeyRepository := internal.CreateQueryKeyRepository(client)
-	service := internal.CreateMetadataService(&c.CacheConfig, &c.BatchConfig, c.QueryKeyTtlInDays, set.Logger, queryKeyRepository)
+	queryValueRepository := internal.CreateQueryValueRepository(client)
+	service := internal.CreateMetadataService(
+		&c.CacheConfig,
+		&c.BatchConfig,
+		c.QueryKeyTtlInDays,
+		set.Logger,
+		queryKeyRepository,
+		queryValueRepository)
 	exporter := internal.CreateMetadataExporter(service)
 
 	return exporterhelper.NewTracesExporter(

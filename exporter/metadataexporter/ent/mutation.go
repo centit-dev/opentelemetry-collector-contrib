@@ -731,6 +731,7 @@ type QueryValueMutation struct {
 	typ           string
 	id            *int64
 	value         *string
+	valid_date    *time.Time
 	create_time   *time.Time
 	update_time   *time.Time
 	clearedFields map[string]struct{}
@@ -917,6 +918,42 @@ func (m *QueryValueMutation) ResetValue() {
 	m.value = nil
 }
 
+// SetValidDate sets the "valid_date" field.
+func (m *QueryValueMutation) SetValidDate(t time.Time) {
+	m.valid_date = &t
+}
+
+// ValidDate returns the value of the "valid_date" field in the mutation.
+func (m *QueryValueMutation) ValidDate() (r time.Time, exists bool) {
+	v := m.valid_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValidDate returns the old "valid_date" field's value of the QueryValue entity.
+// If the QueryValue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QueryValueMutation) OldValidDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValidDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValidDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValidDate: %w", err)
+	}
+	return oldValue.ValidDate, nil
+}
+
+// ResetValidDate resets all changes to the "valid_date" field.
+func (m *QueryValueMutation) ResetValidDate() {
+	m.valid_date = nil
+}
+
 // SetCreateTime sets the "create_time" field.
 func (m *QueryValueMutation) SetCreateTime(t time.Time) {
 	m.create_time = &t
@@ -1050,12 +1087,15 @@ func (m *QueryValueMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *QueryValueMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.key != nil {
 		fields = append(fields, queryvalue.FieldKeyID)
 	}
 	if m.value != nil {
 		fields = append(fields, queryvalue.FieldValue)
+	}
+	if m.valid_date != nil {
+		fields = append(fields, queryvalue.FieldValidDate)
 	}
 	if m.create_time != nil {
 		fields = append(fields, queryvalue.FieldCreateTime)
@@ -1075,6 +1115,8 @@ func (m *QueryValueMutation) Field(name string) (ent.Value, bool) {
 		return m.KeyID()
 	case queryvalue.FieldValue:
 		return m.Value()
+	case queryvalue.FieldValidDate:
+		return m.ValidDate()
 	case queryvalue.FieldCreateTime:
 		return m.CreateTime()
 	case queryvalue.FieldUpdateTime:
@@ -1092,6 +1134,8 @@ func (m *QueryValueMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldKeyID(ctx)
 	case queryvalue.FieldValue:
 		return m.OldValue(ctx)
+	case queryvalue.FieldValidDate:
+		return m.OldValidDate(ctx)
 	case queryvalue.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case queryvalue.FieldUpdateTime:
@@ -1118,6 +1162,13 @@ func (m *QueryValueMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetValue(v)
+		return nil
+	case queryvalue.FieldValidDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValidDate(v)
 		return nil
 	case queryvalue.FieldCreateTime:
 		v, ok := value.(time.Time)
@@ -1190,6 +1241,9 @@ func (m *QueryValueMutation) ResetField(name string) error {
 		return nil
 	case queryvalue.FieldValue:
 		m.ResetValue()
+		return nil
+	case queryvalue.FieldValidDate:
+		m.ResetValidDate()
 		return nil
 	case queryvalue.FieldCreateTime:
 		m.ResetCreateTime()

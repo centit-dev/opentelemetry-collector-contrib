@@ -22,6 +22,8 @@ type QueryValue struct {
 	KeyID int64 `json:"key_id,omitempty"`
 	// Value holds the value of the "value" field.
 	Value string `json:"value,omitempty"`
+	// ValidDate holds the value of the "valid_date" field.
+	ValidDate time.Time `json:"valid_date,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -63,7 +65,7 @@ func (*QueryValue) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case queryvalue.FieldValue:
 			values[i] = new(sql.NullString)
-		case queryvalue.FieldCreateTime, queryvalue.FieldUpdateTime:
+		case queryvalue.FieldValidDate, queryvalue.FieldCreateTime, queryvalue.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -97,6 +99,12 @@ func (qv *QueryValue) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field value", values[i])
 			} else if value.Valid {
 				qv.Value = value.String
+			}
+		case queryvalue.FieldValidDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field valid_date", values[i])
+			} else if value.Valid {
+				qv.ValidDate = value.Time
 			}
 		case queryvalue.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -156,6 +164,9 @@ func (qv *QueryValue) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("value=")
 	builder.WriteString(qv.Value)
+	builder.WriteString(", ")
+	builder.WriteString("valid_date=")
+	builder.WriteString(qv.ValidDate.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("create_time=")
 	builder.WriteString(qv.CreateTime.Format(time.ANSIC))

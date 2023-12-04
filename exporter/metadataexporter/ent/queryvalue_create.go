@@ -33,6 +33,12 @@ func (qvc *QueryValueCreate) SetValue(s string) *QueryValueCreate {
 	return qvc
 }
 
+// SetValidDate sets the "valid_date" field.
+func (qvc *QueryValueCreate) SetValidDate(t time.Time) *QueryValueCreate {
+	qvc.mutation.SetValidDate(t)
+	return qvc
+}
+
 // SetCreateTime sets the "create_time" field.
 func (qvc *QueryValueCreate) SetCreateTime(t time.Time) *QueryValueCreate {
 	qvc.mutation.SetCreateTime(t)
@@ -96,6 +102,9 @@ func (qvc *QueryValueCreate) check() error {
 	if _, ok := qvc.mutation.Value(); !ok {
 		return &ValidationError{Name: "value", err: errors.New(`ent: missing required field "QueryValue.value"`)}
 	}
+	if _, ok := qvc.mutation.ValidDate(); !ok {
+		return &ValidationError{Name: "valid_date", err: errors.New(`ent: missing required field "QueryValue.valid_date"`)}
+	}
 	if _, ok := qvc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "QueryValue.create_time"`)}
 	}
@@ -140,6 +149,10 @@ func (qvc *QueryValueCreate) createSpec() (*QueryValue, *sqlgraph.CreateSpec) {
 	if value, ok := qvc.mutation.Value(); ok {
 		_spec.SetField(queryvalue.FieldValue, field.TypeString, value)
 		_node.Value = value
+	}
+	if value, ok := qvc.mutation.ValidDate(); ok {
+		_spec.SetField(queryvalue.FieldValidDate, field.TypeTime, value)
+		_node.ValidDate = value
 	}
 	if value, ok := qvc.mutation.CreateTime(); ok {
 		_spec.SetField(queryvalue.FieldCreateTime, field.TypeTime, value)
