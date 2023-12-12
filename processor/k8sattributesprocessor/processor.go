@@ -125,6 +125,7 @@ func (kp *kubernetesprocessor) processResource(ctx context.Context, resource pco
 				}
 			}
 			kp.addContainerAttributes(resource.Attributes(), pod)
+			resource.Attributes().PutStr(kube.K8sIPLabelName, pod.Address)
 		}
 	}
 
