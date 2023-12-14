@@ -9,6 +9,15 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
+const (
+	scopeNameKey         = "Scope[\"name\"]"
+	scopeVersionKey      = "Scope[\"version\"]"
+	statusCodeKey        = "StatusCode"
+	traceSource          = "Trace"
+	queryValueTypeString = "S"
+	queryValueTypeNumber = "N"
+)
+
 type MetadataExporter struct {
 	service MetadataService
 }
@@ -30,19 +39,29 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 		resourceSpan := resourceSpans.At(i)
 		resourceAttributes := resourceSpan.Resource().Attributes()
 		resourceAttributes.Range(func(k string, v pcommon.Value) bool {
-			exporter.consumeAttribute(ctx, tuples, queryKeySourceResource, k, v)
+			k = fmt.Sprintf("Resource[%s]", k)
+			exporter.consumeAttribute(ctx, tuples, k, v)
 			return true
 		})
 
 		scopeSpans := resourceSpan.ScopeSpans()
 		for j := 0; j < scopeSpans.Len(); j++ {
 			scopeSpan := scopeSpans.At(j)
+			scope := scopeSpan.Scope()
+			if scope.Name() != "" {
+				exporter.consumeAttribute(ctx, tuples, scopeNameKey, pcommon.NewValueStr(scope.Name()))
+			}
+			if scope.Version() != "" {
+				exporter.consumeAttribute(ctx, tuples, scopeVersionKey, pcommon.NewValueStr(scope.Version()))
+			}
 			spans := scopeSpan.Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
+				exporter.consumeAttribute(ctx, tuples, statusCodeKey, pcommon.NewValueStr(span.Status().Code().String()))
 				spanAttributes := span.Attributes()
 				spanAttributes.Range(func(k string, v pcommon.Value) bool {
-					exporter.consumeAttribute(ctx, tuples, queryKeySourceSpan, k, v)
+					k = fmt.Sprintf("Attributes[%s]", k)
+					exporter.consumeAttribute(ctx, tuples, k, v)
 					return true
 				})
 			}
@@ -52,7 +71,7 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 	return nil
 }
 
-func (exporter *MetadataExporter) consumeAttribute(ctx context.Context, tuples map[string]*tuple, source string, k string, v pcommon.Value) {
+func (exporter *MetadataExporter) consumeAttribute(ctx context.Context, tuples map[string]*tuple, k string, v pcommon.Value) {
 	valueType := queryValueTypeNumber
 	value := fmt.Sprint(v.Int())
 	if v.Type() == pcommon.ValueTypeStr {
@@ -61,7 +80,7 @@ func (exporter *MetadataExporter) consumeAttribute(ctx context.Context, tuples m
 	}
 	tuple := &tuple{
 		name:      k,
-		source:    source,
+		source:    traceSource,
 		value:     value,
 		valueType: valueType,
 	}

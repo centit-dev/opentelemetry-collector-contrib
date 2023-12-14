@@ -10,14 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	queryKeySourceResource = "Resource"
-	queryKeySourceSpan     = "Span"
-
-	queryValueTypeString = "S"
-	queryValueTypeNumber = "N"
-)
-
 type tuple struct {
 	name      string
 	source    string

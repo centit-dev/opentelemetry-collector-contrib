@@ -10,18 +10,12 @@ import (
 )
 
 func createQueryKey() *ent.QueryKey {
-	source := []string{queryKeySourceResource, queryKeySourceSpan}[rand.Int31n(2)]
 	var name string
-	if source == queryKeySourceResource {
-		count := len(conventions.GetResourceSemanticConventionAttributeNames())
-		name = conventions.GetResourceSemanticConventionAttributeNames()[rand.Intn(count)]
-	} else {
-		count := len(conventions.GetTraceSemanticConventionAttributeNames())
-		name = conventions.GetTraceSemanticConventionAttributeNames()[rand.Intn(count)]
-	}
+	count := len(conventions.GetResourceSemanticConventionAttributeNames())
+	name = conventions.GetResourceSemanticConventionAttributeNames()[rand.Intn(count)]
 	return &ent.QueryKey{
 		Name:      name,
-		Source:    source,
+		Source:    traceSource,
 		Type:      []string{queryValueTypeString, queryValueTypeNumber}[rand.Int31n(2)],
 		ValidDate: time.Now().AddDate(0, 0, 90),
 	}
