@@ -23,6 +23,7 @@ const (
 	filterOPDoesNotExist = "does-not-exist"
 	metadataPodStartTime = "k8s.pod.start_time"
 	specPodHostName      = "k8s.pod.hostname"
+	serviceName          = "k8s.service.name"
 	// TODO: use k8s.cluster.uid from semconv when available, and replace clusterUID with conventions.AttributeClusterUid
 	clusterUID = "k8s.cluster.uid"
 )
@@ -54,6 +55,9 @@ func enabledAttributes() (attributes []string) {
 	defaultConfig := metadata.DefaultResourceAttributesConfig()
 	if defaultConfig.K8sClusterUID.Enabled {
 		attributes = append(attributes, clusterUID)
+	}
+	if defaultConfig.K8sServiceName.Enabled {
+		attributes = append(attributes, serviceName)
 	}
 	if defaultConfig.ContainerID.Enabled {
 		attributes = append(attributes, conventions.AttributeContainerID)
@@ -171,6 +175,8 @@ func withExtractMetadata(fields ...string) option {
 				p.rules.ContainerImageTag = true
 			case clusterUID:
 				p.rules.ClusterUID = true
+			case serviceName:
+				p.rules.ServiceName = true
 			}
 		}
 		return nil

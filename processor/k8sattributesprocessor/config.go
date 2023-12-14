@@ -89,7 +89,7 @@ func (cfg *Config) Validate() error {
 			conventions.AttributeK8SDaemonSetUID, conventions.AttributeK8SStatefulSetName, conventions.AttributeK8SStatefulSetUID,
 			conventions.AttributeK8SContainerName, conventions.AttributeK8SJobName, conventions.AttributeK8SJobUID,
 			conventions.AttributeK8SCronJobName, conventions.AttributeK8SNodeName, conventions.AttributeContainerID,
-			conventions.AttributeContainerImageName, conventions.AttributeContainerImageTag, clusterUID:
+			conventions.AttributeContainerImageName, conventions.AttributeContainerImageTag, clusterUID, serviceName:
 		default:
 			return fmt.Errorf("\"%s\" is not a supported metadata field", field)
 		}
