@@ -12,7 +12,7 @@ resource_attributes:
   k8s.cluster.uid:
     description: Gives cluster uid identified with kube-system namespace
     type: string
-    enabled: true
+    enabled: false
   k8s.namespace.name:
     description: The name of the namespace that the pod is running in.
     type: string

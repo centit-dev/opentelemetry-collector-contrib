@@ -4,6 +4,7 @@
 package kube // import "github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor/internal/kube"
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -61,6 +62,10 @@ type WatchClient struct {
 	Filters      Filters
 	Associations []Association
 	Exclude      Excludes
+
+	// A string read from the special config map in the default namespace
+	ClusterInfo ConfigMapKey
+	ClusterName string
 
 	// A map containing Namespace related data, used to associate them with resources.
 	// Key is namespace name
@@ -202,6 +207,16 @@ func New(logger *zap.Logger, apiCfg k8sconfig.APIConfig, rules ExtractionRules, 
 
 // Start registers pod event handlers and starts watching the kubernetes cluster for pod changes.
 func (c *WatchClient) Start() {
+	go func() {
+		config, err := c.kc.CoreV1().ConfigMaps(c.ClusterInfo.Namespace).
+			Get(context.Background(), c.ClusterInfo.Name, meta_v1.GetOptions{})
+		if err != nil {
+			c.logger.Error("failed to get configmap", zap.Error(err))
+			return
+		}
+		c.ClusterName = config.Data[c.ClusterInfo.Key]
+	}()
+
 	_, err := c.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    c.handlePodAdd,
 		UpdateFunc: c.handlePodUpdate,
@@ -542,6 +557,10 @@ func (c *WatchClient) extractPodAttributes(pod *api_v1.Pod) map[string]string {
 		} else {
 			c.logger.Debug("unable to find kube-system namespace, cluster uid will not be available")
 		}
+	}
+
+	if c.ClusterName != "" {
+		tags[conventions.AttributeK8SClusterName] = c.ClusterName
 	}
 
 	if c.Rules.ServiceName {

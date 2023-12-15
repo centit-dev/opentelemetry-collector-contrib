@@ -192,6 +192,12 @@ type FieldFilter struct {
 	Op selection.Operator
 }
 
+type ConfigMapKey struct {
+	Namespace string
+	Name      string
+	Key       string
+}
+
 // ExtractionRules is used to specify the information that needs to be extracted
 // from pods and added to the spans as tags.
 type ExtractionRules struct {

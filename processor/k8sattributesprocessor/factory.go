@@ -37,6 +37,11 @@ func createDefaultConfig() component.Config {
 		Exclude:   defaultExcludes,
 		Extract: ExtractConfig{
 			Metadata: enabledAttributes(),
+			ClusterInfo: ClusterInfoConfig{
+				Namespace:      "default",
+				ConfigMapName:  "cluster-info",
+				ClusterNameKey: "cluster-name",
+			},
 		},
 	}
 }
@@ -157,6 +162,17 @@ func createKubernetesProcessor(
 		err := kp.initKubeClient(kp.logger, kubeClientProvider)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	// monkey-patching a new option without changing its constructor signature
+	if kp.kc != nil {
+		if client, ok := kp.kc.(*kube.WatchClient); ok {
+			client.ClusterInfo = kube.ConfigMapKey{
+				Namespace: cfg.(*Config).Extract.ClusterInfo.Namespace,
+				Name:      cfg.(*Config).Extract.ClusterInfo.ConfigMapName,
+				Key:       cfg.(*Config).Extract.ClusterInfo.ClusterNameKey,
+			}
 		}
 	}
 

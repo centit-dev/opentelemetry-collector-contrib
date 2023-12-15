@@ -155,6 +155,9 @@ type ExtractConfig struct {
 	// It is a list of FieldExtractConfig type. See FieldExtractConfig
 	// documentation for more details.
 	Labels []FieldExtractConfig `mapstructure:"labels"`
+
+	// cluster info config map
+	ClusterInfo ClusterInfoConfig `mapstructure:"cluster_info"`
 }
 
 // FieldExtractConfig allows specifying an extraction rule to extract a resource attribute from pod (or namespace)
@@ -213,6 +216,12 @@ type FieldExtractConfig struct {
 	// From represents the source of the labels/annotations.
 	// Allowed values are "pod" and "namespace". The default is pod.
 	From string `mapstructure:"from"`
+}
+
+type ClusterInfoConfig struct {
+	Namespace      string `mapstructure:"namespace"`
+	ConfigMapName  string `mapstructure:"config_map_name"`
+	ClusterNameKey string `mapstructure:"cluster_name_key"`
 }
 
 // FilterConfig section allows specifying filters to filter

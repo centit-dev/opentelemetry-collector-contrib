@@ -62,7 +62,7 @@ func DefaultResourceAttributesConfig() ResourceAttributesConfig {
 			Enabled: true,
 		},
 		K8sClusterUID: ResourceAttributeConfig{
-			Enabled: true,
+			Enabled: false,
 		},
 		K8sServiceName: ResourceAttributeConfig{
 			Enabled: true,
