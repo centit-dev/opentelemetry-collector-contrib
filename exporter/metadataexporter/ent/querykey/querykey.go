@@ -16,8 +16,12 @@ const (
 	FieldName = "name"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
-	// FieldSource holds the string denoting the source field in the database.
-	FieldSource = "source"
+	// FieldSpansValid holds the string denoting the spans_valid field in the database.
+	FieldSpansValid = "spans_valid"
+	// FieldMetricsValid holds the string denoting the metrics_valid field in the database.
+	FieldMetricsValid = "metrics_valid"
+	// FieldLogsValid holds the string denoting the logs_valid field in the database.
+	FieldLogsValid = "logs_valid"
 	// FieldValidDate holds the string denoting the valid_date field in the database.
 	FieldValidDate = "valid_date"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
@@ -42,7 +46,9 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldType,
-	FieldSource,
+	FieldSpansValid,
+	FieldMetricsValid,
+	FieldLogsValid,
 	FieldValidDate,
 	FieldCreateTime,
 	FieldUpdateTime,
@@ -76,9 +82,19 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
-// BySource orders the results by the source field.
-func BySource(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSource, opts...).ToFunc()
+// BySpansValid orders the results by the spans_valid field.
+func BySpansValid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSpansValid, opts...).ToFunc()
+}
+
+// ByMetricsValid orders the results by the metrics_valid field.
+func ByMetricsValid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMetricsValid, opts...).ToFunc()
+}
+
+// ByLogsValid orders the results by the logs_valid field.
+func ByLogsValid(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLogsValid, opts...).ToFunc()
 }
 
 // ByValidDate orders the results by the valid_date field.

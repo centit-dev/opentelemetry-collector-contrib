@@ -65,9 +65,19 @@ func Type(v string) predicate.QueryKey {
 	return predicate.QueryKey(sql.FieldEQ(FieldType, v))
 }
 
-// Source applies equality check predicate on the "source" field. It's identical to SourceEQ.
-func Source(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldEQ(FieldSource, v))
+// SpansValid applies equality check predicate on the "spans_valid" field. It's identical to SpansValidEQ.
+func SpansValid(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldEQ(FieldSpansValid, v))
+}
+
+// MetricsValid applies equality check predicate on the "metrics_valid" field. It's identical to MetricsValidEQ.
+func MetricsValid(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldEQ(FieldMetricsValid, v))
+}
+
+// LogsValid applies equality check predicate on the "logs_valid" field. It's identical to LogsValidEQ.
+func LogsValid(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldEQ(FieldLogsValid, v))
 }
 
 // ValidDate applies equality check predicate on the "valid_date" field. It's identical to ValidDateEQ.
@@ -215,69 +225,34 @@ func TypeContainsFold(v string) predicate.QueryKey {
 	return predicate.QueryKey(sql.FieldContainsFold(FieldType, v))
 }
 
-// SourceEQ applies the EQ predicate on the "source" field.
-func SourceEQ(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldEQ(FieldSource, v))
+// SpansValidEQ applies the EQ predicate on the "spans_valid" field.
+func SpansValidEQ(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldEQ(FieldSpansValid, v))
 }
 
-// SourceNEQ applies the NEQ predicate on the "source" field.
-func SourceNEQ(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldNEQ(FieldSource, v))
+// SpansValidNEQ applies the NEQ predicate on the "spans_valid" field.
+func SpansValidNEQ(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldNEQ(FieldSpansValid, v))
 }
 
-// SourceIn applies the In predicate on the "source" field.
-func SourceIn(vs ...string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldIn(FieldSource, vs...))
+// MetricsValidEQ applies the EQ predicate on the "metrics_valid" field.
+func MetricsValidEQ(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldEQ(FieldMetricsValid, v))
 }
 
-// SourceNotIn applies the NotIn predicate on the "source" field.
-func SourceNotIn(vs ...string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldNotIn(FieldSource, vs...))
+// MetricsValidNEQ applies the NEQ predicate on the "metrics_valid" field.
+func MetricsValidNEQ(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldNEQ(FieldMetricsValid, v))
 }
 
-// SourceGT applies the GT predicate on the "source" field.
-func SourceGT(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldGT(FieldSource, v))
+// LogsValidEQ applies the EQ predicate on the "logs_valid" field.
+func LogsValidEQ(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldEQ(FieldLogsValid, v))
 }
 
-// SourceGTE applies the GTE predicate on the "source" field.
-func SourceGTE(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldGTE(FieldSource, v))
-}
-
-// SourceLT applies the LT predicate on the "source" field.
-func SourceLT(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldLT(FieldSource, v))
-}
-
-// SourceLTE applies the LTE predicate on the "source" field.
-func SourceLTE(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldLTE(FieldSource, v))
-}
-
-// SourceContains applies the Contains predicate on the "source" field.
-func SourceContains(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldContains(FieldSource, v))
-}
-
-// SourceHasPrefix applies the HasPrefix predicate on the "source" field.
-func SourceHasPrefix(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldHasPrefix(FieldSource, v))
-}
-
-// SourceHasSuffix applies the HasSuffix predicate on the "source" field.
-func SourceHasSuffix(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldHasSuffix(FieldSource, v))
-}
-
-// SourceEqualFold applies the EqualFold predicate on the "source" field.
-func SourceEqualFold(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldEqualFold(FieldSource, v))
-}
-
-// SourceContainsFold applies the ContainsFold predicate on the "source" field.
-func SourceContainsFold(v string) predicate.QueryKey {
-	return predicate.QueryKey(sql.FieldContainsFold(FieldSource, v))
+// LogsValidNEQ applies the NEQ predicate on the "logs_valid" field.
+func LogsValidNEQ(v bool) predicate.QueryKey {
+	return predicate.QueryKey(sql.FieldNEQ(FieldLogsValid, v))
 }
 
 // ValidDateEQ applies the EQ predicate on the "valid_date" field.

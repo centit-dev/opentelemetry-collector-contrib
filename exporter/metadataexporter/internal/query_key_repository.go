@@ -103,7 +103,9 @@ func (repository *QueryKeyRepositoryImpl) RefreshState(ctx context.Context, quer
 			queryKey.ID = existing.ID
 			queryKey.Name = existing.Name
 			queryKey.Type = existing.Type
-			queryKey.Source = existing.Source
+			queryKey.SpansValid = queryKey.SpansValid || existing.SpansValid
+			queryKey.MetricsValid = queryKey.MetricsValid || existing.MetricsValid
+			queryKey.LogsValid = queryKey.LogsValid || existing.LogsValid
 			queryKey.ValidDate = existing.ValidDate
 			queryKey.CreateTime = existing.CreateTime
 			queryKey.UpdateTime = existing.UpdateTime
@@ -145,7 +147,9 @@ func (repository *QueryKeyRepositoryImpl) CreateAll(ctx context.Context, queryKe
 		toCreateKeys = append(toCreateKeys, tx.QueryKey.Create().
 			SetName(queryKey.Name).
 			SetType(queryKey.Type).
-			SetSource(queryKey.Source).
+			SetSpansValid(queryKey.SpansValid).
+			SetMetricsValid(queryKey.MetricsValid).
+			SetLogsValid(queryKey.LogsValid).
 			SetValidDate(queryKey.ValidDate).
 			SetCreateTime(queryKey.CreateTime).
 			SetUpdateTime(queryKey.UpdateTime))
@@ -198,24 +202,26 @@ func (repository *QueryKeyRepositoryImpl) UpdateAll(ctx context.Context, queryKe
 		return nil, err
 	}
 
-	// update keys with new valid date and update time
-	toUpdateKeys := make([]int64, 0, len(queryKeys))
-	newValidDate := time.UnixMilli(0)
+	// update keys
 	for _, queryKey := range queryKeys {
 		if queryKey.ID == 0 {
 			continue
 		}
-		// all keys should have the same valid date
-		newValidDate = queryKey.ValidDate
-		toUpdateKeys = append(toUpdateKeys, queryKey.ID)
-	}
-	err = tx.QueryKey.Update().Where(querykey.IDIn(toUpdateKeys...)).
-		SetValidDate(newValidDate).
-		SetUpdateTime(time.Now()).
-		Exec(ctx)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
+		queryKey.UpdateTime = time.Now()
+		err = tx.QueryKey.UpdateOneID(queryKey.ID).
+			SetName(queryKey.Name).
+			SetType(queryKey.Type).
+			SetSpansValid(queryKey.SpansValid).
+			SetMetricsValid(queryKey.MetricsValid).
+			SetLogsValid(queryKey.LogsValid).
+			SetValidDate(queryKey.ValidDate).
+			SetCreateTime(queryKey.CreateTime).
+			SetUpdateTime(queryKey.UpdateTime).
+			Exec(ctx)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
 	}
 
 	// add new values for the old keys

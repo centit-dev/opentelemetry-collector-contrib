@@ -57,16 +57,44 @@ func (qku *QueryKeyUpdate) SetNillableType(s *string) *QueryKeyUpdate {
 	return qku
 }
 
-// SetSource sets the "source" field.
-func (qku *QueryKeyUpdate) SetSource(s string) *QueryKeyUpdate {
-	qku.mutation.SetSource(s)
+// SetSpansValid sets the "spans_valid" field.
+func (qku *QueryKeyUpdate) SetSpansValid(b bool) *QueryKeyUpdate {
+	qku.mutation.SetSpansValid(b)
 	return qku
 }
 
-// SetNillableSource sets the "source" field if the given value is not nil.
-func (qku *QueryKeyUpdate) SetNillableSource(s *string) *QueryKeyUpdate {
-	if s != nil {
-		qku.SetSource(*s)
+// SetNillableSpansValid sets the "spans_valid" field if the given value is not nil.
+func (qku *QueryKeyUpdate) SetNillableSpansValid(b *bool) *QueryKeyUpdate {
+	if b != nil {
+		qku.SetSpansValid(*b)
+	}
+	return qku
+}
+
+// SetMetricsValid sets the "metrics_valid" field.
+func (qku *QueryKeyUpdate) SetMetricsValid(b bool) *QueryKeyUpdate {
+	qku.mutation.SetMetricsValid(b)
+	return qku
+}
+
+// SetNillableMetricsValid sets the "metrics_valid" field if the given value is not nil.
+func (qku *QueryKeyUpdate) SetNillableMetricsValid(b *bool) *QueryKeyUpdate {
+	if b != nil {
+		qku.SetMetricsValid(*b)
+	}
+	return qku
+}
+
+// SetLogsValid sets the "logs_valid" field.
+func (qku *QueryKeyUpdate) SetLogsValid(b bool) *QueryKeyUpdate {
+	qku.mutation.SetLogsValid(b)
+	return qku
+}
+
+// SetNillableLogsValid sets the "logs_valid" field if the given value is not nil.
+func (qku *QueryKeyUpdate) SetNillableLogsValid(b *bool) *QueryKeyUpdate {
+	if b != nil {
+		qku.SetLogsValid(*b)
 	}
 	return qku
 }
@@ -196,8 +224,14 @@ func (qku *QueryKeyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qku.mutation.GetType(); ok {
 		_spec.SetField(querykey.FieldType, field.TypeString, value)
 	}
-	if value, ok := qku.mutation.Source(); ok {
-		_spec.SetField(querykey.FieldSource, field.TypeString, value)
+	if value, ok := qku.mutation.SpansValid(); ok {
+		_spec.SetField(querykey.FieldSpansValid, field.TypeBool, value)
+	}
+	if value, ok := qku.mutation.MetricsValid(); ok {
+		_spec.SetField(querykey.FieldMetricsValid, field.TypeBool, value)
+	}
+	if value, ok := qku.mutation.LogsValid(); ok {
+		_spec.SetField(querykey.FieldLogsValid, field.TypeBool, value)
 	}
 	if value, ok := qku.mutation.ValidDate(); ok {
 		_spec.SetField(querykey.FieldValidDate, field.TypeTime, value)
@@ -301,16 +335,44 @@ func (qkuo *QueryKeyUpdateOne) SetNillableType(s *string) *QueryKeyUpdateOne {
 	return qkuo
 }
 
-// SetSource sets the "source" field.
-func (qkuo *QueryKeyUpdateOne) SetSource(s string) *QueryKeyUpdateOne {
-	qkuo.mutation.SetSource(s)
+// SetSpansValid sets the "spans_valid" field.
+func (qkuo *QueryKeyUpdateOne) SetSpansValid(b bool) *QueryKeyUpdateOne {
+	qkuo.mutation.SetSpansValid(b)
 	return qkuo
 }
 
-// SetNillableSource sets the "source" field if the given value is not nil.
-func (qkuo *QueryKeyUpdateOne) SetNillableSource(s *string) *QueryKeyUpdateOne {
-	if s != nil {
-		qkuo.SetSource(*s)
+// SetNillableSpansValid sets the "spans_valid" field if the given value is not nil.
+func (qkuo *QueryKeyUpdateOne) SetNillableSpansValid(b *bool) *QueryKeyUpdateOne {
+	if b != nil {
+		qkuo.SetSpansValid(*b)
+	}
+	return qkuo
+}
+
+// SetMetricsValid sets the "metrics_valid" field.
+func (qkuo *QueryKeyUpdateOne) SetMetricsValid(b bool) *QueryKeyUpdateOne {
+	qkuo.mutation.SetMetricsValid(b)
+	return qkuo
+}
+
+// SetNillableMetricsValid sets the "metrics_valid" field if the given value is not nil.
+func (qkuo *QueryKeyUpdateOne) SetNillableMetricsValid(b *bool) *QueryKeyUpdateOne {
+	if b != nil {
+		qkuo.SetMetricsValid(*b)
+	}
+	return qkuo
+}
+
+// SetLogsValid sets the "logs_valid" field.
+func (qkuo *QueryKeyUpdateOne) SetLogsValid(b bool) *QueryKeyUpdateOne {
+	qkuo.mutation.SetLogsValid(b)
+	return qkuo
+}
+
+// SetNillableLogsValid sets the "logs_valid" field if the given value is not nil.
+func (qkuo *QueryKeyUpdateOne) SetNillableLogsValid(b *bool) *QueryKeyUpdateOne {
+	if b != nil {
+		qkuo.SetLogsValid(*b)
 	}
 	return qkuo
 }
@@ -470,8 +532,14 @@ func (qkuo *QueryKeyUpdateOne) sqlSave(ctx context.Context) (_node *QueryKey, er
 	if value, ok := qkuo.mutation.GetType(); ok {
 		_spec.SetField(querykey.FieldType, field.TypeString, value)
 	}
-	if value, ok := qkuo.mutation.Source(); ok {
-		_spec.SetField(querykey.FieldSource, field.TypeString, value)
+	if value, ok := qkuo.mutation.SpansValid(); ok {
+		_spec.SetField(querykey.FieldSpansValid, field.TypeBool, value)
+	}
+	if value, ok := qkuo.mutation.MetricsValid(); ok {
+		_spec.SetField(querykey.FieldMetricsValid, field.TypeBool, value)
+	}
+	if value, ok := qkuo.mutation.LogsValid(); ok {
+		_spec.SetField(querykey.FieldLogsValid, field.TypeBool, value)
 	}
 	if value, ok := qkuo.mutation.ValidDate(); ok {
 		_spec.SetField(querykey.FieldValidDate, field.TypeTime, value)

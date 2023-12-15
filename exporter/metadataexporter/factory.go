@@ -11,15 +11,19 @@ import (
 )
 
 const (
-	Type            = "metadata"
-	TracesStability = component.StabilityLevelAlpha
+	Type             = "metadata"
+	TracesStability  = component.StabilityLevelAlpha
+	MetricsStability = component.StabilityLevelAlpha
+	LogsStability    = component.StabilityLevelAlpha
 )
 
 func NewFactory() exporter.Factory {
 	return exporter.NewFactory(
 		Type,
 		createDefaultConfig,
-		exporter.WithTraces(createMetadataExporter, TracesStability),
+		exporter.WithTraces(createTraceMetadataExporter, TracesStability),
+		exporter.WithMetrics(createMetricMetadataExporter, MetricsStability),
+		exporter.WithLogs(createLogMetadataExporter, LogsStability),
 	)
 }
 
@@ -33,19 +37,75 @@ func createDefaultConfig() component.Config {
 			BatchSize:         1000,
 			IntervalInSeconds: 1,
 		},
-		QueryKeyTtlInDays: 90,
+		QueryKeyTtlInDays: 30,
 	}
 }
 
-func createMetadataExporter(
+func createTraceMetadataExporter(
 	ctx context.Context,
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Traces, error) {
+	exporter, err := createExporter(ctx, set, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create metadata exporter: %w", err)
+	}
+
+	return exporterhelper.NewTracesExporter(
+		ctx,
+		set,
+		cfg,
+		exporter.ConsumeTraces,
+		exporterhelper.WithStart(exporter.Start),
+		exporterhelper.WithShutdown(exporter.Shutdown),
+	)
+}
+
+func createMetricMetadataExporter(
+	ctx context.Context,
+	set exporter.CreateSettings,
+	cfg component.Config,
+) (exporter.Metrics, error) {
+	exporter, err := createExporter(ctx, set, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create metadata exporter: %w", err)
+	}
+
+	return exporterhelper.NewMetricsExporter(
+		ctx,
+		set,
+		cfg,
+		exporter.ConsumeMetrics,
+		exporterhelper.WithStart(exporter.Start),
+		exporterhelper.WithShutdown(exporter.Shutdown),
+	)
+}
+
+func createLogMetadataExporter(
+	ctx context.Context,
+	set exporter.CreateSettings,
+	cfg component.Config,
+) (exporter.Logs, error) {
+	exporter, err := createExporter(ctx, set, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create metadata exporter: %w", err)
+	}
+
+	return exporterhelper.NewLogsExporter(
+		ctx,
+		set,
+		cfg,
+		exporter.ConsumeLogs,
+		exporterhelper.WithStart(exporter.Start),
+		exporterhelper.WithShutdown(exporter.Shutdown),
+	)
+}
+
+func createExporter(ctx context.Context, set exporter.CreateSettings, cfg component.Config) (*internal.MetadataExporter, error) {
 	c := cfg.(*Config)
 	client, err := internal.CreateClient(&c.PostgresConfig, set.Logger)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create postgres sql client: %w", err)
+		return nil, err
 	}
 	queryKeyRepository := internal.CreateQueryKeyRepository(client)
 	queryValueRepository := internal.CreateQueryValueRepository(client)
@@ -56,14 +116,5 @@ func createMetadataExporter(
 		set.Logger,
 		queryKeyRepository,
 		queryValueRepository)
-	exporter := internal.CreateMetadataExporter(service)
-
-	return exporterhelper.NewTracesExporter(
-		ctx,
-		set,
-		cfg,
-		exporter.ConsumeTraces,
-		exporterhelper.WithStart(exporter.Start),
-		exporterhelper.WithShutdown(exporter.Shutdown),
-	)
+	return internal.CreateMetadataExporter(service), nil
 }

@@ -37,7 +37,9 @@ type QueryKeyMutation struct {
 	id            *int64
 	name          *string
 	_type         *string
-	source        *string
+	spans_valid   *bool
+	metrics_valid *bool
+	logs_valid    *bool
 	valid_date    *time.Time
 	create_time   *time.Time
 	update_time   *time.Time
@@ -226,40 +228,112 @@ func (m *QueryKeyMutation) ResetType() {
 	m._type = nil
 }
 
-// SetSource sets the "source" field.
-func (m *QueryKeyMutation) SetSource(s string) {
-	m.source = &s
+// SetSpansValid sets the "spans_valid" field.
+func (m *QueryKeyMutation) SetSpansValid(b bool) {
+	m.spans_valid = &b
 }
 
-// Source returns the value of the "source" field in the mutation.
-func (m *QueryKeyMutation) Source() (r string, exists bool) {
-	v := m.source
+// SpansValid returns the value of the "spans_valid" field in the mutation.
+func (m *QueryKeyMutation) SpansValid() (r bool, exists bool) {
+	v := m.spans_valid
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldSource returns the old "source" field's value of the QueryKey entity.
+// OldSpansValid returns the old "spans_valid" field's value of the QueryKey entity.
 // If the QueryKey object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QueryKeyMutation) OldSource(ctx context.Context) (v string, err error) {
+func (m *QueryKeyMutation) OldSpansValid(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+		return v, errors.New("OldSpansValid is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSource requires an ID field in the mutation")
+		return v, errors.New("OldSpansValid requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+		return v, fmt.Errorf("querying old value for OldSpansValid: %w", err)
 	}
-	return oldValue.Source, nil
+	return oldValue.SpansValid, nil
 }
 
-// ResetSource resets all changes to the "source" field.
-func (m *QueryKeyMutation) ResetSource() {
-	m.source = nil
+// ResetSpansValid resets all changes to the "spans_valid" field.
+func (m *QueryKeyMutation) ResetSpansValid() {
+	m.spans_valid = nil
+}
+
+// SetMetricsValid sets the "metrics_valid" field.
+func (m *QueryKeyMutation) SetMetricsValid(b bool) {
+	m.metrics_valid = &b
+}
+
+// MetricsValid returns the value of the "metrics_valid" field in the mutation.
+func (m *QueryKeyMutation) MetricsValid() (r bool, exists bool) {
+	v := m.metrics_valid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMetricsValid returns the old "metrics_valid" field's value of the QueryKey entity.
+// If the QueryKey object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QueryKeyMutation) OldMetricsValid(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMetricsValid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMetricsValid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMetricsValid: %w", err)
+	}
+	return oldValue.MetricsValid, nil
+}
+
+// ResetMetricsValid resets all changes to the "metrics_valid" field.
+func (m *QueryKeyMutation) ResetMetricsValid() {
+	m.metrics_valid = nil
+}
+
+// SetLogsValid sets the "logs_valid" field.
+func (m *QueryKeyMutation) SetLogsValid(b bool) {
+	m.logs_valid = &b
+}
+
+// LogsValid returns the value of the "logs_valid" field in the mutation.
+func (m *QueryKeyMutation) LogsValid() (r bool, exists bool) {
+	v := m.logs_valid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLogsValid returns the old "logs_valid" field's value of the QueryKey entity.
+// If the QueryKey object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QueryKeyMutation) OldLogsValid(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLogsValid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLogsValid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLogsValid: %w", err)
+	}
+	return oldValue.LogsValid, nil
+}
+
+// ResetLogsValid resets all changes to the "logs_valid" field.
+func (m *QueryKeyMutation) ResetLogsValid() {
+	m.logs_valid = nil
 }
 
 // SetValidDate sets the "valid_date" field.
@@ -458,15 +532,21 @@ func (m *QueryKeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *QueryKeyMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, querykey.FieldName)
 	}
 	if m._type != nil {
 		fields = append(fields, querykey.FieldType)
 	}
-	if m.source != nil {
-		fields = append(fields, querykey.FieldSource)
+	if m.spans_valid != nil {
+		fields = append(fields, querykey.FieldSpansValid)
+	}
+	if m.metrics_valid != nil {
+		fields = append(fields, querykey.FieldMetricsValid)
+	}
+	if m.logs_valid != nil {
+		fields = append(fields, querykey.FieldLogsValid)
 	}
 	if m.valid_date != nil {
 		fields = append(fields, querykey.FieldValidDate)
@@ -489,8 +569,12 @@ func (m *QueryKeyMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case querykey.FieldType:
 		return m.GetType()
-	case querykey.FieldSource:
-		return m.Source()
+	case querykey.FieldSpansValid:
+		return m.SpansValid()
+	case querykey.FieldMetricsValid:
+		return m.MetricsValid()
+	case querykey.FieldLogsValid:
+		return m.LogsValid()
 	case querykey.FieldValidDate:
 		return m.ValidDate()
 	case querykey.FieldCreateTime:
@@ -510,8 +594,12 @@ func (m *QueryKeyMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldName(ctx)
 	case querykey.FieldType:
 		return m.OldType(ctx)
-	case querykey.FieldSource:
-		return m.OldSource(ctx)
+	case querykey.FieldSpansValid:
+		return m.OldSpansValid(ctx)
+	case querykey.FieldMetricsValid:
+		return m.OldMetricsValid(ctx)
+	case querykey.FieldLogsValid:
+		return m.OldLogsValid(ctx)
 	case querykey.FieldValidDate:
 		return m.OldValidDate(ctx)
 	case querykey.FieldCreateTime:
@@ -541,12 +629,26 @@ func (m *QueryKeyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetType(v)
 		return nil
-	case querykey.FieldSource:
-		v, ok := value.(string)
+	case querykey.FieldSpansValid:
+		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetSource(v)
+		m.SetSpansValid(v)
+		return nil
+	case querykey.FieldMetricsValid:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMetricsValid(v)
+		return nil
+	case querykey.FieldLogsValid:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLogsValid(v)
 		return nil
 	case querykey.FieldValidDate:
 		v, ok := value.(time.Time)
@@ -624,8 +726,14 @@ func (m *QueryKeyMutation) ResetField(name string) error {
 	case querykey.FieldType:
 		m.ResetType()
 		return nil
-	case querykey.FieldSource:
-		m.ResetSource()
+	case querykey.FieldSpansValid:
+		m.ResetSpansValid()
+		return nil
+	case querykey.FieldMetricsValid:
+		m.ResetMetricsValid()
+		return nil
+	case querykey.FieldLogsValid:
+		m.ResetLogsValid()
 		return nil
 	case querykey.FieldValidDate:
 		m.ResetValidDate()

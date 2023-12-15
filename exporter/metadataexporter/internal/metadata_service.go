@@ -11,10 +11,12 @@ import (
 )
 
 type tuple struct {
-	name      string
-	source    string
-	value     string
-	valueType string
+	name         string
+	spansValid   bool
+	metricsValid bool
+	logsValid    bool
+	value        string
+	valueType    string
 }
 
 func (t *tuple) hash() string {
@@ -217,18 +219,37 @@ func (service *MetadataServiceImpl) ConsumeAttributes(ctx context.Context, tuple
 		// find out new keys
 		queryKey, ok := service.cache.Get(tuple.name)
 		if ok {
-			// if the key exists, update the valid date
-			if validDate.After(queryKey.ValidDate.AddDate(0, 0, 1)) {
+			updated := false
+			// if the key exists, update the valids
+			if !queryKey.SpansValid && tuple.spansValid {
+				queryKey.SpansValid = true
+				updated = true
+			}
+			if !queryKey.MetricsValid && tuple.metricsValid {
+				queryKey.MetricsValid = true
+				updated = true
+			}
+			if !queryKey.LogsValid && tuple.logsValid {
+				queryKey.LogsValid = true
+				updated = true
+			}
+			if updated {
+				queryKey.ValidDate = validDate
+				service.batchQueue <- rxgo.Of(queryKey)
+			} else if validDate.After(queryKey.ValidDate.AddDate(0, 0, 1)) {
+				// update the valid date
 				queryKey.ValidDate = validDate
 				service.refreshQueue <- rxgo.Of(queryKey)
 			}
 		} else {
 			// if the key does not exist, create a new one
 			queryKey = &ent.QueryKey{
-				Name:      tuple.name,
-				Type:      tuple.valueType,
-				Source:    tuple.source,
-				ValidDate: validDate,
+				Name:         tuple.name,
+				Type:         tuple.valueType,
+				SpansValid:   tuple.spansValid,
+				MetricsValid: tuple.metricsValid,
+				LogsValid:    tuple.logsValid,
+				ValidDate:    validDate,
 			}
 			service.cache.Add(tuple.name, queryKey)
 		}

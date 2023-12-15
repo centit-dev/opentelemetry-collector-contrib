@@ -33,9 +33,21 @@ func (qkc *QueryKeyCreate) SetType(s string) *QueryKeyCreate {
 	return qkc
 }
 
-// SetSource sets the "source" field.
-func (qkc *QueryKeyCreate) SetSource(s string) *QueryKeyCreate {
-	qkc.mutation.SetSource(s)
+// SetSpansValid sets the "spans_valid" field.
+func (qkc *QueryKeyCreate) SetSpansValid(b bool) *QueryKeyCreate {
+	qkc.mutation.SetSpansValid(b)
+	return qkc
+}
+
+// SetMetricsValid sets the "metrics_valid" field.
+func (qkc *QueryKeyCreate) SetMetricsValid(b bool) *QueryKeyCreate {
+	qkc.mutation.SetMetricsValid(b)
+	return qkc
+}
+
+// SetLogsValid sets the "logs_valid" field.
+func (qkc *QueryKeyCreate) SetLogsValid(b bool) *QueryKeyCreate {
+	qkc.mutation.SetLogsValid(b)
 	return qkc
 }
 
@@ -118,8 +130,14 @@ func (qkc *QueryKeyCreate) check() error {
 	if _, ok := qkc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "QueryKey.type"`)}
 	}
-	if _, ok := qkc.mutation.Source(); !ok {
-		return &ValidationError{Name: "source", err: errors.New(`ent: missing required field "QueryKey.source"`)}
+	if _, ok := qkc.mutation.SpansValid(); !ok {
+		return &ValidationError{Name: "spans_valid", err: errors.New(`ent: missing required field "QueryKey.spans_valid"`)}
+	}
+	if _, ok := qkc.mutation.MetricsValid(); !ok {
+		return &ValidationError{Name: "metrics_valid", err: errors.New(`ent: missing required field "QueryKey.metrics_valid"`)}
+	}
+	if _, ok := qkc.mutation.LogsValid(); !ok {
+		return &ValidationError{Name: "logs_valid", err: errors.New(`ent: missing required field "QueryKey.logs_valid"`)}
 	}
 	if _, ok := qkc.mutation.ValidDate(); !ok {
 		return &ValidationError{Name: "valid_date", err: errors.New(`ent: missing required field "QueryKey.valid_date"`)}
@@ -170,9 +188,17 @@ func (qkc *QueryKeyCreate) createSpec() (*QueryKey, *sqlgraph.CreateSpec) {
 		_spec.SetField(querykey.FieldType, field.TypeString, value)
 		_node.Type = value
 	}
-	if value, ok := qkc.mutation.Source(); ok {
-		_spec.SetField(querykey.FieldSource, field.TypeString, value)
-		_node.Source = value
+	if value, ok := qkc.mutation.SpansValid(); ok {
+		_spec.SetField(querykey.FieldSpansValid, field.TypeBool, value)
+		_node.SpansValid = value
+	}
+	if value, ok := qkc.mutation.MetricsValid(); ok {
+		_spec.SetField(querykey.FieldMetricsValid, field.TypeBool, value)
+		_node.MetricsValid = value
+	}
+	if value, ok := qkc.mutation.LogsValid(); ok {
+		_spec.SetField(querykey.FieldLogsValid, field.TypeBool, value)
+		_node.LogsValid = value
 	}
 	if value, ok := qkc.mutation.ValidDate(); ok {
 		_spec.SetField(querykey.FieldValidDate, field.TypeTime, value)

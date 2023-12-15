@@ -14,10 +14,12 @@ func createQueryKey() *ent.QueryKey {
 	count := len(conventions.GetResourceSemanticConventionAttributeNames())
 	name = conventions.GetResourceSemanticConventionAttributeNames()[rand.Intn(count)]
 	return &ent.QueryKey{
-		Name:      name,
-		Source:    traceSource,
-		Type:      []string{queryValueTypeString, queryValueTypeNumber}[rand.Int31n(2)],
-		ValidDate: time.Now().AddDate(0, 0, 90),
+		Name:         name,
+		SpansValid:   rand.Int31n(2) == 1,
+		MetricsValid: rand.Int31n(2) == 1,
+		LogsValid:    rand.Int31n(2) == 1,
+		Type:         []string{queryValueTypeString, queryValueTypeNumber}[rand.Int31n(2)],
+		ValidDate:    time.Now().AddDate(0, 0, 90),
 	}
 }
 

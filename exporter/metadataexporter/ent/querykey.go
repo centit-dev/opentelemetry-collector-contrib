@@ -21,8 +21,12 @@ type QueryKey struct {
 	Name string `json:"name,omitempty"`
 	// Type holds the value of the "type" field.
 	Type string `json:"type,omitempty"`
-	// Source holds the value of the "source" field.
-	Source string `json:"source,omitempty"`
+	// SpansValid holds the value of the "spans_valid" field.
+	SpansValid bool `json:"spans_valid,omitempty"`
+	// MetricsValid holds the value of the "metrics_valid" field.
+	MetricsValid bool `json:"metrics_valid,omitempty"`
+	// LogsValid holds the value of the "logs_valid" field.
+	LogsValid bool `json:"logs_valid,omitempty"`
 	// ValidDate holds the value of the "valid_date" field.
 	ValidDate time.Time `json:"valid_date,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
@@ -58,9 +62,11 @@ func (*QueryKey) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case querykey.FieldSpansValid, querykey.FieldMetricsValid, querykey.FieldLogsValid:
+			values[i] = new(sql.NullBool)
 		case querykey.FieldID:
 			values[i] = new(sql.NullInt64)
-		case querykey.FieldName, querykey.FieldType, querykey.FieldSource:
+		case querykey.FieldName, querykey.FieldType:
 			values[i] = new(sql.NullString)
 		case querykey.FieldValidDate, querykey.FieldCreateTime, querykey.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -97,11 +103,23 @@ func (qk *QueryKey) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				qk.Type = value.String
 			}
-		case querykey.FieldSource:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field source", values[i])
+		case querykey.FieldSpansValid:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field spans_valid", values[i])
 			} else if value.Valid {
-				qk.Source = value.String
+				qk.SpansValid = value.Bool
+			}
+		case querykey.FieldMetricsValid:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field metrics_valid", values[i])
+			} else if value.Valid {
+				qk.MetricsValid = value.Bool
+			}
+		case querykey.FieldLogsValid:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field logs_valid", values[i])
+			} else if value.Valid {
+				qk.LogsValid = value.Bool
 			}
 		case querykey.FieldValidDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -168,8 +186,14 @@ func (qk *QueryKey) String() string {
 	builder.WriteString("type=")
 	builder.WriteString(qk.Type)
 	builder.WriteString(", ")
-	builder.WriteString("source=")
-	builder.WriteString(qk.Source)
+	builder.WriteString("spans_valid=")
+	builder.WriteString(fmt.Sprintf("%v", qk.SpansValid))
+	builder.WriteString(", ")
+	builder.WriteString("metrics_valid=")
+	builder.WriteString(fmt.Sprintf("%v", qk.MetricsValid))
+	builder.WriteString(", ")
+	builder.WriteString("logs_valid=")
+	builder.WriteString(fmt.Sprintf("%v", qk.LogsValid))
 	builder.WriteString(", ")
 	builder.WriteString("valid_date=")
 	builder.WriteString(qk.ValidDate.Format(time.ANSIC))
