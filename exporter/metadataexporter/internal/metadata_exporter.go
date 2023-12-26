@@ -14,6 +14,7 @@ import (
 const (
 	scopeNameKey         = "Scope[\"name\"]"
 	scopeVersionKey      = "Scope[\"version\"]"
+	spanNameKey          = "SpanName"
 	statusCodeKey        = "StatusCode"
 	spanSource           = "Span"
 	metricSource         = "Metric"
@@ -21,15 +22,6 @@ const (
 	queryValueTypeString = "S"
 	queryValueTypeNumber = "N"
 )
-
-type dataPointSlice interface {
-	Len() int
-	At(i int) dataPoint
-}
-
-type dataPoint interface {
-	Attributes() pcommon.Map
-}
 
 type MetadataExporter struct {
 	service MetadataService
@@ -63,6 +55,7 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 			spans := scopeSpan.Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
+				exporter.consumeAttribute(ctx, tuples, spanSource, spanNameKey, pcommon.NewValueStr(span.Name()))
 				exporter.consumeAttribute(ctx, tuples, spanSource, statusCodeKey, pcommon.NewValueStr(span.Status().Code().String()))
 				spanAttributes := span.Attributes()
 				spanAttributes.Range(func(k string, v pcommon.Value) bool {
