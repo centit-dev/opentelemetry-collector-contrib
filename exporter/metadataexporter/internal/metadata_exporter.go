@@ -44,7 +44,7 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 		resourceSpan := resourceSpans.At(i)
 		resourceAttributes := resourceSpan.Resource().Attributes()
 		resourceAttributes.Range(func(k string, v pcommon.Value) bool {
-			k = fmt.Sprintf("ResourceAttributes[%s]", k)
+			k = fmt.Sprintf("ResourceAttributes['%s']", k)
 			exporter.consumeAttribute(ctx, tuples, spanSource, k, v)
 			return true
 		})
@@ -59,7 +59,7 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 				exporter.consumeAttribute(ctx, tuples, spanSource, statusCodeKey, pcommon.NewValueStr(span.Status().Code().String()))
 				spanAttributes := span.Attributes()
 				spanAttributes.Range(func(k string, v pcommon.Value) bool {
-					k = fmt.Sprintf("SpanAttributes[%s]", k)
+					k = fmt.Sprintf("SpanAttributes['%s']", k)
 					exporter.consumeAttribute(ctx, tuples, spanSource, k, v)
 					return true
 				})
@@ -78,7 +78,7 @@ func (exporter *MetadataExporter) ConsumeMetrics(ctx context.Context, md pmetric
 		resourceMetric := resourceMetrics.At(i)
 		resourceAttributes := resourceMetric.Resource().Attributes()
 		resourceAttributes.Range(func(k string, v pcommon.Value) bool {
-			k = fmt.Sprintf("ResourceAttributes[%s]", k)
+			k = fmt.Sprintf("ResourceAttributes['%s']", k)
 			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
 			return true
 		})
@@ -115,7 +115,7 @@ func (exporter *MetadataExporter) consumeGaugeDataPoints(ctx context.Context, tu
 	for i := 0; i < dps.Len(); i++ {
 		dp := dps.At(i)
 		dp.Attributes().Range(func(k string, v pcommon.Value) bool {
-			k = fmt.Sprintf("Attributes[%s]", k)
+			k = fmt.Sprintf("Attributes['%s']", k)
 			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
 			return true
 		})
@@ -126,7 +126,7 @@ func (exporter *MetadataExporter) consumeSummaryDataPoints(ctx context.Context, 
 	for i := 0; i < dps.Len(); i++ {
 		dp := dps.At(i)
 		dp.Attributes().Range(func(k string, v pcommon.Value) bool {
-			k = fmt.Sprintf("Attributes[%s]", k)
+			k = fmt.Sprintf("Attributes['%s']", k)
 			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
 			return true
 		})
@@ -137,7 +137,7 @@ func (exporter *MetadataExporter) consumeHistogramDataPoints(ctx context.Context
 	for i := 0; i < dps.Len(); i++ {
 		dp := dps.At(i)
 		dp.Attributes().Range(func(k string, v pcommon.Value) bool {
-			k = fmt.Sprintf("Attributes[%s]", k)
+			k = fmt.Sprintf("Attributes['%s']", k)
 			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
 			return true
 		})
@@ -148,7 +148,7 @@ func (exporter *MetadataExporter) consumeExpotentialHistogramDataPoints(ctx cont
 	for i := 0; i < dps.Len(); i++ {
 		dp := dps.At(i)
 		dp.Attributes().Range(func(k string, v pcommon.Value) bool {
-			k = fmt.Sprintf("Attributes[%s]", k)
+			k = fmt.Sprintf("Attributes['%s']", k)
 			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
 			return true
 		})
@@ -163,7 +163,7 @@ func (exporter *MetadataExporter) ConsumeLogs(ctx context.Context, ld plog.Logs)
 		resourceLog := resourceLogs.At(i)
 		resourceAttributes := resourceLog.Resource().Attributes()
 		resourceAttributes.Range(func(k string, v pcommon.Value) bool {
-			k = fmt.Sprintf("Resource[%s]", k)
+			k = fmt.Sprintf("Resource['%s']", k)
 			exporter.consumeAttribute(ctx, tuples, logSource, k, v)
 			return true
 		})
@@ -175,7 +175,7 @@ func (exporter *MetadataExporter) ConsumeLogs(ctx context.Context, ld plog.Logs)
 			for k := 0; k < logs.Len(); k++ {
 				log := logs.At(k)
 				log.Attributes().Range(func(k string, v pcommon.Value) bool {
-					k = fmt.Sprintf("Attributes[%s]", k)
+					k = fmt.Sprintf("Attributes['%s']", k)
 					exporter.consumeAttribute(ctx, tuples, logSource, k, v)
 					return true
 				})
