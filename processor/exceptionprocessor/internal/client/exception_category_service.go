@@ -14,16 +14,16 @@ import (
 )
 
 const (
-	eventAttributeExceptionName       = "exception"
-	spanAttributeSpanNameKey          = "span.name"
-	spanAttributeExceptionCategoryKey = "exception.id"
+	eventAttributeExceptionName         = "exception"
+	spanAttributeSpanNameKey            = "span.name"
+	spanAttributeExceptionDefinitionKey = "exception.definition.id"
 )
 
 type ExceptionCategoryService struct {
-	logger     *zap.Logger
-	repository ExceptionCategoryRepository
-	categories *spangroup.SpanGroups
-	ticker     *time.Ticker
+	logger      *zap.Logger
+	repository  ExceptionCategoryRepository
+	definitions *spangroup.SpanGroups
+	ticker      *time.Ticker
 }
 
 func CreateCategoryService(repository ExceptionCategoryRepository, cacheTtlMinutes time.Duration, logger *zap.Logger) *ExceptionCategoryService {
@@ -51,6 +51,7 @@ func (service *ExceptionCategoryService) buildCache(context context.Context) {
 		return
 	}
 	data := make(map[*spangroup.SpanGroupDefinitions]string)
+	// TODO the span group is not the best choice for this use case
 	for _, definition := range records {
 		exceptionNameQuery := spangroup.CreateSpanGroupDefinition(conventions.AttributeExceptionType, "=", definition.LongName)
 		definitions := spangroup.SpanGroupDefinitions{}
@@ -62,14 +63,14 @@ func (service *ExceptionCategoryService) buildCache(context context.Context) {
 			})
 		}
 		definitions = append(definitions, exceptionNameQuery)
-		data[&definitions] = fmt.Sprint(definition.Edges.ExceptionCategory.ID)
+		data[&definitions] = fmt.Sprint(definition.ID)
 	}
-	service.categories = spangroup.CreateSpanGroup(data)
+	service.definitions = spangroup.CreateSpanGroup(data)
 }
 
 // implement processorhelper.ProcessTracesFunc
 func (service *ExceptionCategoryService) ProcessTraces(ctx context.Context, traces ptrace.Traces) (ptrace.Traces, error) {
-	if service.categories.IsEmpty() {
+	if service.definitions.IsEmpty() {
 		return traces, nil
 	}
 
@@ -94,7 +95,7 @@ func (service *ExceptionCategoryService) ProcessTraces(ctx context.Context, trac
 
 // implement processorhelper.ProcessLogsFunc
 func (service *ExceptionCategoryService) ProcessLogs(ctx context.Context, logs plog.Logs) (plog.Logs, error) {
-	if service.categories.IsEmpty() {
+	if service.definitions.IsEmpty() {
 		return logs, nil
 	}
 
@@ -126,8 +127,8 @@ func (service *ExceptionCategoryService) processSpan(resources *pcommon.Map, spa
 		return
 	}
 	attributes := span.Attributes()
-	categories := service.getCategoriesByAttributes(resources, &attributes, exceptionFullName, span.Name())
-	service.updateAttributes(&attributes, categories, exceptionFullName)
+	categories := service.getDefinitionsByAttributes(resources, &attributes, exceptionFullName, span.Name())
+	service.updateAttributes(&attributes, categories)
 }
 
 // TODO doesn't capture all exceptions:
@@ -157,11 +158,11 @@ func (service *ExceptionCategoryService) processLog(resources *pcommon.Map, log 
 		return
 	}
 	exceptionFullNameValue := exceptionFullName.AsString()
-	categories := service.getCategoriesByAttributes(resources, &attributes, exceptionFullNameValue, "")
-	service.updateAttributes(&attributes, categories, exceptionFullNameValue)
+	definitions := service.getDefinitionsByAttributes(resources, &attributes, exceptionFullNameValue, "")
+	service.updateAttributes(&attributes, definitions)
 }
 
-func (service *ExceptionCategoryService) getCategoriesByAttributes(resources *pcommon.Map, attributes *pcommon.Map, exceptionFullName string, spanName string) []string {
+func (service *ExceptionCategoryService) getDefinitionsByAttributes(resources *pcommon.Map, attributes *pcommon.Map, exceptionFullName string, spanName string) []string {
 	queries := make(map[string]interface{}, resources.Len()+attributes.Len()+2)
 	// required by the definition long name
 	queries[conventions.AttributeExceptionType] = exceptionFullName
@@ -177,12 +178,12 @@ func (service *ExceptionCategoryService) getCategoriesByAttributes(resources *pc
 		queries[k] = v.AsRaw()
 		return true
 	})
-	return service.categories.Get(&queries)
+	return service.definitions.Get(&queries)
 }
 
-func (service *ExceptionCategoryService) updateAttributes(attributes *pcommon.Map, categories []string, exceptionFullName string) {
-	if len(categories) > 0 {
-		attributes.PutStr(spanAttributeExceptionCategoryKey, categories[0])
+func (service *ExceptionCategoryService) updateAttributes(attributes *pcommon.Map, definitions []string) {
+	if len(definitions) > 0 {
+		attributes.PutStr(spanAttributeExceptionDefinitionKey, definitions[0])
 	}
 }
 
