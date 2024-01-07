@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/teanoon/opentelemetry-collector-contrib/pkg/spangroup"
@@ -15,8 +16,7 @@ import (
 const (
 	eventAttributeExceptionName       = "exception"
 	spanAttributeSpanNameKey          = "span.name"
-	spanAttributeExceptionNameKey     = "exception.name"
-	spanAttributeExceptionCategoryKey = "exception.categories"
+	spanAttributeExceptionCategoryKey = "exception.id"
 )
 
 type ExceptionCategoryService struct {
@@ -62,7 +62,7 @@ func (service *ExceptionCategoryService) buildCache(context context.Context) {
 			})
 		}
 		definitions = append(definitions, exceptionNameQuery)
-		data[&definitions] = definition.Edges.ExceptionCategory.Name
+		data[&definitions] = fmt.Sprint(definition.Edges.ExceptionCategory.ID)
 	}
 	service.categories = spangroup.CreateSpanGroup(data)
 }
@@ -182,13 +182,8 @@ func (service *ExceptionCategoryService) getCategoriesByAttributes(resources *pc
 
 func (service *ExceptionCategoryService) updateAttributes(attributes *pcommon.Map, categories []string, exceptionFullName string) {
 	if len(categories) > 0 {
-		slice := attributes.PutEmptySlice(spanAttributeExceptionCategoryKey)
-		slice.EnsureCapacity(len(categories))
-		for _, category := range categories {
-			slice.AppendEmpty().SetStr(category)
-		}
+		attributes.PutStr(spanAttributeExceptionCategoryKey, categories[0])
 	}
-	attributes.PutStr(spanAttributeExceptionNameKey, exceptionFullName)
 }
 
 // implement Shutdown from component.Component
