@@ -33,7 +33,8 @@ const (
 	faultKindKey       = "fault.kind"  // OpenTelemetry non-standard constant.
 	metricKeySeparator = string(byte(0))
 
-	defaultDimensionsCacheSize = 1000
+	defaultDimensionsCacheSize      = 1000
+	defaultResourceMetricsCacheSize = 1000
 
 	metricNameDuration            = "duration"
 	metricNameDurationPercentiles = "durationPercentiles"
@@ -54,10 +55,9 @@ type connectorImp struct {
 	// Additional dimensions to add to metrics.
 	dimensions []dimension
 
-	// The starting time of the data points.
-	startTimestamp pcommon.Timestamp
+	resourceMetrics *cache.Cache[resourceKey, *resourceMetrics]
 
-	resourceMetrics map[resourceKey]*resourceMetrics
+	resourceMetricsKeyAttributes map[string]struct{}
 
 	keyBuf *bytes.Buffer
 
@@ -84,6 +84,8 @@ type resourceMetrics struct {
 	traces     metrics.ErrorRateMetrics
 	events     metrics.SumMetrics
 	attributes pcommon.Map
+	// startTimestamp captures when the first data points for this resource are recorded.
+	startTimestamp pcommon.Timestamp
 }
 
 type dimension struct {
@@ -115,18 +117,29 @@ func newConnector(logger *zap.Logger, config component.Config, ticker *clock.Tic
 		return nil, err
 	}
 
+	resourceMetricsCache, err := cache.NewCache[resourceKey, *resourceMetrics](cfg.ResourceMetricsCacheSize)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceMetricsKeyAttributes := make(map[string]struct{}, len(cfg.ResourceMetricsKeyAttributes))
+	var s struct{}
+	for _, attr := range cfg.ResourceMetricsKeyAttributes {
+		resourceMetricsKeyAttributes[attr] = s
+	}
+
 	return &connectorImp{
-		logger:                logger,
-		config:                *cfg,
-		startTimestamp:        pcommon.NewTimestampFromTime(time.Now()),
-		resourceMetrics:       make(map[resourceKey]*resourceMetrics),
-		dimensions:            newDimensions(cfg.Dimensions),
-		keyBuf:                bytes.NewBuffer(make([]byte, 0, 1024)),
-		metricKeyToDimensions: metricKeyToDimensionsCache,
-		ticker:                ticker,
-		done:                  make(chan struct{}),
-		eDimensions:           newDimensions(cfg.Events.Dimensions),
-		events:                cfg.Events,
+		logger:                       logger,
+		config:                       *cfg,
+		resourceMetrics:              resourceMetricsCache,
+		resourceMetricsKeyAttributes: resourceMetricsKeyAttributes,
+		dimensions:                   newDimensions(cfg.Dimensions),
+		keyBuf:                       bytes.NewBuffer(make([]byte, 0, 1024)),
+		metricKeyToDimensions:        metricKeyToDimensionsCache,
+		ticker:                       ticker,
+		done:                         make(chan struct{}),
+		eDimensions:                  newDimensions(cfg.Events.Dimensions),
+		events:                       cfg.Events,
 	}, nil
 }
 
@@ -139,7 +152,7 @@ func initHistogramMetrics(cfg Config) metrics.HistogramMetrics {
 		if cfg.Histogram.Exponential.MaxSize != 0 {
 			maxSize = cfg.Histogram.Exponential.MaxSize
 		}
-		return metrics.NewExponentialHistogramMetrics(maxSize)
+		return metrics.NewExponentialHistogramMetrics(maxSize, cfg.Exemplars.MaxPerDataPoint)
 	}
 
 	var bounds []float64
@@ -157,7 +170,7 @@ func initHistogramMetrics(cfg Config) metrics.HistogramMetrics {
 		}
 	}
 
-	return metrics.NewExplicitHistogramMetrics(bounds)
+	return metrics.NewExplicitHistogramMetrics(bounds, cfg.Exemplars.MaxPerDataPoint)
 }
 
 // unitDivider returns a unit divider to convert nanoseconds to milliseconds or seconds.
@@ -241,7 +254,8 @@ func (p *connectorImp) exportMetrics(ctx context.Context) {
 // buildMetrics collects the computed raw metrics data and builds OTLP metrics.
 func (p *connectorImp) buildMetrics() pmetric.Metrics {
 	m := pmetric.NewMetrics()
-	for _, rawMetrics := range p.resourceMetrics {
+
+	p.resourceMetrics.ForEach(func(_ resourceKey, rawMetrics *resourceMetrics) {
 		rm := m.ResourceMetrics().AppendEmpty()
 		rawMetrics.attributes.CopyTo(rm.Resource().Attributes())
 
@@ -251,19 +265,19 @@ func (p *connectorImp) buildMetrics() pmetric.Metrics {
 		sums := rawMetrics.sums
 		metric := sm.Metrics().AppendEmpty()
 		metric.SetName(buildMetricName(p.config.Namespace, metricNameCalls))
-		sums.BuildMetrics(metric, p.startTimestamp, p.config.GetAggregationTemporality())
+		sums.BuildMetrics(metric, rawMetrics.startTimestamp, p.config.GetAggregationTemporality())
 
 		traces := rawMetrics.traces
 		metric = sm.Metrics().AppendEmpty()
 		metric.SetName(buildMetricName(p.config.Namespace, metricNameErrorRates))
-		traces.BuildMetrics(metric, p.startTimestamp)
+		traces.BuildMetrics(metric, rawMetrics.startTimestamp)
 
 		if !p.config.Histogram.Disable {
 			histograms := rawMetrics.histograms
 			metric = sm.Metrics().AppendEmpty()
 			metric.SetName(buildMetricName(p.config.Namespace, metricNameDuration))
 			metric.SetUnit(p.config.Histogram.Unit.String())
-			histograms.BuildMetrics(metric, p.startTimestamp, p.config.GetAggregationTemporality())
+			histograms.BuildMetrics(metric, rawMetrics.startTimestamp, p.config.GetAggregationTemporality())
 		}
 
 		if !p.config.Percentile.Disable {
@@ -271,16 +285,16 @@ func (p *connectorImp) buildMetrics() pmetric.Metrics {
 			metric = sm.Metrics().AppendEmpty()
 			metric.SetName(buildMetricName(p.config.Namespace, metricNameDurationPercentiles))
 			metric.SetUnit(p.config.Histogram.Unit.String())
-			durations.BuildMetrics(metric, p.startTimestamp, p.config.Percentile.Buckets)
+			durations.BuildMetrics(metric, rawMetrics.startTimestamp, p.config.Percentile.Buckets)
 		}
 
 		events := rawMetrics.events
 		if p.events.Enabled {
 			metric = sm.Metrics().AppendEmpty()
 			metric.SetName(buildMetricName(p.config.Namespace, metricNameEvents))
-			events.BuildMetrics(metric, p.startTimestamp, p.config.GetAggregationTemporality())
+			events.BuildMetrics(metric, rawMetrics.startTimestamp, p.config.GetAggregationTemporality())
 		}
-	}
+	})
 
 	return m
 }
@@ -288,13 +302,13 @@ func (p *connectorImp) buildMetrics() pmetric.Metrics {
 func (p *connectorImp) resetState() {
 	// If delta metrics, reset accumulated data
 	if p.config.GetAggregationTemporality() == pmetric.AggregationTemporalityDelta {
-		p.resourceMetrics = make(map[resourceKey]*resourceMetrics)
+		p.resourceMetrics.Purge()
 		p.metricKeyToDimensions.Purge()
-		p.startTimestamp = pcommon.NewTimestampFromTime(time.Now())
 	} else {
+		p.resourceMetrics.RemoveEvictedItems()
 		p.metricKeyToDimensions.RemoveEvictedItems()
 
-		for _, m := range p.resourceMetrics {
+		p.resourceMetrics.ForEach(func(_ resourceKey, m *resourceMetrics) {
 			m.traces.Reset()
 
 			if !p.config.Percentile.Disable {
@@ -302,9 +316,9 @@ func (p *connectorImp) resetState() {
 			}
 
 			if !p.config.Histogram.Disable {
-				m.histograms.Reset(false)
+				m.histograms.Reset(true)
 			}
-		}
+		})
 	}
 }
 
@@ -406,6 +420,9 @@ func (p *connectorImp) aggregateMetrics(traces ptrace.Traces) {
 							p.metricKeyToDimensions.Add(eKey, eAttributes)
 						}
 						e := events.GetOrCreate(eKey, eAttributes)
+						if p.config.Exemplars.Enabled && !span.TraceID().IsEmpty() {
+							e.AddExemplar(span.TraceID(), span.SpanID(), duration)
+						}
 						e.Add(1)
 					}
 				}
@@ -427,19 +444,33 @@ func (p *connectorImp) addExemplar(span ptrace.Span, duration float64, h metrics
 
 type resourceKey [16]byte
 
+func (p *connectorImp) createResourceKey(attr pcommon.Map) resourceKey {
+	if len(p.resourceMetricsKeyAttributes) == 0 {
+		return pdatautil.MapHash(attr)
+	}
+	m := pcommon.NewMap()
+	attr.CopyTo(m)
+	m.RemoveIf(func(k string, _ pcommon.Value) bool {
+		_, ok := p.resourceMetricsKeyAttributes[k]
+		return !ok
+	})
+	return pdatautil.MapHash(m)
+}
+
 func (p *connectorImp) getOrCreateResourceMetrics(attr pcommon.Map) *resourceMetrics {
-	key := resourceKey(pdatautil.MapHash(attr))
-	v, ok := p.resourceMetrics[key]
+	key := p.createResourceKey(attr)
+	v, ok := p.resourceMetrics.Get(key)
 	if !ok {
 		v = &resourceMetrics{
-			histograms: initHistogramMetrics(p.config),
-			durations:  metrics.NewPercentileMetrics(),
-			sums:       metrics.NewSumMetrics(),
-			traces:     metrics.NewErrorRateMetrics(),
-			events:     metrics.NewSumMetrics(),
-			attributes: attr,
+			histograms:     initHistogramMetrics(p.config),
+			durations:      metrics.NewPercentileMetrics(),
+			sums:           metrics.NewSumMetrics(p.config.Exemplars.MaxPerDataPoint),
+			traces:         metrics.NewErrorRateMetrics(),
+			events:         metrics.NewSumMetrics(p.config.Exemplars.MaxPerDataPoint),
+			attributes:     attr,
+			startTimestamp: pcommon.NewTimestampFromTime(time.Now()),
 		}
-		p.resourceMetrics[key] = v
+		p.resourceMetrics.Add(key, v)
 	}
 	return v
 }

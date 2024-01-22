@@ -33,13 +33,15 @@ type Histogram interface {
 }
 
 type explicitHistogramMetrics struct {
-	metrics map[Key]*explicitHistogram
-	bounds  []float64
+	metrics          map[Key]*explicitHistogram
+	bounds           []float64
+	maxExemplarCount *int
 }
 
 type exponentialHistogramMetrics struct {
-	metrics map[Key]*exponentialHistogram
-	maxSize int32
+	metrics          map[Key]*exponentialHistogram
+	maxSize          int32
+	maxExemplarCount *int
 }
 
 type explicitHistogram struct {
@@ -51,6 +53,8 @@ type explicitHistogram struct {
 	sum          float64
 
 	bounds []float64
+
+	maxExemplarCount *int
 }
 
 type exponentialHistogram struct {
@@ -58,19 +62,23 @@ type exponentialHistogram struct {
 	exemplars  pmetric.ExemplarSlice
 
 	histogram *structure.Histogram[float64]
+
+	maxExemplarCount *int
 }
 
-func NewExponentialHistogramMetrics(maxSize int32) HistogramMetrics {
+func NewExponentialHistogramMetrics(maxSize int32, maxExemplarCount *int) HistogramMetrics {
 	return &exponentialHistogramMetrics{
-		metrics: make(map[Key]*exponentialHistogram),
-		maxSize: maxSize,
+		metrics:          make(map[Key]*exponentialHistogram),
+		maxSize:          maxSize,
+		maxExemplarCount: maxExemplarCount,
 	}
 }
 
-func NewExplicitHistogramMetrics(bounds []float64) HistogramMetrics {
+func NewExplicitHistogramMetrics(bounds []float64, maxExemplarCount *int) HistogramMetrics {
 	return &explicitHistogramMetrics{
-		metrics: make(map[Key]*explicitHistogram),
-		bounds:  bounds,
+		metrics:          make(map[Key]*explicitHistogram),
+		bounds:           bounds,
+		maxExemplarCount: maxExemplarCount,
 	}
 }
 
@@ -78,10 +86,11 @@ func (m *explicitHistogramMetrics) GetOrCreate(key Key, attributes pcommon.Map) 
 	h, ok := m.metrics[key]
 	if !ok {
 		h = &explicitHistogram{
-			attributes:   attributes,
-			exemplars:    pmetric.NewExemplarSlice(),
-			bounds:       m.bounds,
-			bucketCounts: make([]uint64, len(m.bounds)+1),
+			attributes:       attributes,
+			exemplars:        pmetric.NewExemplarSlice(),
+			bounds:           m.bounds,
+			bucketCounts:     make([]uint64, len(m.bounds)+1),
+			maxExemplarCount: m.maxExemplarCount,
 		}
 		m.metrics[key] = h
 	}
@@ -135,11 +144,13 @@ func (m *exponentialHistogramMetrics) GetOrCreate(key Key, attributes pcommon.Ma
 		histogram.Init(cfg)
 
 		h = &exponentialHistogram{
-			histogram:  histogram,
-			attributes: attributes,
-			exemplars:  pmetric.NewExemplarSlice(),
+			histogram:        histogram,
+			attributes:       attributes,
+			exemplars:        pmetric.NewExemplarSlice(),
+			maxExemplarCount: m.maxExemplarCount,
 		}
 		m.metrics[key] = h
+
 	}
 
 	return h
@@ -219,6 +230,9 @@ func (h *explicitHistogram) Observe(value float64) {
 }
 
 func (h *explicitHistogram) AddExemplar(traceID pcommon.TraceID, spanID pcommon.SpanID, value float64) {
+	if h.maxExemplarCount != nil && h.exemplars.Len() >= *h.maxExemplarCount {
+		return
+	}
 	e := h.exemplars.AppendEmpty()
 	e.SetTraceID(traceID)
 	e.SetSpanID(spanID)
@@ -230,6 +244,9 @@ func (h *exponentialHistogram) Observe(value float64) {
 }
 
 func (h *exponentialHistogram) AddExemplar(traceID pcommon.TraceID, spanID pcommon.SpanID, value float64) {
+	if h.maxExemplarCount != nil && h.exemplars.Len() >= *h.maxExemplarCount {
+		return
+	}
 	e := h.exemplars.AppendEmpty()
 	e.SetTraceID(traceID)
 	e.SetSpanID(spanID)
@@ -315,29 +332,35 @@ func (b *DurationBuckets) calculatePercential(sortedKeys []float64, percentile f
 }
 
 type Sum struct {
-	attributes pcommon.Map
-	count      uint64
-	exemplars  pmetric.ExemplarSlice
+	attributes       pcommon.Map
+	count            uint64
+	exemplars        pmetric.ExemplarSlice
+	maxExemplarCount *int
 }
 
 func (s *Sum) Add(value uint64) {
 	s.count += value
 }
 
-func NewSumMetrics() SumMetrics {
-	return SumMetrics{metrics: make(map[Key]*Sum)}
+func NewSumMetrics(maxExemplarCount *int) SumMetrics {
+	return SumMetrics{
+		metrics:          make(map[Key]*Sum),
+		maxExemplarCount: maxExemplarCount,
+	}
 }
 
 type SumMetrics struct {
-	metrics map[Key]*Sum
+	metrics          map[Key]*Sum
+	maxExemplarCount *int
 }
 
 func (m *SumMetrics) GetOrCreate(key Key, attributes pcommon.Map) *Sum {
 	s, ok := m.metrics[key]
 	if !ok {
 		s = &Sum{
-			attributes: attributes,
-			exemplars:  pmetric.NewExemplarSlice(),
+			attributes:       attributes,
+			exemplars:        pmetric.NewExemplarSlice(),
+			maxExemplarCount: m.maxExemplarCount,
 		}
 		m.metrics[key] = s
 	}
@@ -345,6 +368,9 @@ func (m *SumMetrics) GetOrCreate(key Key, attributes pcommon.Map) *Sum {
 }
 
 func (s *Sum) AddExemplar(traceID pcommon.TraceID, spanID pcommon.SpanID, value float64) {
+	if s.maxExemplarCount != nil && s.exemplars.Len() >= *s.maxExemplarCount {
+		return
+	}
 	e := s.exemplars.AppendEmpty()
 	e.SetTraceID(traceID)
 	e.SetSpanID(spanID)
