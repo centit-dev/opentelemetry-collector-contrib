@@ -37,7 +37,7 @@ func createDefaultConfig() component.Config {
 			BatchSize:         1000,
 			IntervalInSeconds: 1,
 		},
-		QueryKeyTtlInDays: 30,
+		TtlInDays: 30,
 	}
 }
 
@@ -109,12 +109,21 @@ func createExporter(ctx context.Context, set exporter.CreateSettings, cfg compon
 	}
 	queryKeyRepository := internal.CreateQueryKeyRepository(client)
 	queryValueRepository := internal.CreateQueryValueRepository(client)
-	service := internal.CreateMetadataService(
+	metadataService := internal.CreateMetadataService(
 		&c.CacheConfig,
 		&c.BatchConfig,
-		c.QueryKeyTtlInDays,
+		c.TtlInDays,
 		set.Logger,
 		queryKeyRepository,
 		queryValueRepository)
-	return internal.CreateMetadataExporter(service), nil
+
+	appStructureRepository := internal.CreateApplicationStructureRepository(client)
+	appStructureService := internal.CreateApplicationStructureService(
+		&c.CacheConfig,
+		&c.BatchConfig,
+		c.TtlInDays,
+		set.Logger,
+		appStructureRepository,
+	)
+	return internal.CreateMetadataExporter(metadataService, appStructureService), nil
 }

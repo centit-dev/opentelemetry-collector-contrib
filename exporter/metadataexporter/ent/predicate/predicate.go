@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// ApplicationStructure is the predicate function for applicationstructure builders.
+type ApplicationStructure func(*sql.Selector)
+
 // QueryKey is the predicate function for querykey builders.
 type QueryKey func(*sql.Selector)
 

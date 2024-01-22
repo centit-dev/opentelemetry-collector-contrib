@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/applicationstructure"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/querykey"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/queryvalue"
 )
@@ -74,8 +75,9 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			querykey.Table:   querykey.ValidColumn,
-			queryvalue.Table: queryvalue.ValidColumn,
+			applicationstructure.Table: applicationstructure.ValidColumn,
+			querykey.Table:             querykey.ValidColumn,
+			queryvalue.Table:           queryvalue.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

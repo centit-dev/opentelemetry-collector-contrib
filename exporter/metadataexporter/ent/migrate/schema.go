@@ -9,6 +9,21 @@ import (
 )
 
 var (
+	// TbApplicationStructureColumns holds the columns for the "tb_application_structure" table.
+	TbApplicationStructureColumns = []*schema.Column{
+		{Name: "code", Type: field.TypeString, Unique: true, Size: 100},
+		{Name: "parent_code", Type: field.TypeString, Size: 100},
+		{Name: "level", Type: field.TypeInt},
+		{Name: "valid_date", Type: field.TypeTime},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+	}
+	// TbApplicationStructureTable holds the schema information for the "tb_application_structure" table.
+	TbApplicationStructureTable = &schema.Table{
+		Name:       "tb_application_structure",
+		Columns:    TbApplicationStructureColumns,
+		PrimaryKey: []*schema.Column{TbApplicationStructureColumns[0]},
+	}
 	// TbQueryKeyColumns holds the columns for the "tb_query_key" table.
 	TbQueryKeyColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -52,12 +67,16 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		TbApplicationStructureTable,
 		TbQueryKeyTable,
 		TbQueryValueTable,
 	}
 )
 
 func init() {
+	TbApplicationStructureTable.Annotation = &entsql.Annotation{
+		Table: "tb_application_structure",
+	}
 	TbQueryKeyTable.Annotation = &entsql.Annotation{
 		Table: "tb_query_key",
 	}

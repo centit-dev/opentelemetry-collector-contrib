@@ -2,8 +2,23 @@
 
 package ent
 
+import (
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/applicationstructure"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/schema"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	applicationstructureFields := schema.ApplicationStructure{}.Fields()
+	_ = applicationstructureFields
+	// applicationstructureDescParentCode is the schema descriptor for parentCode field.
+	applicationstructureDescParentCode := applicationstructureFields[1].Descriptor()
+	// applicationstructure.ParentCodeValidator is a validator for the "parentCode" field. It is called by the builders before save.
+	applicationstructure.ParentCodeValidator = applicationstructureDescParentCode.Validators[0].(func(string) error)
+	// applicationstructureDescID is the schema descriptor for id field.
+	applicationstructureDescID := applicationstructureFields[0].Descriptor()
+	// applicationstructure.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	applicationstructure.IDValidator = applicationstructureDescID.Validators[0].(func(string) error)
 }

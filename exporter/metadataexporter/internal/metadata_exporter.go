@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	conventions "go.opentelemetry.io/collector/semconv/v1.18.0"
 )
 
 const (
@@ -21,23 +22,28 @@ const (
 	logSource            = "Log"
 	queryValueTypeString = "S"
 	queryValueTypeNumber = "N"
+
+	attributeServicePlatform = "service.platform"
 )
 
 type MetadataExporter struct {
-	service MetadataService
+	metadataService     MetadataService
+	appStructureService *ApplicationStructureService
 }
 
-func CreateMetadataExporter(service MetadataService) *MetadataExporter {
-	return &MetadataExporter{service}
+func CreateMetadataExporter(service MetadataService, appStructureService *ApplicationStructureService) *MetadataExporter {
+	return &MetadataExporter{service, appStructureService}
 }
 
 func (exporter *MetadataExporter) Start(ctx context.Context, _ component.Host) error {
-	exporter.service.Start(ctx)
+	exporter.metadataService.Start(ctx)
+	exporter.appStructureService.Start(ctx)
 	return nil
 }
 
 func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	tuples := make(map[string]*tuple)
+	structureTuples := make(map[string]*structureTuple)
 
 	resourceSpans := td.ResourceSpans()
 	for i := 0; i < resourceSpans.Len(); i++ {
@@ -48,6 +54,21 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 			exporter.consumeAttribute(ctx, tuples, spanSource, k, v)
 			return true
 		})
+
+		platform, ok := resourceAttributes.Get(attributeServicePlatform)
+		if ok {
+			exporter.consumeStructureAttributes(ctx, structureTuples, platform.Str(), "", levelPlatform)
+
+			appCluster, ok := resourceAttributes.Get(conventions.AttributeK8SDeploymentName)
+			if ok {
+				exporter.consumeStructureAttributes(ctx, structureTuples, appCluster.Str(), platform.Str(), levelApplicationCluster)
+
+				podName, ok := resourceAttributes.Get(conventions.AttributeK8SPodName)
+				if ok {
+					exporter.consumeStructureAttributes(ctx, structureTuples, podName.Str(), appCluster.Str(), levelInstance)
+				}
+			}
+		}
 
 		scopeSpans := resourceSpan.ScopeSpans()
 		for j := 0; j < scopeSpans.Len(); j++ {
@@ -66,8 +87,20 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 			}
 		}
 	}
-	exporter.service.ConsumeAttributes(ctx, tuples)
+	exporter.metadataService.ConsumeAttributes(ctx, tuples)
+	exporter.appStructureService.ConsumeAttributes(ctx, structureTuples)
 	return nil
+}
+
+func (exporter *MetadataExporter) consumeStructureAttributes(ctx context.Context, tuples map[string]*structureTuple, code string, parentCode string, level applicationStructureLevel) {
+	if _, ok := tuples[code]; ok {
+		return
+	}
+	item := &structureTuple{
+		parentCode: parentCode,
+		level:      level,
+	}
+	tuples[code] = item
 }
 
 func (exporter *MetadataExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
@@ -106,7 +139,7 @@ func (exporter *MetadataExporter) ConsumeMetrics(ctx context.Context, md pmetric
 			}
 		}
 	}
-	exporter.service.ConsumeAttributes(ctx, tuples)
+	exporter.metadataService.ConsumeAttributes(ctx, tuples)
 
 	return nil
 }
@@ -207,5 +240,17 @@ func (exporter *MetadataExporter) consumeAttribute(ctx context.Context, tuples m
 }
 
 func (exporter *MetadataExporter) Shutdown(ctx context.Context) error {
-	return exporter.service.Shutdown(ctx)
+	err1 := exporter.metadataService.Shutdown(ctx)
+	err2 := exporter.appStructureService.Shutdown(ctx)
+	return mergeErrors(err1, err2)
+}
+
+func mergeErrors(err1, err2 error) error {
+	if err1 != nil && err2 != nil {
+		return fmt.Errorf("%s; %s", err1, err2)
+	} else if err1 != nil {
+		return err1
+	} else {
+		return err2
+	}
 }

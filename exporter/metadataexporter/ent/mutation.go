@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/applicationstructure"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/predicate"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/querykey"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/queryvalue"
@@ -25,9 +26,594 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeQueryKey   = "QueryKey"
-	TypeQueryValue = "QueryValue"
+	TypeApplicationStructure = "ApplicationStructure"
+	TypeQueryKey             = "QueryKey"
+	TypeQueryValue           = "QueryValue"
 )
+
+// ApplicationStructureMutation represents an operation that mutates the ApplicationStructure nodes in the graph.
+type ApplicationStructureMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *string
+	parentCode    *string
+	level         *int
+	addlevel      *int
+	valid_date    *time.Time
+	create_time   *time.Time
+	update_time   *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*ApplicationStructure, error)
+	predicates    []predicate.ApplicationStructure
+}
+
+var _ ent.Mutation = (*ApplicationStructureMutation)(nil)
+
+// applicationstructureOption allows management of the mutation configuration using functional options.
+type applicationstructureOption func(*ApplicationStructureMutation)
+
+// newApplicationStructureMutation creates new mutation for the ApplicationStructure entity.
+func newApplicationStructureMutation(c config, op Op, opts ...applicationstructureOption) *ApplicationStructureMutation {
+	m := &ApplicationStructureMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeApplicationStructure,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withApplicationStructureID sets the ID field of the mutation.
+func withApplicationStructureID(id string) applicationstructureOption {
+	return func(m *ApplicationStructureMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ApplicationStructure
+		)
+		m.oldValue = func(ctx context.Context) (*ApplicationStructure, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ApplicationStructure.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withApplicationStructure sets the old ApplicationStructure of the mutation.
+func withApplicationStructure(node *ApplicationStructure) applicationstructureOption {
+	return func(m *ApplicationStructureMutation) {
+		m.oldValue = func(context.Context) (*ApplicationStructure, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ApplicationStructureMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ApplicationStructureMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ApplicationStructure entities.
+func (m *ApplicationStructureMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ApplicationStructureMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ApplicationStructureMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ApplicationStructure.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetParentCode sets the "parentCode" field.
+func (m *ApplicationStructureMutation) SetParentCode(s string) {
+	m.parentCode = &s
+}
+
+// ParentCode returns the value of the "parentCode" field in the mutation.
+func (m *ApplicationStructureMutation) ParentCode() (r string, exists bool) {
+	v := m.parentCode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentCode returns the old "parentCode" field's value of the ApplicationStructure entity.
+// If the ApplicationStructure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationStructureMutation) OldParentCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentCode: %w", err)
+	}
+	return oldValue.ParentCode, nil
+}
+
+// ResetParentCode resets all changes to the "parentCode" field.
+func (m *ApplicationStructureMutation) ResetParentCode() {
+	m.parentCode = nil
+}
+
+// SetLevel sets the "level" field.
+func (m *ApplicationStructureMutation) SetLevel(i int) {
+	m.level = &i
+	m.addlevel = nil
+}
+
+// Level returns the value of the "level" field in the mutation.
+func (m *ApplicationStructureMutation) Level() (r int, exists bool) {
+	v := m.level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevel returns the old "level" field's value of the ApplicationStructure entity.
+// If the ApplicationStructure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationStructureMutation) OldLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
+	}
+	return oldValue.Level, nil
+}
+
+// AddLevel adds i to the "level" field.
+func (m *ApplicationStructureMutation) AddLevel(i int) {
+	if m.addlevel != nil {
+		*m.addlevel += i
+	} else {
+		m.addlevel = &i
+	}
+}
+
+// AddedLevel returns the value that was added to the "level" field in this mutation.
+func (m *ApplicationStructureMutation) AddedLevel() (r int, exists bool) {
+	v := m.addlevel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *ApplicationStructureMutation) ResetLevel() {
+	m.level = nil
+	m.addlevel = nil
+}
+
+// SetValidDate sets the "valid_date" field.
+func (m *ApplicationStructureMutation) SetValidDate(t time.Time) {
+	m.valid_date = &t
+}
+
+// ValidDate returns the value of the "valid_date" field in the mutation.
+func (m *ApplicationStructureMutation) ValidDate() (r time.Time, exists bool) {
+	v := m.valid_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValidDate returns the old "valid_date" field's value of the ApplicationStructure entity.
+// If the ApplicationStructure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationStructureMutation) OldValidDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValidDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValidDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValidDate: %w", err)
+	}
+	return oldValue.ValidDate, nil
+}
+
+// ResetValidDate resets all changes to the "valid_date" field.
+func (m *ApplicationStructureMutation) ResetValidDate() {
+	m.valid_date = nil
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *ApplicationStructureMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *ApplicationStructureMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the ApplicationStructure entity.
+// If the ApplicationStructure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationStructureMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *ApplicationStructureMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *ApplicationStructureMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *ApplicationStructureMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the ApplicationStructure entity.
+// If the ApplicationStructure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationStructureMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *ApplicationStructureMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// Where appends a list predicates to the ApplicationStructureMutation builder.
+func (m *ApplicationStructureMutation) Where(ps ...predicate.ApplicationStructure) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ApplicationStructureMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ApplicationStructureMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ApplicationStructure, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ApplicationStructureMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ApplicationStructureMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ApplicationStructure).
+func (m *ApplicationStructureMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ApplicationStructureMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.parentCode != nil {
+		fields = append(fields, applicationstructure.FieldParentCode)
+	}
+	if m.level != nil {
+		fields = append(fields, applicationstructure.FieldLevel)
+	}
+	if m.valid_date != nil {
+		fields = append(fields, applicationstructure.FieldValidDate)
+	}
+	if m.create_time != nil {
+		fields = append(fields, applicationstructure.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, applicationstructure.FieldUpdateTime)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ApplicationStructureMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case applicationstructure.FieldParentCode:
+		return m.ParentCode()
+	case applicationstructure.FieldLevel:
+		return m.Level()
+	case applicationstructure.FieldValidDate:
+		return m.ValidDate()
+	case applicationstructure.FieldCreateTime:
+		return m.CreateTime()
+	case applicationstructure.FieldUpdateTime:
+		return m.UpdateTime()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ApplicationStructureMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case applicationstructure.FieldParentCode:
+		return m.OldParentCode(ctx)
+	case applicationstructure.FieldLevel:
+		return m.OldLevel(ctx)
+	case applicationstructure.FieldValidDate:
+		return m.OldValidDate(ctx)
+	case applicationstructure.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case applicationstructure.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	}
+	return nil, fmt.Errorf("unknown ApplicationStructure field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ApplicationStructureMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case applicationstructure.FieldParentCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentCode(v)
+		return nil
+	case applicationstructure.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
+	case applicationstructure.FieldValidDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValidDate(v)
+		return nil
+	case applicationstructure.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case applicationstructure.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ApplicationStructure field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ApplicationStructureMutation) AddedFields() []string {
+	var fields []string
+	if m.addlevel != nil {
+		fields = append(fields, applicationstructure.FieldLevel)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ApplicationStructureMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case applicationstructure.FieldLevel:
+		return m.AddedLevel()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ApplicationStructureMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case applicationstructure.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLevel(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ApplicationStructure numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ApplicationStructureMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ApplicationStructureMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ApplicationStructureMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ApplicationStructure nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ApplicationStructureMutation) ResetField(name string) error {
+	switch name {
+	case applicationstructure.FieldParentCode:
+		m.ResetParentCode()
+		return nil
+	case applicationstructure.FieldLevel:
+		m.ResetLevel()
+		return nil
+	case applicationstructure.FieldValidDate:
+		m.ResetValidDate()
+		return nil
+	case applicationstructure.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case applicationstructure.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	}
+	return fmt.Errorf("unknown ApplicationStructure field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ApplicationStructureMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ApplicationStructureMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ApplicationStructureMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ApplicationStructureMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ApplicationStructureMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ApplicationStructureMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ApplicationStructureMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ApplicationStructure unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ApplicationStructureMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ApplicationStructure edge %s", name)
+}
 
 // QueryKeyMutation represents an operation that mutates the QueryKey nodes in the graph.
 type QueryKeyMutation struct {

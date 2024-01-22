@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// ApplicationStructure is the client for interacting with the ApplicationStructure builders.
+	ApplicationStructure *ApplicationStructureClient
 	// QueryKey is the client for interacting with the QueryKey builders.
 	QueryKey *QueryKeyClient
 	// QueryValue is the client for interacting with the QueryValue builders.
@@ -147,6 +149,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.ApplicationStructure = NewApplicationStructureClient(tx.config)
 	tx.QueryKey = NewQueryKeyClient(tx.config)
 	tx.QueryValue = NewQueryValueClient(tx.config)
 }
@@ -158,7 +161,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: QueryKey.QueryXXX(), the query will be executed
+// applies a query, for example: ApplicationStructure.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

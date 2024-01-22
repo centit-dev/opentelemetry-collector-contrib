@@ -9,6 +9,18 @@ import (
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent"
 )
 
+// The ApplicationStructureFunc type is an adapter to allow the use of ordinary
+// function as ApplicationStructure mutator.
+type ApplicationStructureFunc func(context.Context, *ent.ApplicationStructureMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ApplicationStructureFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ApplicationStructureMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ApplicationStructureMutation", m)
+}
+
 // The QueryKeyFunc type is an adapter to allow the use of ordinary
 // function as QueryKey mutator.
 type QueryKeyFunc func(context.Context, *ent.QueryKeyMutation) (ent.Value, error)

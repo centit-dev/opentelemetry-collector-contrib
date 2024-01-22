@@ -7,5 +7,5 @@ type Config struct {
 	CacheConfig    internal.CacheConfig    `mapstructure:"cache"`
 	BatchConfig    internal.BatchConfig    `mapstructure:"batch"`
 	// TTL in days for query keys and values before they are removed. Default is 90 days.
-	QueryKeyTtlInDays int `mapstructure:"ttl_in_days"`
+	TtlInDays int `mapstructure:"ttl_in_days"`
 }
