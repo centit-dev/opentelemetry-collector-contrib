@@ -121,9 +121,22 @@ func (service *SpanFaultServiceImpl) Save(ctx context.Context, span *ent.SpanFau
 
 	// update the tree and the channel
 	service.addSpan(tree, span)
+
+	// create a go routine to do the process after 10 seconds
+	go func() {
+		timer := time.NewTimer(10 * time.Second)
+		<-timer.C
+
+		for _, item := range tree.spans {
+			if item.span.IsRoot {
+				service.causeChannel <- rxgo.Of(&spanFaultEntry{create, item.span})
+			}
+		}
+	}()
 	return nil
 }
 
+// contains monkey-patching to discard the delayed spans
 func (service *SpanFaultServiceImpl) getOrCacheTree(ctx context.Context, traceId string) (*spanTree, error) {
 	tree, ok := service.cache.Get(traceId)
 	if ok {
@@ -138,8 +151,11 @@ func (service *SpanFaultServiceImpl) getOrCacheTree(ctx context.Context, traceId
 	if err != nil {
 		return nil, err
 	}
-	for _, span := range spans {
-		service.addSpan(tree, span)
+	// for _, span := range spans {
+	// 	service.addSpan(tree, span)
+	// }
+	if len(spans) > 0 {
+		service.cache.Remove(traceId)
 	}
 	return tree, nil
 }
@@ -173,7 +189,7 @@ func (service *SpanFaultServiceImpl) addSpan(tree *spanTree, span *ent.SpanFault
 		for _, item := range tree.spans {
 			item.span.RootServiceName = span.ServiceName
 			item.span.RootSpanName = span.SpanName
-			service.causeChannel <- rxgo.Of(&spanFaultEntry{update, item.span})
+			// service.causeChannel <- rxgo.Of(&spanFaultEntry{update, item.span})
 		}
 	} else if tree.rootSpan != nil {
 		span.RootServiceName = tree.rootSpan.ServiceName
@@ -213,12 +229,12 @@ func (service *SpanFaultServiceImpl) addSpan(tree *spanTree, span *ent.SpanFault
 		parent.hasRootCauseChild = true
 		if parent.span.IsRoot {
 			parent.span.IsRoot = false
-			service.causeChannel <- rxgo.Of(&spanFaultEntry{update, parent.span})
+			// service.causeChannel <- rxgo.Of(&spanFaultEntry{update, parent.span})
 		}
 	}
 
 	// always create the new span fault
-	service.causeChannel <- rxgo.Of(&spanFaultEntry{create, span})
+	// service.causeChannel <- rxgo.Of(&spanFaultEntry{create, span})
 }
 
 func (service *SpanFaultServiceImpl) Shutdown(ctx context.Context) error {
