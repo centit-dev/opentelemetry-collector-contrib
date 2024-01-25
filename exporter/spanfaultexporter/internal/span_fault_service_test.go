@@ -9,7 +9,7 @@ import (
 
 func TestSpanFaultServiceImpl_addSpan_firstSpan(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -32,7 +32,7 @@ func TestSpanFaultServiceImpl_addSpan_firstSpan(t *testing.T) {
 
 func TestSpanFaultServiceImpl_addSpan_secondSpan(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -58,7 +58,7 @@ func TestSpanFaultServiceImpl_addSpan_secondSpan(t *testing.T) {
 
 func TestSpanFaultServiceImpl_addSpan_aChildSpan(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -73,14 +73,14 @@ func TestSpanFaultServiceImpl_addSpan_aChildSpan(t *testing.T) {
 	service.addSpan(tree, span2)
 
 	parent := tree.spans[span1.ID]
-	if !parent.hasRootCauseChild {
+	if !parent.hasFaultChild {
 		t.Errorf("the parent should have a root cause child")
 	}
 }
 
 func TestSpanFaultServiceImpl_addSpan_aParentSpan(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -95,14 +95,14 @@ func TestSpanFaultServiceImpl_addSpan_aParentSpan(t *testing.T) {
 	service.addSpan(tree, span2)
 
 	parent := tree.spans[span2.ID]
-	if !parent.hasRootCauseChild {
+	if !parent.hasFaultChild {
 		t.Errorf("the parent should have a root cause child")
 	}
 }
 
 func TestSpanFaultServiceImpl_addSpan_aChildSpanWithoutRootCause(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -119,14 +119,14 @@ func TestSpanFaultServiceImpl_addSpan_aChildSpanWithoutRootCause(t *testing.T) {
 	service.addSpan(tree, span2)
 
 	parent := tree.spans[span1.ID]
-	if parent.hasRootCauseChild || !parent.span.IsRoot {
+	if parent.hasFaultChild || !parent.span.IsRoot {
 		t.Errorf("the parent is a root cause")
 	}
 }
 
 func TestSpanFaultServiceImpl_addSpan_noRootCauseUntilAddingAParent(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -150,7 +150,7 @@ func TestSpanFaultServiceImpl_addSpan_noRootCauseUntilAddingAParent(t *testing.T
 
 func TestSpanFaultServiceImpl_addSpan_noRootCauseUntilAddingAChild(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -167,14 +167,14 @@ func TestSpanFaultServiceImpl_addSpan_noRootCauseUntilAddingAChild(t *testing.T)
 	service.addSpan(tree, span2)
 
 	parent := tree.spans[span1.ID]
-	if !parent.hasRootCauseChild {
+	if !parent.hasFaultChild {
 		t.Errorf("the parent should have a root cause child")
 	}
 }
 
 func TestSpanFaultServiceImpl_addSpan_addANonFaultChildBetweenTwoFaults(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -203,12 +203,12 @@ func TestSpanFaultServiceImpl_addSpan_addANonFaultChildBetweenTwoFaults(t *testi
 	service.addSpan(tree, span3)
 
 	parent := tree.spans[span3.ParentSpanId]
-	if !parent.hasRootCauseChild || parent.span.IsRoot {
+	if !parent.hasFaultChild || parent.span.IsRoot {
 		t.Errorf("the parent should have a root cause child")
 	}
 
 	child := tree.spans[span3.ID]
-	if !child.hasRootCauseChild {
+	if !child.hasFaultChild {
 		t.Errorf("the child should have a root cause child")
 	}
 
@@ -220,7 +220,7 @@ func TestSpanFaultServiceImpl_addSpan_addANonFaultChildBetweenTwoFaults(t *testi
 
 func TestSpanFaultServiceImpl_addSpan_addRootSpanAfterReceiving2(t *testing.T) {
 	service := &SpanFaultServiceImpl{
-		causeChannel: make(chan rxgo.Item, 100),
+		faultChannel: make(chan rxgo.Item, 100),
 	}
 
 	tree := &spanTree{
@@ -246,12 +246,12 @@ func TestSpanFaultServiceImpl_addSpan_addRootSpanAfterReceiving2(t *testing.T) {
 
 	ops := make([]spanFaultOperator, 0, 6)
 	spans := make([]*ent.SpanFault, 0, 6)
-	for item := range service.causeChannel {
+	for item := range service.faultChannel {
 		entry := item.V.(*spanFaultEntry)
 		ops = append(ops, entry.op)
 		spans = append(spans, entry.item)
 		if len(ops) == 6 {
-			close(service.causeChannel)
+			close(service.faultChannel)
 		}
 	}
 

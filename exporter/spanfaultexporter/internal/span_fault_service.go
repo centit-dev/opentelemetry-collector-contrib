@@ -40,43 +40,51 @@ type spanTree struct {
 }
 
 type spanTreeItem struct {
-	span              *ent.SpanFault
-	hasRootCauseChild bool
+	span          *ent.SpanFault
+	hasFaultChild bool
 }
 
 type SpanFaultService interface {
 	Start(ctx context.Context)
-	Save(ctx context.Context, cause *ent.SpanFault) error
+	Save(ctx context.Context, spans []*ent.SpanFault) error
 	Shutdown(ctx context.Context) error
 }
 
 type SpanFaultServiceImpl struct {
-	logger *zap.Logger
-	repo   SpanFaultRepository
-	cache  *expirable.LRU[string, *spanTree]
+	logger      *zap.Logger
+	repo        SpanFaultRepository
+	cache       *expirable.LRU[string, *spanTree]
+	ignoreCache *expirable.LRU[string, bool]
 
-	causeChannel           chan rxgo.Item
-	observable             rxgo.Observable
+	faultChannel           chan rxgo.Item
+	faultObservable        rxgo.Observable
+	queueChannel           chan rxgo.Item
+	queueObservable        rxgo.Observable
 	batchSize              int
 	intervalInMilliseconds int
 }
 
 func CreateSpanFaultService(cacheConfig *CacheConfig, batchConfig *BatchConfig, repo SpanFaultRepository, logger *zap.Logger) SpanFaultService {
-	channel := make(chan rxgo.Item, 1000)
+	faultChannel := make(chan rxgo.Item, batchConfig.BatchSize+1000)
+	queueChannel := make(chan rxgo.Item, cacheConfig.MaxSize+1000)
 	cache := expirable.NewLRU[string, *spanTree](cacheConfig.MaxSize, nil, time.Minute*time.Duration(cacheConfig.ExpireInMinutes))
+	ignoreCache := expirable.NewLRU[string, bool](cacheConfig.MaxSize, nil, time.Minute*time.Duration(cacheConfig.ExpireInMinutes))
 	return &SpanFaultServiceImpl{
 		logger:                 logger,
 		repo:                   repo,
 		cache:                  cache,
-		causeChannel:           channel,
-		observable:             rxgo.FromChannel(channel),
+		ignoreCache:            ignoreCache,
+		faultChannel:           faultChannel,
+		faultObservable:        rxgo.FromChannel(faultChannel),
+		queueChannel:           queueChannel,
+		queueObservable:        rxgo.FromChannel(queueChannel),
 		batchSize:              batchConfig.BatchSize,
 		intervalInMilliseconds: batchConfig.IntervalInMilliseconds,
 	}
 }
 
 func (service *SpanFaultServiceImpl) Start(ctx context.Context) {
-	service.observable.
+	service.faultObservable.
 		BufferWithTimeOrCount(
 			rxgo.WithDuration(time.Millisecond*time.Duration(service.intervalInMilliseconds)),
 			service.batchSize).
@@ -110,54 +118,81 @@ func (service *SpanFaultServiceImpl) Start(ctx context.Context) {
 				service.logger.Error("error saving span faults", zap.Error(err))
 			}
 		}, rxgo.WithPool(10))
+
+	// buffer by 1 second and wait for 9 seconds before processing
+	// so the spans are processed after the trace is considered completed
+	service.queueObservable.
+		BufferWithTime(rxgo.WithDuration(time.Second)).
+		DoOnNext(func(items interface{}) {
+			timer := time.NewTimer(9 * time.Second)
+			<-timer.C
+
+			values := items.([]interface{})
+			for _, value := range values {
+				tree, ok := value.(*spanTree)
+				if !ok {
+					continue
+				}
+				for _, item := range tree.spans {
+					if !item.span.IsRoot {
+						continue
+					}
+					tree.rootSpan.FaultKind = item.span.FaultKind
+					// TODO remove hard-coding fault kind
+					if item.span.FaultKind == "SystemFault" {
+						break
+					}
+				}
+				service.cache.Remove(tree.rootSpan.TraceId)
+				service.faultChannel <- rxgo.Of(&spanFaultEntry{create, tree.rootSpan})
+			}
+		}, rxgo.WithPool(15))
 }
 
-func (service *SpanFaultServiceImpl) Save(ctx context.Context, span *ent.SpanFault) error {
-	// get or cache the tree
-	tree, err := service.getOrCacheTree(ctx, span.TraceId)
+func (service *SpanFaultServiceImpl) Save(ctx context.Context, spans []*ent.SpanFault) error {
+	// update the tree if exists
+	traceIds := make(map[string]bool)
+	for _, span := range spans {
+		_, ok := service.cache.Get(span.TraceId)
+		if ok {
+			continue
+		}
+		traceIds[span.TraceId] = true
+	}
+
+	// or check if the trace is already created
+	uniqueTraceIds := make([]string, 0, len(traceIds))
+	for traceId := range traceIds {
+		uniqueTraceIds = append(uniqueTraceIds, traceId)
+	}
+	faults, err := service.repo.GetSpanFaultsByTraceIds(ctx, uniqueTraceIds)
 	if err != nil {
 		return err
 	}
+	// find the new traces
+	for _, fault := range faults {
+		delete(traceIds, fault.TraceId)
+	}
 
-	// update the tree and the channel
-	service.addSpan(tree, span)
-
-	// create a go routine to do the process after 10 seconds
-	go func() {
-		timer := time.NewTimer(10 * time.Second)
-		<-timer.C
-
-		for _, item := range tree.spans {
-			if item.span.IsRoot {
-				service.causeChannel <- rxgo.Of(&spanFaultEntry{create, item.span})
-			}
+	// create the new trees
+	for traceId := range traceIds {
+		tree := &spanTree{
+			spans:    make(map[string]*spanTreeItem),
+			children: make(map[string][]*spanTreeItem),
 		}
-	}()
-	return nil
-}
+		service.cache.Add(traceId, tree)
+		service.queueChannel <- rxgo.Of(tree)
+	}
 
-// contains monkey-patching to discard the delayed spans
-func (service *SpanFaultServiceImpl) getOrCacheTree(ctx context.Context, traceId string) (*spanTree, error) {
-	tree, ok := service.cache.Get(traceId)
-	if ok {
-		return tree, nil
+	// update the tree
+	for _, span := range spans {
+		tree, ok := service.cache.Get(span.TraceId)
+		if !ok {
+			continue
+		}
+		service.addSpan(tree, span)
 	}
-	tree = &spanTree{
-		spans:    make(map[string]*spanTreeItem),
-		children: make(map[string][]*spanTreeItem),
-	}
-	service.cache.Add(traceId, tree)
-	spans, err := service.repo.GetSpanFaultsByTraceId(ctx, traceId)
-	if err != nil {
-		return nil, err
-	}
-	// for _, span := range spans {
-	// 	service.addSpan(tree, span)
-	// }
-	if len(spans) > 0 {
-		service.cache.Remove(traceId)
-	}
-	return tree, nil
+	return nil
 }
 
 // addSpan have 6 cases:
@@ -215,9 +250,9 @@ func (service *SpanFaultServiceImpl) addSpan(tree *spanTree, span *ent.SpanFault
 	children, hasChild := tree.children[item.span.ID]
 	if hasChild {
 		for _, child := range children {
-			if child.hasRootCauseChild || child.span.IsRoot {
+			if child.hasFaultChild || child.span.IsRoot {
 				item.span.IsRoot = false
-				item.hasRootCauseChild = true
+				item.hasFaultChild = true
 				break
 			}
 		}
@@ -225,8 +260,8 @@ func (service *SpanFaultServiceImpl) addSpan(tree *spanTree, span *ent.SpanFault
 
 	// update the parent if the parent has a root cause child
 	parent, hasParent := tree.spans[item.span.ParentSpanId]
-	if hasParent && (item.hasRootCauseChild || item.span.IsRoot) {
-		parent.hasRootCauseChild = true
+	if hasParent && (item.hasFaultChild || item.span.IsRoot) {
+		parent.hasFaultChild = true
 		if parent.span.IsRoot {
 			parent.span.IsRoot = false
 			// service.causeChannel <- rxgo.Of(&spanFaultEntry{update, parent.span})
@@ -238,8 +273,12 @@ func (service *SpanFaultServiceImpl) addSpan(tree *spanTree, span *ent.SpanFault
 }
 
 func (service *SpanFaultServiceImpl) Shutdown(ctx context.Context) error {
-	_, cancel := service.observable.Connect(ctx)
+	_, cancel := service.faultObservable.Connect(ctx)
 	cancel()
-	close(service.causeChannel)
+	close(service.faultChannel)
+
+	_, cancel = service.queueObservable.Connect(ctx)
+	cancel()
+	close(service.queueChannel)
 	return service.repo.Shutdown(ctx)
 }

@@ -39,7 +39,7 @@ func DisabledTestSpanFaultRepositoryImpl_SaveAll(t *testing.T) {
 	}
 
 	// and they are updated
-	causes, err = repo.GetSpanFaultsByTraceId(context.Background(), traceId)
+	causes, err = repo.GetSpanFaultsByTraceIds(context.Background(), []string{traceId})
 	if err != nil {
 		t.Errorf("failed to get span faults: %v", err)
 	}

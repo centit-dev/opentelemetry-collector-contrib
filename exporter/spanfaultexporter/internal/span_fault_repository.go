@@ -13,7 +13,7 @@ import (
 )
 
 type SpanFaultRepository interface {
-	GetSpanFaultsByTraceId(ctx context.Context, traceId string) ([]*ent.SpanFault, error)
+	GetSpanFaultsByTraceIds(ctx context.Context, traceIds []string) ([]*ent.SpanFault, error)
 	SaveAll(ctx context.Context, creates []*ent.SpanFault, updates []*ent.SpanFault) error
 	Shutdown(ctx context.Context) error
 }
@@ -27,10 +27,11 @@ func CreateSpanFaultRepository(client *ClickHouseClient, logger *zap.Logger) Spa
 	return &SpanFaultRepositoryImpl{client, logger}
 }
 
-func (repo *SpanFaultRepositoryImpl) GetSpanFaultsByTraceId(ctx context.Context, traceId string) ([]*ent.SpanFault, error) {
+func (repo *SpanFaultRepositoryImpl) GetSpanFaultsByTraceIds(ctx context.Context, traceIds []string) ([]*ent.SpanFault, error) {
 	return repo.client.delegate.SpanFault.
 		Query().
-		Where(spanfault.TraceIdEQ(traceId)).
+		Where(spanfault.TraceIdIn(traceIds...)).
+		Select(spanfault.FieldTraceId).
 		All(ctx)
 }
 
