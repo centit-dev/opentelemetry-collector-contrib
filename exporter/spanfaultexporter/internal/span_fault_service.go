@@ -143,6 +143,9 @@ func (service *SpanFaultServiceImpl) Start(ctx context.Context) {
 						break
 					}
 				}
+				if tree == nil || tree.rootSpan == nil {
+					return
+				}
 				service.cache.Remove(tree.rootSpan.TraceId)
 				service.faultChannel <- rxgo.Of(&spanFaultEntry{create, tree.rootSpan})
 			}
