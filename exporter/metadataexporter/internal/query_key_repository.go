@@ -157,6 +157,7 @@ func (repository *QueryKeyRepositoryImpl) CreateAll(ctx context.Context, queryKe
 
 	// all keys exist, it becomes a updateAll
 	if len(toCreateKeys) == 0 {
+		tx.Rollback()
 		return repository.UpdateAll(ctx, queryKeys)
 	}
 
