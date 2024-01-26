@@ -48,7 +48,7 @@ func (repository *ApplicationStructureRepositoryImpl) SaveAll(ctx context.Contex
 		Where(applicationstructure.IDIn(ids...)).
 		All(ctx)
 	if err != nil {
-		return err
+		return rollback(tx, err)
 	}
 	existedCodes := map[string]*ent.ApplicationStructure{}
 	for _, exist := range existed {
@@ -84,23 +84,21 @@ func (repository *ApplicationStructureRepositoryImpl) SaveAll(ctx context.Contex
 			SetCreateTime(applicationStructure.CreateTime).
 			Save(ctx)
 		if err != nil {
-			tx.Rollback()
-			return err
+			return rollback(tx, err)
 		}
 	}
 
 	// insert all inserts in a batch
 	if len(inserts) > 0 {
-		_, err := repository.client.delegate.ApplicationStructure.
+		_, err := tx.ApplicationStructure.
 			CreateBulk(inserts...).
 			Save(ctx)
 		if err != nil {
-			return err
+			return rollback(tx, err)
 		}
 	}
 
-	tx.Commit()
-	return nil
+	return commit(tx)
 }
 
 func (repository *ApplicationStructureRepositoryImpl) DeleteOutdated(ctx context.Context) error {

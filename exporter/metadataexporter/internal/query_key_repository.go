@@ -162,7 +162,7 @@ func (repository *QueryKeyRepositoryImpl) CreateAll(ctx context.Context, queryKe
 
 	createdKeys, err := tx.QueryKey.CreateBulk(toCreateKeys...).Save(ctx)
 	if err != nil {
-		tx.Rollback()
+		err = rollback(tx, err)
 		return nil, err
 	}
 
@@ -182,11 +182,11 @@ func (repository *QueryKeyRepositoryImpl) CreateAll(ctx context.Context, queryKe
 
 	err = repository.createQueryValues(ctx, tx, queryKeys)
 	if err != nil {
-		tx.Rollback()
+		err = rollback(tx, err)
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := commit(tx); err != nil {
 		return nil, err
 	}
 	return queryKeys, nil
@@ -219,7 +219,7 @@ func (repository *QueryKeyRepositoryImpl) UpdateAll(ctx context.Context, queryKe
 			SetUpdateTime(queryKey.UpdateTime).
 			Exec(ctx)
 		if err != nil {
-			tx.Rollback()
+			err = rollback(tx, err)
 			return nil, err
 		}
 	}
@@ -227,13 +227,12 @@ func (repository *QueryKeyRepositoryImpl) UpdateAll(ctx context.Context, queryKe
 	// add new values for the old keys
 	err = repository.createQueryValues(ctx, tx, queryKeys)
 	if err != nil {
-		tx.Rollback()
+		err = rollback(tx, err)
 		return nil, err
 	}
 
 	// commit
-	if err := tx.Commit(); err != nil {
-		tx.Rollback()
+	if err := commit(tx); err != nil {
 		return nil, err
 	}
 	return queryKeys, nil
