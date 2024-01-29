@@ -80,10 +80,7 @@ func createTracesProcessorWithOptions(
 	next consumer.Traces,
 	options ...option,
 ) (processor.Traces, error) {
-	kp, err := createKubernetesProcessor(set, cfg, options...)
-	if err != nil {
-		return nil, err
-	}
+	kp := createKubernetesProcessor(set, cfg, options...)
 
 	return processorhelper.NewTracesProcessor(
 		ctx,
@@ -103,10 +100,7 @@ func createMetricsProcessorWithOptions(
 	nextMetricsConsumer consumer.Metrics,
 	options ...option,
 ) (processor.Metrics, error) {
-	kp, err := createKubernetesProcessor(set, cfg, options...)
-	if err != nil {
-		return nil, err
-	}
+	kp := createKubernetesProcessor(set, cfg, options...)
 
 	return processorhelper.NewMetricsProcessor(
 		ctx,
@@ -126,10 +120,7 @@ func createLogsProcessorWithOptions(
 	nextLogsConsumer consumer.Logs,
 	options ...option,
 ) (processor.Logs, error) {
-	kp, err := createKubernetesProcessor(set, cfg, options...)
-	if err != nil {
-		return nil, err
-	}
+	kp := createKubernetesProcessor(set, cfg, options...)
 
 	return processorhelper.NewLogsProcessor(
 		ctx,
@@ -146,23 +137,11 @@ func createKubernetesProcessor(
 	params processor.CreateSettings,
 	cfg component.Config,
 	options ...option,
-) (*kubernetesprocessor, error) {
-	kp := &kubernetesprocessor{logger: params.Logger}
-
-	allOptions := append(createProcessorOpts(cfg), options...)
-
-	for _, opt := range allOptions {
-		if err := opt(kp); err != nil {
-			return nil, err
-		}
-	}
-
-	// This might have been set by an option already
-	if kp.kc == nil {
-		err := kp.initKubeClient(kp.logger, kubeClientProvider)
-		if err != nil {
-			return nil, err
-		}
+) *kubernetesprocessor {
+	kp := &kubernetesprocessor{logger: params.Logger,
+		cfg:               cfg,
+		options:           options,
+		telemetrySettings: params.TelemetrySettings,
 	}
 
 	// monkey-patching a new option without changing its constructor signature
@@ -176,7 +155,7 @@ func createKubernetesProcessor(
 		}
 	}
 
-	return kp, nil
+	return kp
 }
 
 func createProcessorOpts(cfg component.Config) []option {
