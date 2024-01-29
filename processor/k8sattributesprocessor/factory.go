@@ -144,17 +144,6 @@ func createKubernetesProcessor(
 		telemetrySettings: params.TelemetrySettings,
 	}
 
-	// monkey-patching a new option without changing its constructor signature
-	if kp.kc != nil {
-		if client, ok := kp.kc.(*kube.WatchClient); ok {
-			client.ClusterInfo = kube.ConfigMapKey{
-				Namespace: cfg.(*Config).Extract.ClusterInfo.Namespace,
-				Name:      cfg.(*Config).Extract.ClusterInfo.ConfigMapName,
-				Key:       cfg.(*Config).Extract.ClusterInfo.ClusterNameKey,
-			}
-		}
-	}
-
 	return kp
 }
 

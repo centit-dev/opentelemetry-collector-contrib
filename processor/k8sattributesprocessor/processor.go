@@ -48,6 +48,15 @@ func (kp *kubernetesprocessor) initKubeClient(logger *zap.Logger, kubeClient kub
 			return err
 		}
 		kp.kc = kc
+
+		// monkey-patching a new option without changing its constructor signature
+		if client, ok := kp.kc.(*kube.WatchClient); ok {
+			client.ClusterInfo = kube.ConfigMapKey{
+				Namespace: kp.cfg.(*Config).Extract.ClusterInfo.Namespace,
+				Name:      kp.cfg.(*Config).Extract.ClusterInfo.ConfigMapName,
+				Key:       kp.cfg.(*Config).Extract.ClusterInfo.ClusterNameKey,
+			}
+		}
 	}
 	return nil
 }
