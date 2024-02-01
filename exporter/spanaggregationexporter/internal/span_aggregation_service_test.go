@@ -23,7 +23,7 @@ func CreateDummySpanAggregationRepositoryImpl(spans []*ent.SpanAggregation) *Dum
 	return &DummySpanAggregationRepositoryImpl{logger: zap.NewExample(), spans: spans}
 }
 
-func (repository *DummySpanAggregationRepositoryImpl) FindAllByTraceId(ctx context.Context, traceId string) ([]*ent.SpanAggregation, error) {
+func (repository *DummySpanAggregationRepositoryImpl) FindAllByTraceIds(ctx context.Context, traceIds ...string) ([]*ent.SpanAggregation, error) {
 	return repository.spans, nil
 }
 
@@ -205,10 +205,8 @@ func TestSpanAggregationServiceImpl_Save(t *testing.T) {
 			service.Start(ctx)
 			defer service.Shutdown(ctx)
 
-			for _, span := range tt.newSpans {
-				if err := service.Save(ctx, span); err != nil {
-					t.Errorf("SpanAggregationServiceImpl.Save() error = %v for %v", err, span)
-				}
+			if err := service.Save(ctx, tt.newSpans); err != nil {
+				t.Errorf("SpanAggregationServiceImpl.Save() error = %v", err)
 			}
 			time.Sleep(10 * time.Millisecond)
 			if len(repository.toCreate)+len(repository.toUpdate) != len(tt.results) {

@@ -16,7 +16,7 @@ import (
 )
 
 type SpanAggregationRepository interface {
-	FindAllByTraceId(ctx context.Context, traceId string) ([]*ent.SpanAggregation, error)
+	FindAllByTraceIds(ctx context.Context, traceIds ...string) ([]*ent.SpanAggregation, error)
 	// save all the span aggregations
 	SaveAll(ctx context.Context, creates []*ent.SpanAggregation, updates []*ent.SpanAggregation) error
 	Shutdown(ctx context.Context) error
@@ -31,9 +31,9 @@ func CreateSpanAggregationRepositoryImpl(client *ClickHouseClient, logger *zap.L
 	return &SpanAggregationRepositoryImpl{client, logger}
 }
 
-func (repository *SpanAggregationRepositoryImpl) FindAllByTraceId(ctx context.Context, traceId string) ([]*ent.SpanAggregation, error) {
+func (repository *SpanAggregationRepositoryImpl) FindAllByTraceIds(ctx context.Context, traceIds ...string) ([]*ent.SpanAggregation, error) {
 	aggregations, err := repository.client.delegate.SpanAggregation.Query().
-		Where(spanaggregation.TraceIdEQ(traceId)).
+		Where(spanaggregation.TraceIdIn(traceIds...)).
 		All(ctx)
 	if err != nil {
 		return nil, err

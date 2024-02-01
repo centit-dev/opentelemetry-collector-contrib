@@ -44,7 +44,7 @@ type SpanAggregationService interface {
 	// and get self duration from the span id group
 	// then build the span aggregation for creating or updating
 	// and update the cache and the database
-	Save(ctx context.Context, span *ent.SpanAggregation) error
+	Save(ctx context.Context, spans []*ent.SpanAggregation) error
 	Shutdown(ctx context.Context) error
 }
 
@@ -108,28 +108,30 @@ func (service *SpanAggregationServiceImpl) Start(ctx context.Context) {
 					updates = append(updates, entry.span)
 				}
 				seen[entry.span.ID] = true
-				err := service.repository.SaveAll(ctx, creates, updates)
-				if err != nil {
-					service.logger.Error("failed to save batch", zap.Error(err))
-				}
+				service.logger.Sugar().Debugf("saving span %v %v %v", entry.span.TraceId, entry.span.ID, entry.op)
+			}
+			err := service.repository.SaveAll(ctx, creates, updates)
+			if err != nil {
+				service.logger.Error("failed to save batch", zap.Error(err))
 			}
 		}, rxgo.WithPool(10))
 }
 
 // the span is always new to the trace
-func (service *SpanAggregationServiceImpl) Save(ctx context.Context, span *ent.SpanAggregation) error {
-	upsertBatch := make(map[string]*channelEntry)
-
-	err := service.buildCacheByTraceId(ctx, span.TraceId)
+func (service *SpanAggregationServiceImpl) Save(ctx context.Context, spans []*ent.SpanAggregation) error {
+	err := service.buildCacheByTraceIds(ctx, spans)
 	if err != nil {
 		return err
 	}
-	service.updateTraceGroup(ctx, &upsertBatch, span)
-	service.updateParentGroup(ctx, &upsertBatch, span)
-	service.updateChildGroup(ctx, &upsertBatch, span)
+
+	upsertBatch := make(map[string]*channelEntry)
+	for _, span := range spans {
+		service.updateTraceGroup(ctx, &upsertBatch, span)
+		service.updateParentGroup(ctx, &upsertBatch, span)
+		service.updateChildGroup(ctx, &upsertBatch, span)
+	}
 
 	for _, entry := range upsertBatch {
-		service.logger.Sugar().Debugf("saving span %v %v", entry.span, entry.op)
 		service.batchChannel <- rxgo.Of(entry)
 	}
 	return nil
@@ -214,12 +216,23 @@ func (service *SpanAggregationServiceImpl) updateChildGroup(ctx context.Context,
 // build cache by trace id
 // update the local cache when new span is successfully saved
 // so we don't have to query the database again
-func (service *SpanAggregationServiceImpl) buildCacheByTraceId(ctx context.Context, traceId string) error {
-	if service.traceCache.Contains(traceId) {
+func (service *SpanAggregationServiceImpl) buildCacheByTraceIds(ctx context.Context, spans []*ent.SpanAggregation) error {
+	missingTraces := make(map[string]bool)
+	for _, span := range spans {
+		if service.traceCache.Contains(span.TraceId) {
+			continue
+		}
+		missingTraces[span.TraceId] = true
+	}
+	if len(missingTraces) == 0 {
 		return nil
 	}
 
-	aggregations, err := service.repository.FindAllByTraceId(ctx, traceId)
+	missingTraceIds := make([]string, 0, len(missingTraces))
+	for traceId := range missingTraces {
+		missingTraceIds = append(missingTraceIds, traceId)
+	}
+	aggregations, err := service.repository.FindAllByTraceIds(ctx, missingTraceIds...)
 	if err != nil {
 		return err
 	}

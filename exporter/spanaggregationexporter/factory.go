@@ -6,6 +6,7 @@ import (
 
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanaggregationexporter/internal"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configretry"
 	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
@@ -24,7 +25,12 @@ func NewFactory() exporter.Factory {
 }
 
 func createDefaultConfig() component.Config {
+	queueSettings := exporterhelper.NewDefaultQueueSettings()
+	queueSettings.NumConsumers = 1
 	return &Config{
+		TimeoutSettings: exporterhelper.NewDefaultTimeoutSettings(),
+		BackOffConfig:   configretry.NewDefaultBackOffConfig(),
+		QueueSettings:   queueSettings,
 		ClickHouseConfig: internal.ClickHouseConfig{
 			DialTimeoutInSeconds:   30,
 			MaxOpenConns:           10,
@@ -59,5 +65,8 @@ func createTracesExporter(
 		exporter.PushTraceData,
 		exporterhelper.WithStart(exporter.Start),
 		exporterhelper.WithShutdown(exporter.Shutdown),
+		exporterhelper.WithQueue(c.QueueSettings),
+		exporterhelper.WithTimeout(c.TimeoutSettings),
+		exporterhelper.WithRetry(c.BackOffConfig),
 	)
 }

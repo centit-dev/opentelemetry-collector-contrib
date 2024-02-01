@@ -33,6 +33,8 @@ func (t *TraceExporter) Start(ctx context.Context, _ component.Host) error {
 
 func (t *TraceExporter) PushTraceData(ctx context.Context, traces ptrace.Traces) error {
 	slice := traces.ResourceSpans()
+	aggregations := make([]*ent.SpanAggregation, 0, traces.SpanCount())
+
 	for i := 0; i < slice.Len(); i++ {
 		resource := slice.At(i)
 		resourceAttributes := resource.Resource().Attributes()
@@ -53,15 +55,12 @@ func (t *TraceExporter) PushTraceData(ctx context.Context, traces ptrace.Traces)
 			for k := 0; k < batch.Len(); k++ {
 				span := batch.At(k)
 				aggregation := t.buildSpanAggregation(resourceAttributeMap, &span, platformName, serviceName)
-				err := t.service.Save(ctx, aggregation)
-				if err != nil {
-					return err
-				}
+				aggregations = append(aggregations, aggregation)
 			}
 		}
 	}
 
-	return nil
+	return t.service.Save(ctx, aggregations)
 }
 
 func (t *TraceExporter) buildSpanAggregation(resourceAttributeMap *schema.Attributes, span *ptrace.Span, platformName string, serviceName string) *ent.SpanAggregation {

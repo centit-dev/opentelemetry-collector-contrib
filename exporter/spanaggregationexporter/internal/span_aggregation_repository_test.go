@@ -44,7 +44,7 @@ func DisabledTestSpanAggregationRepositoryImpl_SaveAll(t *testing.T) {
 		}
 
 		// verify 10 aggregations are saved
-		updated, err := repository.FindAllByTraceId(context.Background(), traceId)
+		updated, err := repository.FindAllByTraceIds(context.Background(), traceId)
 		if err != nil {
 			t.Errorf("SpanAggregationRepositoryImpl.FindAllByTraceId() error = %v", err)
 			return
