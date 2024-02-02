@@ -87,8 +87,11 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 			}
 		}
 	}
-	exporter.metadataService.ConsumeAttributes(ctx, tuples)
-	exporter.appStructureService.ConsumeAttributes(ctx, structureTuples)
+	go func() {
+		ctx := context.Background()
+		exporter.metadataService.ConsumeAttributes(ctx, tuples)
+		exporter.appStructureService.ConsumeAttributes(ctx, structureTuples)
+	}()
 	return nil
 }
 
