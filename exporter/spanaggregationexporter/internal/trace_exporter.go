@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const platFormNameKey = "k8s.pod.platform"
+const platFormNameKey = "service.platform"
 
 type TraceExporter struct {
 	logger  *zap.Logger
