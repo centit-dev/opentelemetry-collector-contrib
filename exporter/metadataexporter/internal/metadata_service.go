@@ -35,7 +35,7 @@ type BatchConfig struct {
 
 type MetadataService interface {
 	Start(ctx context.Context)
-	ConsumeAttributes(ctx context.Context, tuples map[string]*tuple)
+	ConsumeAttribute(ctx context.Context, tuple tuple)
 	Shutdown(ctx context.Context) error
 }
 
@@ -84,7 +84,20 @@ func (service *MetadataServiceImpl) Start(ctx context.Context) {
 			if !ok {
 				return nil, nil
 			}
-			_, _, err := service.upsertAll(ctx, items)
+			seen := make(map[string]struct{}, len(items))
+			tuples := make([]*tuple, 0, len(items))
+			for _, item := range items {
+				tuple, ok := item.(*tuple)
+				if !ok {
+					continue
+				}
+				if _, ok := seen[tuple.hash()]; ok {
+					continue
+				}
+				seen[tuple.hash()] = struct{}{}
+				tuples = append(tuples, tuple)
+			}
+			err := service.consumeAttributes(ctx, tuples)
 			return items, err
 		}).
 		Retry(1, func(err error) bool { return true }).
@@ -125,18 +138,96 @@ func (service *MetadataServiceImpl) Start(ctx context.Context) {
 		})
 }
 
-func (service *MetadataServiceImpl) upsertAll(ctx context.Context, queryKeys []interface{}) ([]*ent.QueryKey, []*ent.QueryKey, error) {
+func (service *MetadataServiceImpl) consumeAttributes(ctx context.Context, tuples []*tuple) error {
+	// lazily build query key cache
+	names := make([]string, 0, len(tuples))
+	for _, tuple := range tuples {
+		names = append(names, tuple.name)
+	}
+	queryKeys, err := service.queryKeyRepository.FindAllByNames(ctx, names)
+	if err != nil {
+		service.logger.Sugar().Errorf("cannot retrieve query keys by names: %v", err)
+	} else if len(queryKeys) > 0 {
+		for _, queryKey := range queryKeys {
+			service.cache.Add(queryKey.Name, queryKey)
+			for _, queryValue := range queryKey.Edges.Values {
+				service.cache.Add(valueHash(queryKey.Name, queryValue.Value), queryKey)
+			}
+		}
+	}
+
+	upserts := make([]*ent.QueryKey, 0, len(tuples))
+	validDate := time.Now().AddDate(0, 0, service.queryKeyTtlInDays)
+	for _, tuple := range tuples {
+		// find out new keys
+		queryKey, ok := service.cache.Get(tuple.name)
+		if ok {
+			updated := false
+			// if the key exists, update the valids
+			if !queryKey.SpansValid && tuple.spansValid {
+				queryKey.SpansValid = true
+				updated = true
+			}
+			if !queryKey.MetricsValid && tuple.metricsValid {
+				queryKey.MetricsValid = true
+				updated = true
+			}
+			if !queryKey.LogsValid && tuple.logsValid {
+				queryKey.LogsValid = true
+				updated = true
+			}
+			if updated {
+				queryKey.ValidDate = validDate
+				upserts = append(upserts, queryKey)
+			} else if validDate.After(queryKey.ValidDate.AddDate(0, 0, 1)) {
+				// update the valid date
+				queryKey.ValidDate = validDate
+				service.refreshQueue <- rxgo.Of(queryKey)
+			}
+		} else {
+			// if the key does not exist, create a new one
+			queryKey = &ent.QueryKey{
+				Name:         tuple.name,
+				Type:         tuple.valueType,
+				SpansValid:   tuple.spansValid,
+				MetricsValid: tuple.metricsValid,
+				LogsValid:    tuple.logsValid,
+				ValidDate:    validDate,
+			}
+			service.cache.Add(tuple.name, queryKey)
+		}
+
+		// find out new values
+		newQueryValue := &ent.QueryValue{Value: tuple.value, ValidDate: validDate}
+		if existed, ok := service.cache.Get(valueHash(queryKey.Name, newQueryValue.Value)); ok {
+			// if the value exists, update the valid date
+			if validDate.After(existed.ValidDate.AddDate(0, 0, 1)) {
+				existed.ValidDate = validDate
+				service.refreshQueue <- rxgo.Of(existed)
+			}
+		} else {
+			// if the value does not exist, create a new one
+			queryKey.Edges.Values = append(queryKey.Edges.Values, newQueryValue)
+			service.cache.Add(valueHash(queryKey.Name, newQueryValue.Value), queryKey)
+			// it may look like we push multiple times for one key after seeing different values
+			// but actually, all values are updated with the same key
+			// so when upsertAll, updating one key will update all values
+			upserts = append(upserts, queryKey)
+		}
+	}
+
+	_, _, err = service.upsertAll(ctx, upserts)
+	return err
+}
+
+func (service *MetadataServiceImpl) upsertAll(ctx context.Context, queryKeys []*ent.QueryKey) ([]*ent.QueryKey, []*ent.QueryKey, error) {
 	if len(queryKeys) == 0 {
 		return nil, nil, nil
 	}
 	toCreate := make([]*ent.QueryKey, 0, len(queryKeys))
 	toUpdate := make([]*ent.QueryKey, 0, len(queryKeys))
 	added := make(map[string]bool, len(queryKeys))
-	for _, item := range queryKeys {
-		queryKey, ok := item.(*ent.QueryKey)
-		if !ok {
-			continue
-		}
+	for _, queryKey := range queryKeys {
 		if added[queryKey.Name] {
 			continue
 		}
@@ -196,82 +287,8 @@ func (service *MetadataServiceImpl) deprecate(ctx context.Context) error {
 	return service.queryKeyRepository.DeleteOutdated(ctx)
 }
 
-func (service *MetadataServiceImpl) ConsumeAttributes(ctx context.Context, tuples map[string]*tuple) {
-	// lazily build query key cache
-	names := make([]string, 0, len(tuples))
-	for _, tuple := range tuples {
-		names = append(names, tuple.name)
-	}
-	queryKeys, err := service.queryKeyRepository.FindAllByNames(ctx, names)
-	if err != nil {
-		service.logger.Sugar().Errorf("cannot retrieve query keys by names: %v", err)
-	} else if len(queryKeys) > 0 {
-		for _, queryKey := range queryKeys {
-			service.cache.Add(queryKey.Name, queryKey)
-			for _, queryValue := range queryKey.Edges.Values {
-				service.cache.Add(valueHash(queryKey.Name, queryValue.Value), queryKey)
-			}
-		}
-	}
-
-	validDate := time.Now().AddDate(0, 0, service.queryKeyTtlInDays)
-	for _, tuple := range tuples {
-		// find out new keys
-		queryKey, ok := service.cache.Get(tuple.name)
-		if ok {
-			updated := false
-			// if the key exists, update the valids
-			if !queryKey.SpansValid && tuple.spansValid {
-				queryKey.SpansValid = true
-				updated = true
-			}
-			if !queryKey.MetricsValid && tuple.metricsValid {
-				queryKey.MetricsValid = true
-				updated = true
-			}
-			if !queryKey.LogsValid && tuple.logsValid {
-				queryKey.LogsValid = true
-				updated = true
-			}
-			if updated {
-				queryKey.ValidDate = validDate
-				service.batchQueue <- rxgo.Of(queryKey)
-			} else if validDate.After(queryKey.ValidDate.AddDate(0, 0, 1)) {
-				// update the valid date
-				queryKey.ValidDate = validDate
-				service.refreshQueue <- rxgo.Of(queryKey)
-			}
-		} else {
-			// if the key does not exist, create a new one
-			queryKey = &ent.QueryKey{
-				Name:         tuple.name,
-				Type:         tuple.valueType,
-				SpansValid:   tuple.spansValid,
-				MetricsValid: tuple.metricsValid,
-				LogsValid:    tuple.logsValid,
-				ValidDate:    validDate,
-			}
-			service.cache.Add(tuple.name, queryKey)
-		}
-
-		// find out new values
-		newQueryValue := &ent.QueryValue{Value: tuple.value, ValidDate: validDate}
-		if existed, ok := service.cache.Get(valueHash(queryKey.Name, newQueryValue.Value)); ok {
-			// if the value exists, update the valid date
-			if validDate.After(existed.ValidDate.AddDate(0, 0, 1)) {
-				existed.ValidDate = validDate
-				service.refreshQueue <- rxgo.Of(existed)
-			}
-		} else {
-			// if the value does not exist, create a new one
-			queryKey.Edges.Values = append(queryKey.Edges.Values, newQueryValue)
-			service.cache.Add(valueHash(queryKey.Name, newQueryValue.Value), queryKey)
-			// it may look like we push multiple times for one key after seeing different values
-			// but actually, all values are updated with the same key
-			// so when upsertAll, updating one key will update all values
-			service.batchQueue <- rxgo.Of(queryKey)
-		}
-	}
+func (service *MetadataServiceImpl) ConsumeAttribute(ctx context.Context, tuple tuple) {
+	service.batchQueue <- rxgo.Of(tuple)
 }
 
 func (service *MetadataServiceImpl) Shutdown(ctx context.Context) error {

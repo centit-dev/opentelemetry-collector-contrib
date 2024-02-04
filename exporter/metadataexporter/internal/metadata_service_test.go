@@ -17,7 +17,7 @@ func DisabledTestMetadataServiceImpl_upsertAll(t *testing.T) {
 	service := CreateMetadataService(&CacheConfig{}, &BatchConfig{}, 90, logger, keyRepo, valueRepo)
 
 	// create all new keys and values
-	queryKeys := make([]interface{}, 0, 15)
+	queryKeys := make([]*ent.QueryKey, 0, 15)
 	for i := 0; i < 10; i++ {
 		queryKey := createQueryKey()
 		for j := 0; j < 3; j++ {
@@ -47,10 +47,9 @@ func DisabledTestMetadataServiceImpl_upsertAll(t *testing.T) {
 
 	// update all keys with 3 more values
 	for _, queryKey := range queryKeys {
-		key := queryKey.(*ent.QueryKey)
 		for j := 0; j < 3; j++ {
 			queryValue := createQueryValue()
-			key.Edges.Values = append(key.Edges.Values, queryValue)
+			queryKey.Edges.Values = append(queryKey.Edges.Values, queryValue)
 		}
 	}
 	// add 5 more keys

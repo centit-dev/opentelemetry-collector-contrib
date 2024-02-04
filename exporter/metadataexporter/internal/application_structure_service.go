@@ -20,6 +20,7 @@ const (
 
 type structureTuple struct {
 	parentCode string
+	code       string
 	level      applicationStructureLevel
 }
 
@@ -66,14 +67,20 @@ func (service *ApplicationStructureService) Start(ctx context.Context) {
 			if !ok {
 				return nil, nil
 			}
-			values := make([]*ent.ApplicationStructure, len(items))
+			seen := make(map[string]struct{})
+			values := make([]*structureTuple, 0, len(items))
 			for i, item := range items {
-				values[i], ok = item.(*ent.ApplicationStructure)
+				value, ok := item.(*structureTuple)
 				if !ok {
-					return nil, nil
+					continue
 				}
+				if _, ok := seen[values[i].code]; ok {
+					continue
+				}
+				seen[values[i].code] = struct{}{}
+				values = append(values, value)
 			}
-			err := service.repository.SaveAll(ctx, values)
+			err := service.upserts(ctx, values)
 			return values, err
 		}).
 		Retry(1, func(err error) bool { return true }).
@@ -83,7 +90,14 @@ func (service *ApplicationStructureService) Start(ctx context.Context) {
 
 	service.refreshObservable = rxgo.FromChannel(service.refreshQueue)
 	service.refreshObservable.
-		BufferWithTimeOrCount(rxgo.WithDuration(time.Second*time.Duration(service.batchIntervalInSeconds)), service.batchSize)
+		BufferWithTimeOrCount(rxgo.WithDuration(time.Second*time.Duration(service.batchIntervalInSeconds)), service.batchSize).
+		Map(func(ctx context.Context, items interface{}) (interface{}, error) {
+			return items, nil
+		}).
+		// don't bother retrying deprecate
+		DoOnError(func(err error) {
+			service.logger.Sugar().Errorf("cannot deprecate keys: %v", err)
+		})
 
 	service.expirationObservable = rxgo.Interval(rxgo.WithDuration(time.Hour))
 	service.expirationObservable.
@@ -100,16 +114,12 @@ func (service *ApplicationStructureService) Start(ctx context.Context) {
 		})
 }
 
-func (service *ApplicationStructureService) deprecate(ctx context.Context) error {
-	return service.repository.DeleteOutdated(ctx)
-}
-
-func (service *ApplicationStructureService) ConsumeAttributes(ctx context.Context, tuples map[string]*structureTuple) {
+func (service *ApplicationStructureService) upserts(ctx context.Context, tuples []*structureTuple) error {
 	// load cache
 	if service.cache.Len() == 0 {
 		items, err := service.repository.FindAll(ctx)
 		if err != nil {
-			return
+			return err
 		}
 		for _, item := range items {
 			service.cache.Add(item.ID, item)
@@ -117,23 +127,34 @@ func (service *ApplicationStructureService) ConsumeAttributes(ctx context.Contex
 	}
 
 	validDate := time.Now().AddDate(service.ttlInDays, 0, 0)
-	for child, value := range tuples {
-		item, ok := service.cache.Get(child)
+	upserts := make([]*ent.ApplicationStructure, 0, len(tuples))
+	for _, tuple := range tuples {
+		item, ok := service.cache.Get(tuple.code)
 		if ok && validDate.After(item.ValidDate) {
 			service.refreshQueue <- rxgo.Of(item)
 		} else {
 			item = &ent.ApplicationStructure{
-				ID:         child,
-				ParentCode: value.parentCode,
-				Level:      int(value.level),
+				ID:         tuple.code,
+				ParentCode: tuple.parentCode,
+				Level:      int(tuple.level),
 				ValidDate:  validDate,
 				CreateTime: time.Now(),
 				UpdateTime: time.Now(),
 			}
-			service.cache.Add(child, item)
-			service.batchQueue <- rxgo.Of(item)
+			service.cache.Add(tuple.code, item)
+			upserts = append(upserts, item)
 		}
 	}
+
+	return service.repository.SaveAll(ctx, upserts)
+}
+
+func (service *ApplicationStructureService) deprecate(ctx context.Context) error {
+	return service.repository.DeleteOutdated(ctx)
+}
+
+func (service *ApplicationStructureService) ConsumeAttribute(ctx context.Context, tuple structureTuple) {
+	service.batchQueue <- rxgo.Of(tuple)
 }
 
 func (service *ApplicationStructureService) Shutdown(ctx context.Context) error {

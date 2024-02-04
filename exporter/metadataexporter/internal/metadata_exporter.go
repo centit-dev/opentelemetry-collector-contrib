@@ -42,30 +42,27 @@ func (exporter *MetadataExporter) Start(ctx context.Context, _ component.Host) e
 }
 
 func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
-	tuples := make(map[string]*tuple)
-	structureTuples := make(map[string]*structureTuple)
-
 	resourceSpans := td.ResourceSpans()
 	for i := 0; i < resourceSpans.Len(); i++ {
 		resourceSpan := resourceSpans.At(i)
 		resourceAttributes := resourceSpan.Resource().Attributes()
 		resourceAttributes.Range(func(k string, v pcommon.Value) bool {
 			k = fmt.Sprintf("ResourceAttributes['%s']", k)
-			exporter.consumeAttribute(ctx, tuples, spanSource, k, v)
+			exporter.consumeAttribute(ctx, spanSource, k, v)
 			return true
 		})
 
 		platform, ok := resourceAttributes.Get(attributeServicePlatform)
 		if ok {
-			exporter.consumeStructureAttributes(ctx, structureTuples, platform.Str(), "", levelPlatform)
+			exporter.consumeStructureAttributes(ctx, platform.Str(), "", levelPlatform)
 
 			appCluster, ok := resourceAttributes.Get(conventions.AttributeK8SDeploymentName)
 			if ok {
-				exporter.consumeStructureAttributes(ctx, structureTuples, appCluster.Str(), platform.Str(), levelApplicationCluster)
+				exporter.consumeStructureAttributes(ctx, appCluster.Str(), platform.Str(), levelApplicationCluster)
 
 				podName, ok := resourceAttributes.Get(conventions.AttributeK8SPodName)
 				if ok {
-					exporter.consumeStructureAttributes(ctx, structureTuples, podName.Str(), appCluster.Str(), levelInstance)
+					exporter.consumeStructureAttributes(ctx, podName.Str(), appCluster.Str(), levelInstance)
 				}
 			}
 		}
@@ -76,46 +73,37 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 			spans := scopeSpan.Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
-				exporter.consumeAttribute(ctx, tuples, spanSource, spanNameKey, pcommon.NewValueStr(span.Name()))
-				exporter.consumeAttribute(ctx, tuples, spanSource, statusCodeKey, pcommon.NewValueStr(span.Status().Code().String()))
+				exporter.consumeAttribute(ctx, spanSource, spanNameKey, pcommon.NewValueStr(span.Name()))
+				exporter.consumeAttribute(ctx, spanSource, statusCodeKey, pcommon.NewValueStr(span.Status().Code().String()))
 				spanAttributes := span.Attributes()
 				spanAttributes.Range(func(k string, v pcommon.Value) bool {
 					k = fmt.Sprintf("SpanAttributes['%s']", k)
-					exporter.consumeAttribute(ctx, tuples, spanSource, k, v)
+					exporter.consumeAttribute(ctx, spanSource, k, v)
 					return true
 				})
 			}
 		}
 	}
-	go func() {
-		ctx := context.Background()
-		exporter.metadataService.ConsumeAttributes(ctx, tuples)
-		exporter.appStructureService.ConsumeAttributes(ctx, structureTuples)
-	}()
 	return nil
 }
 
-func (exporter *MetadataExporter) consumeStructureAttributes(ctx context.Context, tuples map[string]*structureTuple, code string, parentCode string, level applicationStructureLevel) {
-	if _, ok := tuples[code]; ok {
-		return
-	}
-	item := &structureTuple{
+func (exporter *MetadataExporter) consumeStructureAttributes(ctx context.Context, code string, parentCode string, level applicationStructureLevel) {
+	item := structureTuple{
 		parentCode: parentCode,
+		code:       code,
 		level:      level,
 	}
-	tuples[code] = item
+	exporter.appStructureService.ConsumeAttribute(ctx, item)
 }
 
 func (exporter *MetadataExporter) ConsumeMetrics(ctx context.Context, md pmetric.Metrics) error {
-	tuples := make(map[string]*tuple)
-
 	resourceMetrics := md.ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
 		resourceMetric := resourceMetrics.At(i)
 		resourceAttributes := resourceMetric.Resource().Attributes()
 		resourceAttributes.Range(func(k string, v pcommon.Value) bool {
 			k = fmt.Sprintf("ResourceAttributes['%s']", k)
-			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
+			exporter.consumeAttribute(ctx, metricSource, k, v)
 			return true
 		})
 
@@ -127,80 +115,77 @@ func (exporter *MetadataExporter) ConsumeMetrics(ctx context.Context, md pmetric
 				metric := metrics.At(k)
 				switch metric.Type() {
 				case pmetric.MetricTypeGauge:
-					exporter.consumeGaugeDataPoints(ctx, tuples, metric.Gauge().DataPoints())
+					exporter.consumeGaugeDataPoints(ctx, metric.Gauge().DataPoints())
 				case pmetric.MetricTypeSum:
-					exporter.consumeGaugeDataPoints(ctx, tuples, metric.Sum().DataPoints())
+					exporter.consumeGaugeDataPoints(ctx, metric.Sum().DataPoints())
 				case pmetric.MetricTypeSummary:
-					exporter.consumeSummaryDataPoints(ctx, tuples, metric.Summary().DataPoints())
+					exporter.consumeSummaryDataPoints(ctx, metric.Summary().DataPoints())
 				case pmetric.MetricTypeHistogram:
-					exporter.consumeHistogramDataPoints(ctx, tuples, metric.Histogram().DataPoints())
+					exporter.consumeHistogramDataPoints(ctx, metric.Histogram().DataPoints())
 				case pmetric.MetricTypeExponentialHistogram:
-					exporter.consumeExpotentialHistogramDataPoints(ctx, tuples, metric.ExponentialHistogram().DataPoints())
+					exporter.consumeExpotentialHistogramDataPoints(ctx, metric.ExponentialHistogram().DataPoints())
 				default:
 					continue
 				}
 			}
 		}
 	}
-	exporter.metadataService.ConsumeAttributes(ctx, tuples)
 
 	return nil
 }
 
-func (exporter *MetadataExporter) consumeGaugeDataPoints(ctx context.Context, tuples map[string]*tuple, dps pmetric.NumberDataPointSlice) {
+func (exporter *MetadataExporter) consumeGaugeDataPoints(ctx context.Context, dps pmetric.NumberDataPointSlice) {
 	for i := 0; i < dps.Len(); i++ {
 		dp := dps.At(i)
 		dp.Attributes().Range(func(k string, v pcommon.Value) bool {
 			k = fmt.Sprintf("Attributes['%s']", k)
-			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
+			exporter.consumeAttribute(ctx, metricSource, k, v)
 			return true
 		})
 	}
 }
 
-func (exporter *MetadataExporter) consumeSummaryDataPoints(ctx context.Context, tuples map[string]*tuple, dps pmetric.SummaryDataPointSlice) {
+func (exporter *MetadataExporter) consumeSummaryDataPoints(ctx context.Context, dps pmetric.SummaryDataPointSlice) {
 	for i := 0; i < dps.Len(); i++ {
 		dp := dps.At(i)
 		dp.Attributes().Range(func(k string, v pcommon.Value) bool {
 			k = fmt.Sprintf("Attributes['%s']", k)
-			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
+			exporter.consumeAttribute(ctx, metricSource, k, v)
 			return true
 		})
 	}
 }
 
-func (exporter *MetadataExporter) consumeHistogramDataPoints(ctx context.Context, tuples map[string]*tuple, dps pmetric.HistogramDataPointSlice) {
+func (exporter *MetadataExporter) consumeHistogramDataPoints(ctx context.Context, dps pmetric.HistogramDataPointSlice) {
 	for i := 0; i < dps.Len(); i++ {
 		dp := dps.At(i)
 		dp.Attributes().Range(func(k string, v pcommon.Value) bool {
 			k = fmt.Sprintf("Attributes['%s']", k)
-			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
+			exporter.consumeAttribute(ctx, metricSource, k, v)
 			return true
 		})
 	}
 }
 
-func (exporter *MetadataExporter) consumeExpotentialHistogramDataPoints(ctx context.Context, tuples map[string]*tuple, dps pmetric.ExponentialHistogramDataPointSlice) {
+func (exporter *MetadataExporter) consumeExpotentialHistogramDataPoints(ctx context.Context, dps pmetric.ExponentialHistogramDataPointSlice) {
 	for i := 0; i < dps.Len(); i++ {
 		dp := dps.At(i)
 		dp.Attributes().Range(func(k string, v pcommon.Value) bool {
 			k = fmt.Sprintf("Attributes['%s']", k)
-			exporter.consumeAttribute(ctx, tuples, metricSource, k, v)
+			exporter.consumeAttribute(ctx, metricSource, k, v)
 			return true
 		})
 	}
 }
 
 func (exporter *MetadataExporter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
-	tuples := make(map[string]*tuple)
-
 	resourceLogs := ld.ResourceLogs()
 	for i := 0; i < resourceLogs.Len(); i++ {
 		resourceLog := resourceLogs.At(i)
 		resourceAttributes := resourceLog.Resource().Attributes()
 		resourceAttributes.Range(func(k string, v pcommon.Value) bool {
 			k = fmt.Sprintf("Resource['%s']", k)
-			exporter.consumeAttribute(ctx, tuples, logSource, k, v)
+			exporter.consumeAttribute(ctx, logSource, k, v)
 			return true
 		})
 
@@ -212,16 +197,17 @@ func (exporter *MetadataExporter) ConsumeLogs(ctx context.Context, ld plog.Logs)
 				log := logs.At(k)
 				log.Attributes().Range(func(k string, v pcommon.Value) bool {
 					k = fmt.Sprintf("Attributes['%s']", k)
-					exporter.consumeAttribute(ctx, tuples, logSource, k, v)
+					exporter.consumeAttribute(ctx, logSource, k, v)
 					return true
 				})
 			}
 		}
 	}
+
 	return nil
 }
 
-func (exporter *MetadataExporter) consumeAttribute(ctx context.Context, tuples map[string]*tuple, source string, k string, v pcommon.Value) {
+func (exporter *MetadataExporter) consumeAttribute(ctx context.Context, source string, k string, v pcommon.Value) {
 	valueType := queryValueTypeNumber
 	value := fmt.Sprint(v.Int())
 	if v.Type() == pcommon.ValueTypeStr {
@@ -236,10 +222,7 @@ func (exporter *MetadataExporter) consumeAttribute(ctx context.Context, tuples m
 		value:        value,
 		valueType:    valueType,
 	}
-	_, ok := tuples[tuple.hash()]
-	if !ok {
-		tuples[tuple.hash()] = tuple
-	}
+	exporter.metadataService.ConsumeAttribute(ctx, *tuple)
 }
 
 func (exporter *MetadataExporter) Shutdown(ctx context.Context) error {
