@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	platFormNameKey = "k8s.pod.platform"
+	platFormNameKey = "service.platform"
 	faultKindKey    = "fault.kind"
 )
 
