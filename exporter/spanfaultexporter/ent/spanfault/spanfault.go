@@ -33,8 +33,8 @@ const (
 	FieldSpanName = "SpanName"
 	// FieldFaultKind holds the string denoting the faultkind field in the database.
 	FieldFaultKind = "FaultKind"
-	// FieldIsRoot holds the string denoting the isroot field in the database.
-	FieldIsRoot = "IsRoot"
+	// FieldIsCause holds the string denoting the iscause field in the database.
+	FieldIsCause = "IsRoot"
 	// Table holds the table name of the spanfault in the database.
 	Table = "otel_span_faults"
 )
@@ -53,7 +53,7 @@ var Columns = []string{
 	FieldServiceName,
 	FieldSpanName,
 	FieldFaultKind,
-	FieldIsRoot,
+	FieldIsCause,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -129,7 +129,7 @@ func ByFaultKind(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFaultKind, opts...).ToFunc()
 }
 
-// ByIsRoot orders the results by the IsRoot field.
-func ByIsRoot(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsRoot, opts...).ToFunc()
+// ByIsCause orders the results by the IsCause field.
+func ByIsCause(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsCause, opts...).ToFunc()
 }

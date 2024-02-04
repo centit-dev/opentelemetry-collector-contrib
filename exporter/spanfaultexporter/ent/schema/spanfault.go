@@ -33,7 +33,7 @@ func (SpanFault) Fields() []ent.Field {
 		field.String("ServiceName").StorageKey("ServiceName"),
 		field.String("SpanName").StorageKey("SpanName"),
 		field.String("FaultKind").StorageKey("FaultKind"),
-		field.Bool("IsRoot").StorageKey("IsRoot"),
+		field.Bool("IsCause").StorageKey("IsRoot"),
 	}
 }
 

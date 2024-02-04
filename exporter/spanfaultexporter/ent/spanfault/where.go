@@ -119,9 +119,9 @@ func FaultKind(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldFaultKind, v))
 }
 
-// IsRoot applies equality check predicate on the "IsRoot" field. It's identical to IsRootEQ.
-func IsRoot(v bool) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEQ(FieldIsRoot, v))
+// IsCause applies equality check predicate on the "IsCause" field. It's identical to IsCauseEQ.
+func IsCause(v bool) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldIsCause, v))
 }
 
 // TimestampEQ applies the EQ predicate on the "Timestamp" field.
@@ -844,14 +844,14 @@ func FaultKindContainsFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldContainsFold(FieldFaultKind, v))
 }
 
-// IsRootEQ applies the EQ predicate on the "IsRoot" field.
-func IsRootEQ(v bool) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEQ(FieldIsRoot, v))
+// IsCauseEQ applies the EQ predicate on the "IsCause" field.
+func IsCauseEQ(v bool) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldIsCause, v))
 }
 
-// IsRootNEQ applies the NEQ predicate on the "IsRoot" field.
-func IsRootNEQ(v bool) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldNEQ(FieldIsRoot, v))
+// IsCauseNEQ applies the NEQ predicate on the "IsCause" field.
+func IsCauseNEQ(v bool) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldIsCause, v))
 }
 
 // And groups predicates with the AND operator between them.

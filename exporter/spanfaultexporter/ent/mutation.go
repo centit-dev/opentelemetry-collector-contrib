@@ -44,7 +44,7 @@ type SpanFaultMutation struct {
 	_ServiceName     *string
 	_SpanName        *string
 	_FaultKind       *string
-	_IsRoot          *bool
+	_IsCause         *bool
 	clearedFields    map[string]struct{}
 	done             bool
 	oldValue         func(context.Context) (*SpanFault, error)
@@ -590,40 +590,40 @@ func (m *SpanFaultMutation) ResetFaultKind() {
 	m._FaultKind = nil
 }
 
-// SetIsRoot sets the "IsRoot" field.
-func (m *SpanFaultMutation) SetIsRoot(b bool) {
-	m._IsRoot = &b
+// SetIsCause sets the "IsCause" field.
+func (m *SpanFaultMutation) SetIsCause(b bool) {
+	m._IsCause = &b
 }
 
-// IsRoot returns the value of the "IsRoot" field in the mutation.
-func (m *SpanFaultMutation) IsRoot() (r bool, exists bool) {
-	v := m._IsRoot
+// IsCause returns the value of the "IsCause" field in the mutation.
+func (m *SpanFaultMutation) IsCause() (r bool, exists bool) {
+	v := m._IsCause
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIsRoot returns the old "IsRoot" field's value of the SpanFault entity.
+// OldIsCause returns the old "IsCause" field's value of the SpanFault entity.
 // If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SpanFaultMutation) OldIsRoot(ctx context.Context) (v bool, err error) {
+func (m *SpanFaultMutation) OldIsCause(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsRoot is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsCause is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsRoot requires an ID field in the mutation")
+		return v, errors.New("OldIsCause requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsRoot: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsCause: %w", err)
 	}
-	return oldValue.IsRoot, nil
+	return oldValue.IsCause, nil
 }
 
-// ResetIsRoot resets all changes to the "IsRoot" field.
-func (m *SpanFaultMutation) ResetIsRoot() {
-	m._IsRoot = nil
+// ResetIsCause resets all changes to the "IsCause" field.
+func (m *SpanFaultMutation) ResetIsCause() {
+	m._IsCause = nil
 }
 
 // Where appends a list predicates to the SpanFaultMutation builder.
@@ -694,8 +694,8 @@ func (m *SpanFaultMutation) Fields() []string {
 	if m._FaultKind != nil {
 		fields = append(fields, spanfault.FieldFaultKind)
 	}
-	if m._IsRoot != nil {
-		fields = append(fields, spanfault.FieldIsRoot)
+	if m._IsCause != nil {
+		fields = append(fields, spanfault.FieldIsCause)
 	}
 	return fields
 }
@@ -727,8 +727,8 @@ func (m *SpanFaultMutation) Field(name string) (ent.Value, bool) {
 		return m.SpanName()
 	case spanfault.FieldFaultKind:
 		return m.FaultKind()
-	case spanfault.FieldIsRoot:
-		return m.IsRoot()
+	case spanfault.FieldIsCause:
+		return m.IsCause()
 	}
 	return nil, false
 }
@@ -760,8 +760,8 @@ func (m *SpanFaultMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSpanName(ctx)
 	case spanfault.FieldFaultKind:
 		return m.OldFaultKind(ctx)
-	case spanfault.FieldIsRoot:
-		return m.OldIsRoot(ctx)
+	case spanfault.FieldIsCause:
+		return m.OldIsCause(ctx)
 	}
 	return nil, fmt.Errorf("unknown SpanFault field %s", name)
 }
@@ -848,12 +848,12 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFaultKind(v)
 		return nil
-	case spanfault.FieldIsRoot:
+	case spanfault.FieldIsCause:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIsRoot(v)
+		m.SetIsCause(v)
 		return nil
 	}
 	return fmt.Errorf("unknown SpanFault field %s", name)
@@ -958,8 +958,8 @@ func (m *SpanFaultMutation) ResetField(name string) error {
 	case spanfault.FieldFaultKind:
 		m.ResetFaultKind()
 		return nil
-	case spanfault.FieldIsRoot:
-		m.ResetIsRoot()
+	case spanfault.FieldIsCause:
+		m.ResetIsCause()
 		return nil
 	}
 	return fmt.Errorf("unknown SpanFault field %s", name)

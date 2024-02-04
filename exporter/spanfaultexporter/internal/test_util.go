@@ -20,6 +20,6 @@ func buildSpanFault(traceId string) *ent.SpanFault {
 		ServiceName:  []string{"app1", "app2"}[rand.Intn(2)],
 		SpanName:     []string{"span1", "span2"}[rand.Intn(2)],
 		FaultKind:    []string{"Business", "System"}[rand.Intn(2)],
-		IsRoot:       []bool{true, false}[rand.Intn(2)],
+		IsCause:      []bool{true, false}[rand.Intn(2)],
 	}
 }

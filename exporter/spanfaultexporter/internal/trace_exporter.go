@@ -31,7 +31,6 @@ func (t *TraceExporter) Start(ctx context.Context, _ component.Host) error {
 
 func (t *TraceExporter) PushTraceData(ctx context.Context, traces ptrace.Traces) error {
 	faults := make([]*ent.SpanFault, 0, traces.SpanCount())
-
 	slice := traces.ResourceSpans()
 	for i := 0; i < slice.Len(); i++ {
 		resource := slice.At(i)
@@ -59,20 +58,16 @@ func (t *TraceExporter) PushTraceData(ctx context.Context, traces ptrace.Traces)
 			batch := scopeSpans.Spans()
 			for k := 0; k < batch.Len(); k++ {
 				span := batch.At(k)
-				fault := t.buildSpanFault(&span, platformName, clusterName, instanceName, serviceName)
+				fault := t.buildSpanFault(ctx, &span, platformName, clusterName, instanceName, serviceName)
 				faults = append(faults, fault)
 			}
 		}
 	}
 
-	err := t.service.Save(ctx, faults)
-	if err != nil {
-		return err
-	}
-	return nil
+	return t.service.Save(ctx, faults)
 }
 
-func (t *TraceExporter) buildSpanFault(span *ptrace.Span, platformName string, clusterName string, instanceName string, serviceName string) *ent.SpanFault {
+func (t *TraceExporter) buildSpanFault(ctx context.Context, span *ptrace.Span, platformName string, clusterName string, instanceName string, serviceName string) *ent.SpanFault {
 	var faultKind string
 	if faultKindValue, exists := span.Attributes().Get(faultKindKey); exists {
 		faultKind = faultKindValue.Str()

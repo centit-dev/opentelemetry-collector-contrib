@@ -39,8 +39,8 @@ type SpanFault struct {
 	SpanName string `json:"SpanName,omitempty"`
 	// FaultKind holds the value of the "FaultKind" field.
 	FaultKind string `json:"FaultKind,omitempty"`
-	// IsRoot holds the value of the "IsRoot" field.
-	IsRoot       bool `json:"IsRoot,omitempty"`
+	// IsCause holds the value of the "IsCause" field.
+	IsCause      bool `json:"IsCause,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -49,7 +49,7 @@ func (*SpanFault) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case spanfault.FieldIsRoot:
+		case spanfault.FieldIsCause:
 			values[i] = new(sql.NullBool)
 		case spanfault.FieldID, spanfault.FieldTraceId, spanfault.FieldPlatformName, spanfault.FieldClusterName, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldParentSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldFaultKind:
 			values[i] = new(sql.NullString)
@@ -142,11 +142,11 @@ func (sf *SpanFault) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sf.FaultKind = value.String
 			}
-		case spanfault.FieldIsRoot:
+		case spanfault.FieldIsCause:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field IsRoot", values[i])
+				return fmt.Errorf("unexpected type %T for field IsCause", values[i])
 			} else if value.Valid {
-				sf.IsRoot = value.Bool
+				sf.IsCause = value.Bool
 			}
 		default:
 			sf.selectValues.Set(columns[i], values[i])
@@ -217,8 +217,8 @@ func (sf *SpanFault) String() string {
 	builder.WriteString("FaultKind=")
 	builder.WriteString(sf.FaultKind)
 	builder.WriteString(", ")
-	builder.WriteString("IsRoot=")
-	builder.WriteString(fmt.Sprintf("%v", sf.IsRoot))
+	builder.WriteString("IsCause=")
+	builder.WriteString(fmt.Sprintf("%v", sf.IsCause))
 	builder.WriteByte(')')
 	return builder.String()
 }

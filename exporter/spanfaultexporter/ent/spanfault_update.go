@@ -200,16 +200,16 @@ func (sfu *SpanFaultUpdate) SetNillableFaultKind(s *string) *SpanFaultUpdate {
 	return sfu
 }
 
-// SetIsRoot sets the "IsRoot" field.
-func (sfu *SpanFaultUpdate) SetIsRoot(b bool) *SpanFaultUpdate {
-	sfu.mutation.SetIsRoot(b)
+// SetIsCause sets the "IsCause" field.
+func (sfu *SpanFaultUpdate) SetIsCause(b bool) *SpanFaultUpdate {
+	sfu.mutation.SetIsCause(b)
 	return sfu
 }
 
-// SetNillableIsRoot sets the "IsRoot" field if the given value is not nil.
-func (sfu *SpanFaultUpdate) SetNillableIsRoot(b *bool) *SpanFaultUpdate {
+// SetNillableIsCause sets the "IsCause" field if the given value is not nil.
+func (sfu *SpanFaultUpdate) SetNillableIsCause(b *bool) *SpanFaultUpdate {
 	if b != nil {
-		sfu.SetIsRoot(*b)
+		sfu.SetIsCause(*b)
 	}
 	return sfu
 }
@@ -297,8 +297,8 @@ func (sfu *SpanFaultUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := sfu.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
 	}
-	if value, ok := sfu.mutation.IsRoot(); ok {
-		_spec.SetField(spanfault.FieldIsRoot, field.TypeBool, value)
+	if value, ok := sfu.mutation.IsCause(); ok {
+		_spec.SetField(spanfault.FieldIsCause, field.TypeBool, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, sfu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -492,16 +492,16 @@ func (sfuo *SpanFaultUpdateOne) SetNillableFaultKind(s *string) *SpanFaultUpdate
 	return sfuo
 }
 
-// SetIsRoot sets the "IsRoot" field.
-func (sfuo *SpanFaultUpdateOne) SetIsRoot(b bool) *SpanFaultUpdateOne {
-	sfuo.mutation.SetIsRoot(b)
+// SetIsCause sets the "IsCause" field.
+func (sfuo *SpanFaultUpdateOne) SetIsCause(b bool) *SpanFaultUpdateOne {
+	sfuo.mutation.SetIsCause(b)
 	return sfuo
 }
 
-// SetNillableIsRoot sets the "IsRoot" field if the given value is not nil.
-func (sfuo *SpanFaultUpdateOne) SetNillableIsRoot(b *bool) *SpanFaultUpdateOne {
+// SetNillableIsCause sets the "IsCause" field if the given value is not nil.
+func (sfuo *SpanFaultUpdateOne) SetNillableIsCause(b *bool) *SpanFaultUpdateOne {
 	if b != nil {
-		sfuo.SetIsRoot(*b)
+		sfuo.SetIsCause(*b)
 	}
 	return sfuo
 }
@@ -619,8 +619,8 @@ func (sfuo *SpanFaultUpdateOne) sqlSave(ctx context.Context) (_node *SpanFault, 
 	if value, ok := sfuo.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
 	}
-	if value, ok := sfuo.mutation.IsRoot(); ok {
-		_spec.SetField(spanfault.FieldIsRoot, field.TypeBool, value)
+	if value, ok := sfuo.mutation.IsCause(); ok {
+		_spec.SetField(spanfault.FieldIsCause, field.TypeBool, value)
 	}
 	_node = &SpanFault{config: sfuo.config}
 	_spec.Assign = _node.assignValues

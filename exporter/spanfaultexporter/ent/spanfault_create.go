@@ -110,9 +110,9 @@ func (sfc *SpanFaultCreate) SetFaultKind(s string) *SpanFaultCreate {
 	return sfc
 }
 
-// SetIsRoot sets the "IsRoot" field.
-func (sfc *SpanFaultCreate) SetIsRoot(b bool) *SpanFaultCreate {
-	sfc.mutation.SetIsRoot(b)
+// SetIsCause sets the "IsCause" field.
+func (sfc *SpanFaultCreate) SetIsCause(b bool) *SpanFaultCreate {
+	sfc.mutation.SetIsCause(b)
 	return sfc
 }
 
@@ -180,8 +180,8 @@ func (sfc *SpanFaultCreate) check() error {
 	if _, ok := sfc.mutation.FaultKind(); !ok {
 		return &ValidationError{Name: "FaultKind", err: errors.New(`ent: missing required field "SpanFault.FaultKind"`)}
 	}
-	if _, ok := sfc.mutation.IsRoot(); !ok {
-		return &ValidationError{Name: "IsRoot", err: errors.New(`ent: missing required field "SpanFault.IsRoot"`)}
+	if _, ok := sfc.mutation.IsCause(); !ok {
+		return &ValidationError{Name: "IsCause", err: errors.New(`ent: missing required field "SpanFault.IsCause"`)}
 	}
 	return nil
 }
@@ -262,9 +262,9 @@ func (sfc *SpanFaultCreate) createSpec() (*SpanFault, *sqlgraph.CreateSpec) {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
 		_node.FaultKind = value
 	}
-	if value, ok := sfc.mutation.IsRoot(); ok {
-		_spec.SetField(spanfault.FieldIsRoot, field.TypeBool, value)
-		_node.IsRoot = value
+	if value, ok := sfc.mutation.IsCause(); ok {
+		_spec.SetField(spanfault.FieldIsCause, field.TypeBool, value)
+		_node.IsCause = value
 	}
 	return _node, _spec
 }

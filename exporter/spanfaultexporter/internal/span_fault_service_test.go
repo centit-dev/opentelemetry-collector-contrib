@@ -115,11 +115,11 @@ func TestSpanFaultServiceImpl_addSpan_aChildSpanWithoutRootCause(t *testing.T) {
 	span2 := buildSpanFault("trace1")
 	span2.ParentSpanId = span1.ID
 	span2.FaultKind = ""
-	span2.IsRoot = false
+	span2.IsCause = false
 	service.addSpan(tree, span2)
 
 	parent := tree.spans[span1.ID]
-	if parent.hasFaultChild || !parent.span.IsRoot {
+	if parent.hasFaultChild || !parent.span.IsCause {
 		t.Errorf("the parent is a root cause")
 	}
 }
@@ -135,7 +135,7 @@ func TestSpanFaultServiceImpl_addSpan_noRootCauseUntilAddingAParent(t *testing.T
 	}
 	span1 := buildSpanFault("trace1")
 	span1.FaultKind = ""
-	span1.IsRoot = false
+	span1.IsCause = false
 	service.addSpan(tree, span1)
 
 	span2 := buildSpanFault("trace1")
@@ -143,7 +143,7 @@ func TestSpanFaultServiceImpl_addSpan_noRootCauseUntilAddingAParent(t *testing.T
 	service.addSpan(tree, span2)
 
 	parent := tree.spans[span2.ID]
-	if !parent.span.IsRoot {
+	if !parent.span.IsCause {
 		t.Errorf("the parent should be a root cause")
 	}
 }
@@ -159,7 +159,7 @@ func TestSpanFaultServiceImpl_addSpan_noRootCauseUntilAddingAChild(t *testing.T)
 	}
 	span1 := buildSpanFault("trace1")
 	span1.FaultKind = ""
-	span1.IsRoot = false
+	span1.IsCause = false
 	service.addSpan(tree, span1)
 
 	span2 := buildSpanFault("trace1")
@@ -187,11 +187,11 @@ func TestSpanFaultServiceImpl_addSpan_addANonFaultChildBetweenTwoFaults(t *testi
 	span2 := buildSpanFault("trace1")
 	service.addSpan(tree, span2)
 
-	if !span1.IsRoot {
+	if !span1.IsCause {
 		t.Errorf("the first span should be a root cause")
 	}
 
-	if !span2.IsRoot {
+	if !span2.IsCause {
 		t.Errorf("the second span should be a root cause")
 	}
 
@@ -199,11 +199,11 @@ func TestSpanFaultServiceImpl_addSpan_addANonFaultChildBetweenTwoFaults(t *testi
 	span3.ParentSpanId = span1.ID
 	span3.ID = span2.ParentSpanId
 	span3.FaultKind = ""
-	span3.IsRoot = false
+	span3.IsCause = false
 	service.addSpan(tree, span3)
 
 	parent := tree.spans[span3.ParentSpanId]
-	if !parent.hasFaultChild || parent.span.IsRoot {
+	if !parent.hasFaultChild || parent.span.IsCause {
 		t.Errorf("the parent should have a root cause child")
 	}
 
@@ -213,7 +213,7 @@ func TestSpanFaultServiceImpl_addSpan_addANonFaultChildBetweenTwoFaults(t *testi
 	}
 
 	grandchild := tree.spans[span2.ID]
-	if !grandchild.span.IsRoot {
+	if !grandchild.span.IsCause {
 		t.Errorf("the grandchild should be a root cause")
 	}
 }

@@ -63,7 +63,7 @@ func (repo *SpanFaultRepositoryImpl) SaveAll(ctx context.Context, creates []*ent
 		spanfault.Table,
 		spanfault.FieldTimestamp, spanfault.FieldTraceId,
 		spanfault.FieldPlatformName, spanfault.FieldClusterName, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName,
-		spanfault.FieldParentSpanId, spanfault.FieldID, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldFaultKind, spanfault.FieldIsRoot,
+		spanfault.FieldParentSpanId, spanfault.FieldID, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldFaultKind, spanfault.FieldIsCause,
 		values,
 	)
 	_, err := repo.client.driver.ExecContext(ctx, query)
@@ -84,7 +84,7 @@ func (repo *SpanFaultRepositoryImpl) buildValues(entities ...*ent.SpanFault) str
 				"'%s', '%s', '%s', '%s', '%s', %v)",
 			date, nanoseconds, entity.TraceId,
 			entity.PlatformName, entity.ClusterName, entity.InstanceName, entity.RootServiceName, entity.RootSpanName,
-			entity.ParentSpanId, entity.ID, entity.ServiceName, entity.SpanName, entity.FaultKind, entity.IsRoot,
+			entity.ParentSpanId, entity.ID, entity.ServiceName, entity.SpanName, entity.FaultKind, entity.IsCause,
 		)
 	}
 	return values
