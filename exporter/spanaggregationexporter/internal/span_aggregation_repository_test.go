@@ -27,17 +27,7 @@ func DisabledTestSpanAggregationRepositoryImpl_SaveAll(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			aggregations[i] = buildSpanAggregation(args{traceId: traceId})
 		}
-		err := repository.SaveAll(context.Background(), aggregations, nil)
-		if err != nil {
-			t.Errorf("SpanAggregationRepositoryImpl.SaveAll() error = %v", err)
-			return
-		}
-
-		// update 10 aggregations
-		for _, aggregation := range aggregations {
-			aggregation.SelfDuration = aggregation.SelfDuration + 1
-		}
-		err = repository.SaveAll(context.Background(), nil, aggregations)
+		err := repository.SaveAll(context.Background(), aggregations)
 		if err != nil {
 			t.Errorf("SpanAggregationRepositoryImpl.SaveAll() error = %v", err)
 			return
@@ -93,7 +83,7 @@ func DisabledTestSpanAggregationRepositoryImpl_formatMap(t *testing.T) {
 		t.Run(fmt.Sprintf("format %s", key), func(t *testing.T) {
 			result := formatMap(span.SpanAttributes)
 			logger.Info(result)
-			err := repository.SaveAll(context.Background(), []*ent.SpanAggregation{span}, nil)
+			err := repository.SaveAll(context.Background(), []*ent.SpanAggregation{span})
 			if err != nil {
 				t.Errorf("SpanAggregationRepositoryImpl.SaveAll() error = %v", err)
 				return

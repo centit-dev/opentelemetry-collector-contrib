@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/golang-lru/v2/expirable"
 	"github.com/reactivex/rxgo/v2"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanaggregationexporter/ent"
 	"go.uber.org/zap"
@@ -14,23 +13,20 @@ import (
 
 type DummySpanAggregationRepositoryImpl struct {
 	logger   *zap.Logger
-	spans    []*ent.SpanAggregation
 	toCreate []*ent.SpanAggregation
-	toUpdate []*ent.SpanAggregation
 }
 
-func CreateDummySpanAggregationRepositoryImpl(spans []*ent.SpanAggregation) *DummySpanAggregationRepositoryImpl {
-	return &DummySpanAggregationRepositoryImpl{logger: zap.NewExample(), spans: spans}
+func CreateDummySpanAggregationRepositoryImpl() *DummySpanAggregationRepositoryImpl {
+	return &DummySpanAggregationRepositoryImpl{logger: zap.NewExample()}
 }
 
 func (repository *DummySpanAggregationRepositoryImpl) FindAllByTraceIds(ctx context.Context, traceIds ...string) ([]*ent.SpanAggregation, error) {
-	return repository.spans, nil
+	return []*ent.SpanAggregation{}, nil
 }
 
-func (repository *DummySpanAggregationRepositoryImpl) SaveAll(ctx context.Context, toCreate []*ent.SpanAggregation, toUpdate []*ent.SpanAggregation) error {
-	repository.logger.Debug("save all", zap.Any("toCreate", toCreate), zap.Any("toUpdate", toUpdate))
+func (repository *DummySpanAggregationRepositoryImpl) SaveAll(ctx context.Context, toCreate []*ent.SpanAggregation) error {
+	repository.logger.Debug("save all", zap.Any("toCreate", toCreate))
 	repository.toCreate = toCreate
-	repository.toUpdate = toUpdate
 	return nil
 }
 
@@ -42,117 +38,25 @@ func TestSpanAggregationServiceImpl_Save(t *testing.T) {
 	tests := []struct {
 		name      string
 		newSpans  []*ent.SpanAggregation
-		cached    []*ent.SpanAggregation
-		results   map[string]channelEntryOp
+		results   map[string]struct{}
 		validates func(*ent.SpanAggregation) bool
 	}{
 		{
 			name:     "add the first non-root span of the trace",
 			newSpans: []*ent.SpanAggregation{buildSpanAggregation(args{spanId: "test-first-non-root", parentSpanId: uuid.NewString()})},
-			cached:   []*ent.SpanAggregation{},
-			results: map[string]channelEntryOp{
-				"test-first-non-root": create,
+			results: map[string]struct{}{
+				"test-first-non-root": {},
 			},
 			validates: func(span *ent.SpanAggregation) bool { return true },
 		},
 		{
 			name:     "add the first root span of the trace",
 			newSpans: []*ent.SpanAggregation{buildSpanAggregation(args{spanId: "test-first-root"})},
-			cached:   []*ent.SpanAggregation{},
-			results: map[string]channelEntryOp{
-				"test-first-root": create,
+			results: map[string]struct{}{
+				"test-first-root": {},
 			},
 			validates: func(span *ent.SpanAggregation) bool { return true },
 		},
-
-		{
-			name: "add a new non-root span to the trace which has no root",
-			newSpans: []*ent.SpanAggregation{
-				buildSpanAggregation(args{spanId: "test-follow-non-root", traceId: "shared-trace-id", parentSpanId: uuid.NewString()}),
-			},
-			cached: []*ent.SpanAggregation{
-				buildSpanAggregation(args{traceId: "shared-trace-id", parentSpanId: uuid.NewString()}),
-			},
-			results: map[string]channelEntryOp{
-				"test-follow-non-root": create,
-			},
-			validates: func(span *ent.SpanAggregation) bool { return true },
-		},
-		{
-			name: "add a new non-root span to the trace which has a root",
-			newSpans: []*ent.SpanAggregation{
-				buildSpanAggregation(args{spanId: "test-follow-non-root", traceId: "shared-trace-id", parentSpanId: uuid.NewString()}),
-			},
-			cached: []*ent.SpanAggregation{
-				buildSpanAggregation(args{traceId: "shared-trace-id"}),
-			},
-			results: map[string]channelEntryOp{
-				"test-follow-non-root": create,
-			},
-			validates: func(span *ent.SpanAggregation) bool { return span.RootServiceName != "" },
-		},
-		{
-			name: "add a new root span to the trace which has no root",
-			newSpans: []*ent.SpanAggregation{
-				buildSpanAggregation(args{spanId: "test-follow-non-root", traceId: "shared-trace-id"}),
-			},
-			cached: []*ent.SpanAggregation{
-				buildSpanAggregation(args{spanId: "update-root-value", traceId: "shared-trace-id", parentSpanId: uuid.NewString()}),
-			},
-			results: map[string]channelEntryOp{
-				"test-follow-non-root": create,
-				"update-root-value":    update,
-			},
-			validates: func(span *ent.SpanAggregation) bool { return span.RootServiceName != "" },
-		},
-
-		{
-			name: "add a new span father to one of the spans",
-			newSpans: []*ent.SpanAggregation{
-				buildSpanAggregation(args{
-					spanId:    "test-parent",
-					traceId:   "shared-trace-id",
-					timestamp: time.Unix(0, 0),
-				}),
-			},
-			cached: []*ent.SpanAggregation{
-				buildSpanAggregation(args{
-					spanId:       "test-child",
-					traceId:      "shared-trace-id",
-					parentSpanId: "test-parent",
-					timestamp:    time.Unix(0, 0).Add(10 * time.Nanosecond),
-				}),
-			},
-			results: map[string]channelEntryOp{
-				"test-parent": create,
-				"test-child":  update,
-			},
-			validates: func(span *ent.SpanAggregation) bool { return span.ID != "test-child" || span.Gap == 10 },
-		},
-		{
-			name: "add a new span child to one of the spans",
-			newSpans: []*ent.SpanAggregation{
-				buildSpanAggregation(args{
-					spanId:       "test-child",
-					traceId:      "shared-trace-id",
-					parentSpanId: "test-parent",
-					timestamp:    time.Unix(0, 0).Add(10 * time.Nanosecond),
-				}),
-			},
-			cached: []*ent.SpanAggregation{
-				buildSpanAggregation(args{
-					spanId:    "test-parent",
-					traceId:   "shared-trace-id",
-					timestamp: time.Unix(0, 0),
-				}),
-			},
-			results: map[string]channelEntryOp{
-				"test-child":  create,
-				"test-parent": update,
-			},
-			validates: func(span *ent.SpanAggregation) bool { return span.ID != "test-child" || span.Gap == 10 },
-		},
-
 		{
 			name: "add 2 new spans and 1 of them is the father of the other",
 			newSpans: []*ent.SpanAggregation{
@@ -170,10 +74,9 @@ func TestSpanAggregationServiceImpl_Save(t *testing.T) {
 					duration:     10,
 				}),
 			},
-			cached: []*ent.SpanAggregation{},
-			results: map[string]channelEntryOp{
-				"test-parent": create,
-				"test-child":  create,
+			results: map[string]struct{}{
+				"test-parent": {},
+				"test-child":  {},
 			},
 			validates: func(span *ent.SpanAggregation) bool {
 				if span.ID == "test-parent" {
@@ -188,14 +91,11 @@ func TestSpanAggregationServiceImpl_Save(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repository := CreateDummySpanAggregationRepositoryImpl(tt.cached)
+			repository := CreateDummySpanAggregationRepositoryImpl()
 			channel := make(chan rxgo.Item, 100)
 			service := &SpanAggregationServiceImpl{
 				repository:             repository,
 				logger:                 zap.NewExample(),
-				traceCache:             expirable.NewLRU[string, []*ent.SpanAggregation](1000, nil, time.Minute),
-				parentCache:            expirable.NewLRU[string, *ent.SpanAggregation](1000, nil, time.Minute),
-				childrenCache:          expirable.NewLRU[string, []*ent.SpanAggregation](1000, nil, time.Minute),
 				intervalInMilliseconds: 5,
 				batchSize:              1000,
 				batchChannel:           channel,
@@ -209,23 +109,12 @@ func TestSpanAggregationServiceImpl_Save(t *testing.T) {
 				t.Errorf("SpanAggregationServiceImpl.Save() error = %v", err)
 			}
 			time.Sleep(10 * time.Millisecond)
-			if len(repository.toCreate)+len(repository.toUpdate) != len(tt.results) {
-				t.Errorf("repository want %d, get %d", len(tt.results), len(repository.toCreate)+len(repository.toUpdate))
-			}
 			for _, toCreate := range repository.toCreate {
-				op, ok := tt.results[toCreate.ID]
-				if ok && op != create {
-					t.Errorf("repository want %s %v, get %v", toCreate.ID, op, create)
+				_, ok := tt.results[toCreate.ID]
+				if !ok {
+					t.Errorf("repository want %v", toCreate.ID)
 				} else if !tt.validates(toCreate) {
 					t.Errorf("repository get %s, but not pass the validation %s", toCreate.ID, toCreate)
-				}
-			}
-			for _, toUpdate := range repository.toUpdate {
-				op, ok := tt.results[toUpdate.ID]
-				if ok && op != update {
-					t.Errorf("repository want %s %v, get %v", toUpdate.ID, op, update)
-				} else if !tt.validates(toUpdate) {
-					t.Errorf("repository get %s, but not pass the validation %s", toUpdate.ID, toUpdate)
 				}
 			}
 			cancel()

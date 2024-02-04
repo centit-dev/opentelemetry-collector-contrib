@@ -12,6 +12,5 @@ type Config struct {
 	exporterhelper.QueueSettings   `mapstructure:"sending_queue"`
 
 	ClickHouseConfig internal.ClickHouseConfig `mapstructure:"clickhouse"`
-	CacheConfig      internal.CacheConfig      `mapstructure:"cache"`
 	BatchConfig      internal.BatchConfig      `mapstructure:"batch"`
 }

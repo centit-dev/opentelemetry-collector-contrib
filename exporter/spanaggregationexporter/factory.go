@@ -39,7 +39,6 @@ func createDefaultConfig() component.Config {
 			Database:               "otel",
 			Debug:                  false,
 		},
-		CacheConfig: internal.CacheConfig{MaxSize: 60_000 * 60, ExpireInMinutes: 5},
 		BatchConfig: internal.BatchConfig{BatchSize: 1000, IntervalInMilliseconds: 1000},
 	}
 }
@@ -55,7 +54,7 @@ func createTracesExporter(
 		return nil, fmt.Errorf("cannot create clickhouse sql client: %w", err)
 	}
 	repository := internal.CreateSpanAggregationRepositoryImpl(client, set.Logger)
-	service := internal.CreateSpanAggregationServiceImpl(&c.CacheConfig, &c.BatchConfig, repository, set.Logger)
+	service := internal.CreateSpanAggregationServiceImpl(&c.BatchConfig, repository, set.Logger)
 	exporter := internal.CreateTraceExporter(service, set.Logger)
 
 	return exporterhelper.NewTracesExporter(
