@@ -2,7 +2,6 @@ package exceptionprocessor
 
 import (
 	"context"
-	"sync"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -51,16 +50,7 @@ func createLogsProcessor(ctx context.Context, params processor.CreateSettings, c
 	return processorhelper.NewLogsProcessor(ctx, params, cfg, nextConsumer, service.ProcessLogs, processorhelper.WithShutdown(service.Shutdown))
 }
 
-var mu = sync.Mutex{}
-var sharedServices = make(map[string]*client.ExceptionCategoryService)
-
 func createService(cfg component.Config, logger *zap.Logger) (*client.ExceptionCategoryService, error) {
-	mu.Lock()
-	service, exists := sharedServices[ServiceCacheKey]
-	if exists {
-		return service, nil
-	}
-	defer mu.Unlock()
 	config := cfg.(*Config)
 	databaseClient, err := client.CreateClient(&config.Postgres, logger)
 	if err != nil {
@@ -70,7 +60,6 @@ func createService(cfg component.Config, logger *zap.Logger) (*client.ExceptionC
 	repo := client.NewExceptionCategoryRepository(databaseClient)
 
 	// create category service
-	service = client.CreateCategoryService(repo, config.CacheTtlMinutes, logger)
-	sharedServices[ServiceCacheKey] = service
+	service := client.CreateCategoryService(repo, config.CacheTtlMinutes, logger)
 	return service, nil
 }
