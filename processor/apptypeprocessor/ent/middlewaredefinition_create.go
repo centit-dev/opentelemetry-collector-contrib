@@ -27,6 +27,12 @@ func (mdc *MiddlewareDefinitionCreate) SetName(s string) *MiddlewareDefinitionCr
 	return mdc
 }
 
+// SetType sets the "type" field.
+func (mdc *MiddlewareDefinitionCreate) SetType(i int16) *MiddlewareDefinitionCreate {
+	mdc.mutation.SetType(i)
+	return mdc
+}
+
 // SetSpanConditions sets the "span_conditions" field.
 func (mdc *MiddlewareDefinitionCreate) SetSpanConditions(sdc []schema.MiddlewareDefinitionCondition) *MiddlewareDefinitionCreate {
 	mdc.mutation.SetSpanConditions(sdc)
@@ -140,6 +146,9 @@ func (mdc *MiddlewareDefinitionCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "MiddlewareDefinition.name": %w`, err)}
 		}
 	}
+	if _, ok := mdc.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "MiddlewareDefinition.type"`)}
+	}
 	if _, ok := mdc.mutation.IsValid(); !ok {
 		return &ValidationError{Name: "is_valid", err: errors.New(`ent: missing required field "MiddlewareDefinition.is_valid"`)}
 	}
@@ -189,6 +198,10 @@ func (mdc *MiddlewareDefinitionCreate) createSpec() (*MiddlewareDefinition, *sql
 	if value, ok := mdc.mutation.Name(); ok {
 		_spec.SetField(middlewaredefinition.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := mdc.mutation.GetType(); ok {
+		_spec.SetField(middlewaredefinition.FieldType, field.TypeInt16, value)
+		_node.Type = value
 	}
 	if value, ok := mdc.mutation.SpanConditions(); ok {
 		_spec.SetField(middlewaredefinition.FieldSpanConditions, field.TypeJSON, value)

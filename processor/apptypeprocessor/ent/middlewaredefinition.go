@@ -21,6 +21,8 @@ type MiddlewareDefinition struct {
 	ID int64 `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Type holds the value of the "type" field.
+	Type int16 `json:"type,omitempty"`
 	// SpanConditions holds the value of the "span_conditions" field.
 	SpanConditions []schema.MiddlewareDefinitionCondition `json:"span_conditions,omitempty"`
 	// IsValid holds the value of the "is_valid" field.
@@ -39,7 +41,7 @@ func (*MiddlewareDefinition) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case middlewaredefinition.FieldSpanConditions:
 			values[i] = new([]byte)
-		case middlewaredefinition.FieldID, middlewaredefinition.FieldIsValid:
+		case middlewaredefinition.FieldID, middlewaredefinition.FieldType, middlewaredefinition.FieldIsValid:
 			values[i] = new(sql.NullInt64)
 		case middlewaredefinition.FieldName:
 			values[i] = new(sql.NullString)
@@ -71,6 +73,12 @@ func (md *MiddlewareDefinition) assignValues(columns []string, values []any) err
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				md.Name = value.String
+			}
+		case middlewaredefinition.FieldType:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				md.Type = int16(value.Int64)
 			}
 		case middlewaredefinition.FieldSpanConditions:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -136,6 +144,9 @@ func (md *MiddlewareDefinition) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", md.ID))
 	builder.WriteString("name=")
 	builder.WriteString(md.Name)
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", md.Type))
 	builder.WriteString(", ")
 	builder.WriteString("span_conditions=")
 	builder.WriteString(fmt.Sprintf("%v", md.SpanConditions))

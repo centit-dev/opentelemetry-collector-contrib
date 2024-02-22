@@ -36,6 +36,35 @@ func (mdu *MiddlewareDefinitionUpdate) SetName(s string) *MiddlewareDefinitionUp
 	return mdu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (mdu *MiddlewareDefinitionUpdate) SetNillableName(s *string) *MiddlewareDefinitionUpdate {
+	if s != nil {
+		mdu.SetName(*s)
+	}
+	return mdu
+}
+
+// SetType sets the "type" field.
+func (mdu *MiddlewareDefinitionUpdate) SetType(i int16) *MiddlewareDefinitionUpdate {
+	mdu.mutation.ResetType()
+	mdu.mutation.SetType(i)
+	return mdu
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (mdu *MiddlewareDefinitionUpdate) SetNillableType(i *int16) *MiddlewareDefinitionUpdate {
+	if i != nil {
+		mdu.SetType(*i)
+	}
+	return mdu
+}
+
+// AddType adds i to the "type" field.
+func (mdu *MiddlewareDefinitionUpdate) AddType(i int16) *MiddlewareDefinitionUpdate {
+	mdu.mutation.AddType(i)
+	return mdu
+}
+
 // SetSpanConditions sets the "span_conditions" field.
 func (mdu *MiddlewareDefinitionUpdate) SetSpanConditions(sdc []schema.MiddlewareDefinitionCondition) *MiddlewareDefinitionUpdate {
 	mdu.mutation.SetSpanConditions(sdc)
@@ -146,6 +175,12 @@ func (mdu *MiddlewareDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 	if value, ok := mdu.mutation.Name(); ok {
 		_spec.SetField(middlewaredefinition.FieldName, field.TypeString, value)
 	}
+	if value, ok := mdu.mutation.GetType(); ok {
+		_spec.SetField(middlewaredefinition.FieldType, field.TypeInt16, value)
+	}
+	if value, ok := mdu.mutation.AddedType(); ok {
+		_spec.AddField(middlewaredefinition.FieldType, field.TypeInt16, value)
+	}
 	if value, ok := mdu.mutation.SpanConditions(); ok {
 		_spec.SetField(middlewaredefinition.FieldSpanConditions, field.TypeJSON, value)
 	}
@@ -189,6 +224,35 @@ type MiddlewareDefinitionUpdateOne struct {
 // SetName sets the "name" field.
 func (mduo *MiddlewareDefinitionUpdateOne) SetName(s string) *MiddlewareDefinitionUpdateOne {
 	mduo.mutation.SetName(s)
+	return mduo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (mduo *MiddlewareDefinitionUpdateOne) SetNillableName(s *string) *MiddlewareDefinitionUpdateOne {
+	if s != nil {
+		mduo.SetName(*s)
+	}
+	return mduo
+}
+
+// SetType sets the "type" field.
+func (mduo *MiddlewareDefinitionUpdateOne) SetType(i int16) *MiddlewareDefinitionUpdateOne {
+	mduo.mutation.ResetType()
+	mduo.mutation.SetType(i)
+	return mduo
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (mduo *MiddlewareDefinitionUpdateOne) SetNillableType(i *int16) *MiddlewareDefinitionUpdateOne {
+	if i != nil {
+		mduo.SetType(*i)
+	}
+	return mduo
+}
+
+// AddType adds i to the "type" field.
+func (mduo *MiddlewareDefinitionUpdateOne) AddType(i int16) *MiddlewareDefinitionUpdateOne {
+	mduo.mutation.AddType(i)
 	return mduo
 }
 
@@ -331,6 +395,12 @@ func (mduo *MiddlewareDefinitionUpdateOne) sqlSave(ctx context.Context) (_node *
 	}
 	if value, ok := mduo.mutation.Name(); ok {
 		_spec.SetField(middlewaredefinition.FieldName, field.TypeString, value)
+	}
+	if value, ok := mduo.mutation.GetType(); ok {
+		_spec.SetField(middlewaredefinition.FieldType, field.TypeInt16, value)
+	}
+	if value, ok := mduo.mutation.AddedType(); ok {
+		_spec.AddField(middlewaredefinition.FieldType, field.TypeInt16, value)
 	}
 	if value, ok := mduo.mutation.SpanConditions(); ok {
 		_spec.SetField(middlewaredefinition.FieldSpanConditions, field.TypeJSON, value)

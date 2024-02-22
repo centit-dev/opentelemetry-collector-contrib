@@ -13,6 +13,7 @@ var (
 	TbMiddlewareDefineColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "type", Type: field.TypeInt16},
 		{Name: "span_conditions", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_valid", Type: field.TypeInt, Default: 1},
 		{Name: "create_time", Type: field.TypeTime},

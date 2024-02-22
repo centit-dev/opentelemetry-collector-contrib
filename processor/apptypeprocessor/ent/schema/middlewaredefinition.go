@@ -25,6 +25,7 @@ func (MiddlewareDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id").Positive(),
 		field.String("name").MaxLen(100).NotEmpty(),
+		field.Int16("type"),
 		field.JSON("span_conditions", []MiddlewareDefinitionCondition{}).Optional(),
 		field.Int("is_valid").Default(1),
 		field.Time("create_time").Immutable().Default(time.Now),

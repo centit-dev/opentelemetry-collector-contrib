@@ -35,6 +35,8 @@ type MiddlewareDefinitionMutation struct {
 	typ                   string
 	id                    *int64
 	name                  *string
+	_type                 *int16
+	add_type              *int16
 	span_conditions       *[]schema.MiddlewareDefinitionCondition
 	appendspan_conditions []schema.MiddlewareDefinitionCondition
 	is_valid              *int
@@ -185,6 +187,62 @@ func (m *MiddlewareDefinitionMutation) OldName(ctx context.Context) (v string, e
 // ResetName resets all changes to the "name" field.
 func (m *MiddlewareDefinitionMutation) ResetName() {
 	m.name = nil
+}
+
+// SetType sets the "type" field.
+func (m *MiddlewareDefinitionMutation) SetType(i int16) {
+	m._type = &i
+	m.add_type = nil
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *MiddlewareDefinitionMutation) GetType() (r int16, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the MiddlewareDefinition entity.
+// If the MiddlewareDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MiddlewareDefinitionMutation) OldType(ctx context.Context) (v int16, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// AddType adds i to the "type" field.
+func (m *MiddlewareDefinitionMutation) AddType(i int16) {
+	if m.add_type != nil {
+		*m.add_type += i
+	} else {
+		m.add_type = &i
+	}
+}
+
+// AddedType returns the value that was added to the "type" field in this mutation.
+func (m *MiddlewareDefinitionMutation) AddedType() (r int16, exists bool) {
+	v := m.add_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *MiddlewareDefinitionMutation) ResetType() {
+	m._type = nil
+	m.add_type = nil
 }
 
 // SetSpanConditions sets the "span_conditions" field.
@@ -414,9 +472,12 @@ func (m *MiddlewareDefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MiddlewareDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, middlewaredefinition.FieldName)
+	}
+	if m._type != nil {
+		fields = append(fields, middlewaredefinition.FieldType)
 	}
 	if m.span_conditions != nil {
 		fields = append(fields, middlewaredefinition.FieldSpanConditions)
@@ -440,6 +501,8 @@ func (m *MiddlewareDefinitionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case middlewaredefinition.FieldName:
 		return m.Name()
+	case middlewaredefinition.FieldType:
+		return m.GetType()
 	case middlewaredefinition.FieldSpanConditions:
 		return m.SpanConditions()
 	case middlewaredefinition.FieldIsValid:
@@ -459,6 +522,8 @@ func (m *MiddlewareDefinitionMutation) OldField(ctx context.Context, name string
 	switch name {
 	case middlewaredefinition.FieldName:
 		return m.OldName(ctx)
+	case middlewaredefinition.FieldType:
+		return m.OldType(ctx)
 	case middlewaredefinition.FieldSpanConditions:
 		return m.OldSpanConditions(ctx)
 	case middlewaredefinition.FieldIsValid:
@@ -482,6 +547,13 @@ func (m *MiddlewareDefinitionMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case middlewaredefinition.FieldType:
+		v, ok := value.(int16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
 		return nil
 	case middlewaredefinition.FieldSpanConditions:
 		v, ok := value.([]schema.MiddlewareDefinitionCondition)
@@ -519,6 +591,9 @@ func (m *MiddlewareDefinitionMutation) SetField(name string, value ent.Value) er
 // this mutation.
 func (m *MiddlewareDefinitionMutation) AddedFields() []string {
 	var fields []string
+	if m.add_type != nil {
+		fields = append(fields, middlewaredefinition.FieldType)
+	}
 	if m.addis_valid != nil {
 		fields = append(fields, middlewaredefinition.FieldIsValid)
 	}
@@ -530,6 +605,8 @@ func (m *MiddlewareDefinitionMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *MiddlewareDefinitionMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case middlewaredefinition.FieldType:
+		return m.AddedType()
 	case middlewaredefinition.FieldIsValid:
 		return m.AddedIsValid()
 	}
@@ -541,6 +618,13 @@ func (m *MiddlewareDefinitionMutation) AddedField(name string) (ent.Value, bool)
 // type.
 func (m *MiddlewareDefinitionMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case middlewaredefinition.FieldType:
+		v, ok := value.(int16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddType(v)
+		return nil
 	case middlewaredefinition.FieldIsValid:
 		v, ok := value.(int)
 		if !ok {
@@ -586,6 +670,9 @@ func (m *MiddlewareDefinitionMutation) ResetField(name string) error {
 	switch name {
 	case middlewaredefinition.FieldName:
 		m.ResetName()
+		return nil
+	case middlewaredefinition.FieldType:
+		m.ResetType()
 		return nil
 	case middlewaredefinition.FieldSpanConditions:
 		m.ResetSpanConditions()

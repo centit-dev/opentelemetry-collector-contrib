@@ -34,15 +34,15 @@ func init() {
 		}
 	}()
 	// middlewaredefinitionDescIsValid is the schema descriptor for is_valid field.
-	middlewaredefinitionDescIsValid := middlewaredefinitionFields[3].Descriptor()
+	middlewaredefinitionDescIsValid := middlewaredefinitionFields[4].Descriptor()
 	// middlewaredefinition.DefaultIsValid holds the default value on creation for the is_valid field.
 	middlewaredefinition.DefaultIsValid = middlewaredefinitionDescIsValid.Default.(int)
 	// middlewaredefinitionDescCreateTime is the schema descriptor for create_time field.
-	middlewaredefinitionDescCreateTime := middlewaredefinitionFields[4].Descriptor()
+	middlewaredefinitionDescCreateTime := middlewaredefinitionFields[5].Descriptor()
 	// middlewaredefinition.DefaultCreateTime holds the default value on creation for the create_time field.
 	middlewaredefinition.DefaultCreateTime = middlewaredefinitionDescCreateTime.Default.(func() time.Time)
 	// middlewaredefinitionDescUpdateTime is the schema descriptor for update_time field.
-	middlewaredefinitionDescUpdateTime := middlewaredefinitionFields[5].Descriptor()
+	middlewaredefinitionDescUpdateTime := middlewaredefinitionFields[6].Descriptor()
 	// middlewaredefinition.DefaultUpdateTime holds the default value on creation for the update_time field.
 	middlewaredefinition.DefaultUpdateTime = middlewaredefinitionDescUpdateTime.Default.(func() time.Time)
 	// middlewaredefinitionDescID is the schema descriptor for id field.

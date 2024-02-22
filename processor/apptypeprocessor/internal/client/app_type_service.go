@@ -2,17 +2,24 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent"
 	"github.com/teanoon/opentelemetry-collector-contrib/pkg/spangroup"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	conventions "go.opentelemetry.io/collector/semconv/v1.8.0"
 	"go.uber.org/zap"
 )
 
+type softwareType int16
+
 const (
-	appTypeKey = "app.type"
+	serverSoftware = "server.software"
+	appType        = "application.type"
+
+	typeApplication softwareType = iota
+	typeClient
 )
 
 type AppTypeService struct {
@@ -20,11 +27,13 @@ type AppTypeService struct {
 	client DatabaseClient
 	groups *spangroup.SpanGroups
 	ticker *time.Ticker
+
+	records map[string]*ent.MiddlewareDefinition
 }
 
 func CreateAppTypeService(client DatabaseClient, cacheTtlMinutes time.Duration, logger *zap.Logger) *AppTypeService {
 	ticker := time.NewTicker(cacheTtlMinutes * time.Minute)
-	service := &AppTypeService{logger, client, nil, ticker}
+	service := &AppTypeService{logger, client, nil, ticker, make(map[string]*ent.MiddlewareDefinition)}
 	go func() {
 		// build cache asynchronously for every 5 minutes so the first few batches won't be tagged and blocked
 		defer ticker.Stop()
@@ -56,7 +65,9 @@ func (service *AppTypeService) buildCache(context context.Context) {
 				Value:  spangroup.CreateDefinitionValue(condition.Value),
 			})
 		}
-		data[&definitions] = record.Name
+		groupName := fmt.Sprintf("%s.%d", record.Name, record.Type)
+		data[&definitions] = groupName
+		service.records[groupName] = record
 	}
 	service.groups = spangroup.CreateSpanGroup(data)
 }
@@ -85,15 +96,11 @@ func (service *AppTypeService) ProcessTraces(ctx context.Context, traces ptrace.
 }
 
 func (service *AppTypeService) processSpan(resources *pcommon.Map, scope *pcommon.InstrumentationScope, span *ptrace.Span) {
-	attributes := span.Attributes()
 	if service.groups.IsEmpty() {
 		return
 	}
-	// check db.system
-	_, ok := attributes.Get(conventions.AttributeDBSystem)
-	if !ok {
-		return
-	}
+
+	attributes := span.Attributes()
 	queries := make(map[string]interface{}, resources.Len()+attributes.Len())
 	// not all required
 	resources.Range(func(k string, v pcommon.Value) bool {
@@ -106,8 +113,22 @@ func (service *AppTypeService) processSpan(resources *pcommon.Map, scope *pcommo
 		return true
 	})
 	groups := service.groups.Get(&queries)
-	if len(groups) > 0 {
-		attributes.PutStr(appTypeKey, groups[0])
+	service.setAttributes(&attributes, groups)
+}
+
+func (service *AppTypeService) setAttributes(attributes *pcommon.Map, groups []string) {
+	if len(groups) == 0 {
+		return
+	}
+	record, ok := service.records[groups[0]]
+	if !ok {
+		return
+	}
+	switch record.Type {
+	case int16(typeApplication):
+		attributes.PutStr(appType, record.Name)
+	case int16(typeClient):
+		attributes.PutStr(serverSoftware, record.Name)
 	}
 }
 

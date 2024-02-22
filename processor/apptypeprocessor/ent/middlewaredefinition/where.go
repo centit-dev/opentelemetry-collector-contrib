@@ -59,6 +59,11 @@ func Name(v string) predicate.MiddlewareDefinition {
 	return predicate.MiddlewareDefinition(sql.FieldEQ(FieldName, v))
 }
 
+// Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
+func Type(v int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldEQ(FieldType, v))
+}
+
 // IsValid applies equality check predicate on the "is_valid" field. It's identical to IsValidEQ.
 func IsValid(v int) predicate.MiddlewareDefinition {
 	return predicate.MiddlewareDefinition(sql.FieldEQ(FieldIsValid, v))
@@ -137,6 +142,46 @@ func NameEqualFold(v string) predicate.MiddlewareDefinition {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.MiddlewareDefinition {
 	return predicate.MiddlewareDefinition(sql.FieldContainsFold(FieldName, v))
+}
+
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldNotIn(FieldType, vs...))
+}
+
+// TypeGT applies the GT predicate on the "type" field.
+func TypeGT(v int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldGT(FieldType, v))
+}
+
+// TypeGTE applies the GTE predicate on the "type" field.
+func TypeGTE(v int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldGTE(FieldType, v))
+}
+
+// TypeLT applies the LT predicate on the "type" field.
+func TypeLT(v int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldLT(FieldType, v))
+}
+
+// TypeLTE applies the LTE predicate on the "type" field.
+func TypeLTE(v int16) predicate.MiddlewareDefinition {
+	return predicate.MiddlewareDefinition(sql.FieldLTE(FieldType, v))
 }
 
 // SpanConditionsIsNil applies the IsNil predicate on the "span_conditions" field.
