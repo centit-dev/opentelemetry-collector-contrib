@@ -14,7 +14,7 @@ type SpanFault struct {
 
 func (SpanFault) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Annotation{Table: "otel_span_faults"},
+		entsql.Annotation{Table: "otel_trace_faults"},
 	}
 }
 
@@ -22,18 +22,18 @@ func (SpanFault) Annotations() []schema.Annotation {
 func (SpanFault) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("Timestamp").StorageKey("Timestamp").Optional(),
-		field.String("TraceId").StorageKey("TraceId"),
+		field.String("id").StorageKey("TraceId"),
 		field.String("PlatformName").StorageKey("PlatformName"),
-		field.String("ClusterName").StorageKey("ClusterName"),
+		field.String("AppCluster").StorageKey("AppCluster"),
 		field.String("InstanceName").StorageKey("InstanceName"),
-		field.String("RootServiceName").StorageKey("RootServiceName").Optional(),
-		field.String("RootSpanName").StorageKey("RootSpanName").Optional(),
+		field.String("RootServiceName").StorageKey("RootServiceName"),
+		field.String("RootSpanName").StorageKey("RootSpanName"),
+		field.Int64("RootDuration").StorageKey("RootDuration"),
 		field.String("ParentSpanId").StorageKey("ParentSpanId"),
-		field.String("id").StorageKey("SpanId"),
+		field.String("SpanId").StorageKey("SpanId"),
 		field.String("ServiceName").StorageKey("ServiceName"),
 		field.String("SpanName").StorageKey("SpanName"),
 		field.String("FaultKind").StorageKey("FaultKind"),
-		field.Bool("IsCause").StorageKey("IsRoot"),
 	}
 }
 

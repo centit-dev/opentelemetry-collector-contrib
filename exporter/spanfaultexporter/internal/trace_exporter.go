@@ -30,7 +30,7 @@ func (t *TraceExporter) Start(ctx context.Context, _ component.Host) error {
 }
 
 func (t *TraceExporter) PushTraceData(ctx context.Context, traces ptrace.Traces) error {
-	faults := make([]*ent.SpanFault, 0, traces.SpanCount())
+	items := make([]*spanTreeItem, 0, traces.SpanCount())
 	slice := traces.ResourceSpans()
 	for i := 0; i < slice.Len(); i++ {
 		resource := slice.At(i)
@@ -39,12 +39,12 @@ func (t *TraceExporter) PushTraceData(ctx context.Context, traces ptrace.Traces)
 		if platformNameValue, exists := resourceAttributes.Get(platFormNameKey); exists {
 			platformName = platformNameValue.Str()
 		}
-		var clusterName string
-		if clusterNameValue, exists := resourceAttributes.Get(conventions.AttributeK8SClusterName); exists {
-			clusterName = clusterNameValue.Str()
+		var appCluster string
+		if appClusterValue, exists := resourceAttributes.Get(conventions.AttributeK8SDeploymentName); exists {
+			appCluster = appClusterValue.Str()
 		}
 		var instanceName string
-		if instanceNameValue, exists := resourceAttributes.Get(conventions.AttributeK8SNodeName); exists {
+		if instanceNameValue, exists := resourceAttributes.Get(conventions.AttributeK8SPodName); exists {
 			instanceName = instanceNameValue.Str()
 		}
 		var serviceName string
@@ -58,32 +58,34 @@ func (t *TraceExporter) PushTraceData(ctx context.Context, traces ptrace.Traces)
 			batch := scopeSpans.Spans()
 			for k := 0; k < batch.Len(); k++ {
 				span := batch.At(k)
-				fault := t.buildSpanFault(ctx, &span, platformName, clusterName, instanceName, serviceName)
-				faults = append(faults, fault)
+				item := t.buildFaultTreeItem(ctx, &span, platformName, appCluster, instanceName, serviceName)
+				items = append(items, item)
 			}
 		}
 	}
 
-	return t.service.Save(ctx, faults)
+	return t.service.Save(ctx, items)
 }
 
-func (t *TraceExporter) buildSpanFault(ctx context.Context, span *ptrace.Span, platformName string, clusterName string, instanceName string, serviceName string) *ent.SpanFault {
+func (t *TraceExporter) buildFaultTreeItem(ctx context.Context, span *ptrace.Span, platformName string, appCluster string, instanceName string, serviceName string) *spanTreeItem {
 	var faultKind string
 	if faultKindValue, exists := span.Attributes().Get(faultKindKey); exists {
 		faultKind = faultKindValue.Str()
 	}
-	return &ent.SpanFault{
+	fault := &ent.SpanFault{
 		Timestamp:    span.StartTimestamp().AsTime(),
-		TraceId:      span.TraceID().String(),
+		ID:           span.TraceID().String(),
 		PlatformName: platformName,
-		ClusterName:  clusterName,
+		AppCluster:   appCluster,
 		InstanceName: instanceName,
 		ParentSpanId: span.ParentSpanID().String(),
-		ID:           span.SpanID().String(),
+		SpanId:       span.SpanID().String(),
 		ServiceName:  serviceName,
 		SpanName:     span.Name(),
 		FaultKind:    faultKind,
 	}
+	duration := span.EndTimestamp().AsTime().Sub(span.StartTimestamp().AsTime()).Nanoseconds()
+	return &spanTreeItem{fault, duration, nil, 0}
 }
 
 func (t *TraceExporter) Shutdown(ctx context.Context) error {

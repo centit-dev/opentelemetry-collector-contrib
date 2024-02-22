@@ -10,50 +10,50 @@ const (
 	// Label holds the string label denoting the spanfault type in the database.
 	Label = "span_fault"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "SpanId"
+	FieldID = "TraceId"
 	// FieldTimestamp holds the string denoting the timestamp field in the database.
 	FieldTimestamp = "Timestamp"
-	// FieldTraceId holds the string denoting the traceid field in the database.
-	FieldTraceId = "TraceId"
 	// FieldPlatformName holds the string denoting the platformname field in the database.
 	FieldPlatformName = "PlatformName"
-	// FieldClusterName holds the string denoting the clustername field in the database.
-	FieldClusterName = "ClusterName"
+	// FieldAppCluster holds the string denoting the appcluster field in the database.
+	FieldAppCluster = "AppCluster"
 	// FieldInstanceName holds the string denoting the instancename field in the database.
 	FieldInstanceName = "InstanceName"
 	// FieldRootServiceName holds the string denoting the rootservicename field in the database.
 	FieldRootServiceName = "RootServiceName"
 	// FieldRootSpanName holds the string denoting the rootspanname field in the database.
 	FieldRootSpanName = "RootSpanName"
+	// FieldRootDuration holds the string denoting the rootduration field in the database.
+	FieldRootDuration = "RootDuration"
 	// FieldParentSpanId holds the string denoting the parentspanid field in the database.
 	FieldParentSpanId = "ParentSpanId"
+	// FieldSpanId holds the string denoting the spanid field in the database.
+	FieldSpanId = "SpanId"
 	// FieldServiceName holds the string denoting the servicename field in the database.
 	FieldServiceName = "ServiceName"
 	// FieldSpanName holds the string denoting the spanname field in the database.
 	FieldSpanName = "SpanName"
 	// FieldFaultKind holds the string denoting the faultkind field in the database.
 	FieldFaultKind = "FaultKind"
-	// FieldIsCause holds the string denoting the iscause field in the database.
-	FieldIsCause = "IsRoot"
 	// Table holds the table name of the spanfault in the database.
-	Table = "otel_span_faults"
+	Table = "otel_trace_faults"
 )
 
 // Columns holds all SQL columns for spanfault fields.
 var Columns = []string{
 	FieldID,
 	FieldTimestamp,
-	FieldTraceId,
 	FieldPlatformName,
-	FieldClusterName,
+	FieldAppCluster,
 	FieldInstanceName,
 	FieldRootServiceName,
 	FieldRootSpanName,
+	FieldRootDuration,
 	FieldParentSpanId,
+	FieldSpanId,
 	FieldServiceName,
 	FieldSpanName,
 	FieldFaultKind,
-	FieldIsCause,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -79,19 +79,14 @@ func ByTimestamp(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTimestamp, opts...).ToFunc()
 }
 
-// ByTraceId orders the results by the TraceId field.
-func ByTraceId(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTraceId, opts...).ToFunc()
-}
-
 // ByPlatformName orders the results by the PlatformName field.
 func ByPlatformName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPlatformName, opts...).ToFunc()
 }
 
-// ByClusterName orders the results by the ClusterName field.
-func ByClusterName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldClusterName, opts...).ToFunc()
+// ByAppCluster orders the results by the AppCluster field.
+func ByAppCluster(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAppCluster, opts...).ToFunc()
 }
 
 // ByInstanceName orders the results by the InstanceName field.
@@ -109,9 +104,19 @@ func ByRootSpanName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRootSpanName, opts...).ToFunc()
 }
 
+// ByRootDuration orders the results by the RootDuration field.
+func ByRootDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRootDuration, opts...).ToFunc()
+}
+
 // ByParentSpanId orders the results by the ParentSpanId field.
 func ByParentSpanId(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldParentSpanId, opts...).ToFunc()
+}
+
+// BySpanId orders the results by the SpanId field.
+func BySpanId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSpanId, opts...).ToFunc()
 }
 
 // ByServiceName orders the results by the ServiceName field.
@@ -127,9 +132,4 @@ func BySpanName(opts ...sql.OrderTermOption) OrderOption {
 // ByFaultKind orders the results by the FaultKind field.
 func ByFaultKind(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFaultKind, opts...).ToFunc()
-}
-
-// ByIsCause orders the results by the IsCause field.
-func ByIsCause(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsCause, opts...).ToFunc()
 }

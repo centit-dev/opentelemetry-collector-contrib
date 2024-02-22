@@ -48,20 +48,6 @@ func (sfu *SpanFaultUpdate) ClearTimestamp() *SpanFaultUpdate {
 	return sfu
 }
 
-// SetTraceId sets the "TraceId" field.
-func (sfu *SpanFaultUpdate) SetTraceId(s string) *SpanFaultUpdate {
-	sfu.mutation.SetTraceId(s)
-	return sfu
-}
-
-// SetNillableTraceId sets the "TraceId" field if the given value is not nil.
-func (sfu *SpanFaultUpdate) SetNillableTraceId(s *string) *SpanFaultUpdate {
-	if s != nil {
-		sfu.SetTraceId(*s)
-	}
-	return sfu
-}
-
 // SetPlatformName sets the "PlatformName" field.
 func (sfu *SpanFaultUpdate) SetPlatformName(s string) *SpanFaultUpdate {
 	sfu.mutation.SetPlatformName(s)
@@ -76,16 +62,16 @@ func (sfu *SpanFaultUpdate) SetNillablePlatformName(s *string) *SpanFaultUpdate 
 	return sfu
 }
 
-// SetClusterName sets the "ClusterName" field.
-func (sfu *SpanFaultUpdate) SetClusterName(s string) *SpanFaultUpdate {
-	sfu.mutation.SetClusterName(s)
+// SetAppCluster sets the "AppCluster" field.
+func (sfu *SpanFaultUpdate) SetAppCluster(s string) *SpanFaultUpdate {
+	sfu.mutation.SetAppCluster(s)
 	return sfu
 }
 
-// SetNillableClusterName sets the "ClusterName" field if the given value is not nil.
-func (sfu *SpanFaultUpdate) SetNillableClusterName(s *string) *SpanFaultUpdate {
+// SetNillableAppCluster sets the "AppCluster" field if the given value is not nil.
+func (sfu *SpanFaultUpdate) SetNillableAppCluster(s *string) *SpanFaultUpdate {
 	if s != nil {
-		sfu.SetClusterName(*s)
+		sfu.SetAppCluster(*s)
 	}
 	return sfu
 }
@@ -118,12 +104,6 @@ func (sfu *SpanFaultUpdate) SetNillableRootServiceName(s *string) *SpanFaultUpda
 	return sfu
 }
 
-// ClearRootServiceName clears the value of the "RootServiceName" field.
-func (sfu *SpanFaultUpdate) ClearRootServiceName() *SpanFaultUpdate {
-	sfu.mutation.ClearRootServiceName()
-	return sfu
-}
-
 // SetRootSpanName sets the "RootSpanName" field.
 func (sfu *SpanFaultUpdate) SetRootSpanName(s string) *SpanFaultUpdate {
 	sfu.mutation.SetRootSpanName(s)
@@ -138,9 +118,24 @@ func (sfu *SpanFaultUpdate) SetNillableRootSpanName(s *string) *SpanFaultUpdate 
 	return sfu
 }
 
-// ClearRootSpanName clears the value of the "RootSpanName" field.
-func (sfu *SpanFaultUpdate) ClearRootSpanName() *SpanFaultUpdate {
-	sfu.mutation.ClearRootSpanName()
+// SetRootDuration sets the "RootDuration" field.
+func (sfu *SpanFaultUpdate) SetRootDuration(i int64) *SpanFaultUpdate {
+	sfu.mutation.ResetRootDuration()
+	sfu.mutation.SetRootDuration(i)
+	return sfu
+}
+
+// SetNillableRootDuration sets the "RootDuration" field if the given value is not nil.
+func (sfu *SpanFaultUpdate) SetNillableRootDuration(i *int64) *SpanFaultUpdate {
+	if i != nil {
+		sfu.SetRootDuration(*i)
+	}
+	return sfu
+}
+
+// AddRootDuration adds i to the "RootDuration" field.
+func (sfu *SpanFaultUpdate) AddRootDuration(i int64) *SpanFaultUpdate {
+	sfu.mutation.AddRootDuration(i)
 	return sfu
 }
 
@@ -154,6 +149,20 @@ func (sfu *SpanFaultUpdate) SetParentSpanId(s string) *SpanFaultUpdate {
 func (sfu *SpanFaultUpdate) SetNillableParentSpanId(s *string) *SpanFaultUpdate {
 	if s != nil {
 		sfu.SetParentSpanId(*s)
+	}
+	return sfu
+}
+
+// SetSpanId sets the "SpanId" field.
+func (sfu *SpanFaultUpdate) SetSpanId(s string) *SpanFaultUpdate {
+	sfu.mutation.SetSpanId(s)
+	return sfu
+}
+
+// SetNillableSpanId sets the "SpanId" field if the given value is not nil.
+func (sfu *SpanFaultUpdate) SetNillableSpanId(s *string) *SpanFaultUpdate {
+	if s != nil {
+		sfu.SetSpanId(*s)
 	}
 	return sfu
 }
@@ -196,20 +205,6 @@ func (sfu *SpanFaultUpdate) SetFaultKind(s string) *SpanFaultUpdate {
 func (sfu *SpanFaultUpdate) SetNillableFaultKind(s *string) *SpanFaultUpdate {
 	if s != nil {
 		sfu.SetFaultKind(*s)
-	}
-	return sfu
-}
-
-// SetIsCause sets the "IsCause" field.
-func (sfu *SpanFaultUpdate) SetIsCause(b bool) *SpanFaultUpdate {
-	sfu.mutation.SetIsCause(b)
-	return sfu
-}
-
-// SetNillableIsCause sets the "IsCause" field if the given value is not nil.
-func (sfu *SpanFaultUpdate) SetNillableIsCause(b *bool) *SpanFaultUpdate {
-	if b != nil {
-		sfu.SetIsCause(*b)
 	}
 	return sfu
 }
@@ -261,14 +256,11 @@ func (sfu *SpanFaultUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if sfu.mutation.TimestampCleared() {
 		_spec.ClearField(spanfault.FieldTimestamp, field.TypeTime)
 	}
-	if value, ok := sfu.mutation.TraceId(); ok {
-		_spec.SetField(spanfault.FieldTraceId, field.TypeString, value)
-	}
 	if value, ok := sfu.mutation.PlatformName(); ok {
 		_spec.SetField(spanfault.FieldPlatformName, field.TypeString, value)
 	}
-	if value, ok := sfu.mutation.ClusterName(); ok {
-		_spec.SetField(spanfault.FieldClusterName, field.TypeString, value)
+	if value, ok := sfu.mutation.AppCluster(); ok {
+		_spec.SetField(spanfault.FieldAppCluster, field.TypeString, value)
 	}
 	if value, ok := sfu.mutation.InstanceName(); ok {
 		_spec.SetField(spanfault.FieldInstanceName, field.TypeString, value)
@@ -276,17 +268,20 @@ func (sfu *SpanFaultUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := sfu.mutation.RootServiceName(); ok {
 		_spec.SetField(spanfault.FieldRootServiceName, field.TypeString, value)
 	}
-	if sfu.mutation.RootServiceNameCleared() {
-		_spec.ClearField(spanfault.FieldRootServiceName, field.TypeString)
-	}
 	if value, ok := sfu.mutation.RootSpanName(); ok {
 		_spec.SetField(spanfault.FieldRootSpanName, field.TypeString, value)
 	}
-	if sfu.mutation.RootSpanNameCleared() {
-		_spec.ClearField(spanfault.FieldRootSpanName, field.TypeString)
+	if value, ok := sfu.mutation.RootDuration(); ok {
+		_spec.SetField(spanfault.FieldRootDuration, field.TypeInt64, value)
+	}
+	if value, ok := sfu.mutation.AddedRootDuration(); ok {
+		_spec.AddField(spanfault.FieldRootDuration, field.TypeInt64, value)
 	}
 	if value, ok := sfu.mutation.ParentSpanId(); ok {
 		_spec.SetField(spanfault.FieldParentSpanId, field.TypeString, value)
+	}
+	if value, ok := sfu.mutation.SpanId(); ok {
+		_spec.SetField(spanfault.FieldSpanId, field.TypeString, value)
 	}
 	if value, ok := sfu.mutation.ServiceName(); ok {
 		_spec.SetField(spanfault.FieldServiceName, field.TypeString, value)
@@ -296,9 +291,6 @@ func (sfu *SpanFaultUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := sfu.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
-	}
-	if value, ok := sfu.mutation.IsCause(); ok {
-		_spec.SetField(spanfault.FieldIsCause, field.TypeBool, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, sfu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -340,20 +332,6 @@ func (sfuo *SpanFaultUpdateOne) ClearTimestamp() *SpanFaultUpdateOne {
 	return sfuo
 }
 
-// SetTraceId sets the "TraceId" field.
-func (sfuo *SpanFaultUpdateOne) SetTraceId(s string) *SpanFaultUpdateOne {
-	sfuo.mutation.SetTraceId(s)
-	return sfuo
-}
-
-// SetNillableTraceId sets the "TraceId" field if the given value is not nil.
-func (sfuo *SpanFaultUpdateOne) SetNillableTraceId(s *string) *SpanFaultUpdateOne {
-	if s != nil {
-		sfuo.SetTraceId(*s)
-	}
-	return sfuo
-}
-
 // SetPlatformName sets the "PlatformName" field.
 func (sfuo *SpanFaultUpdateOne) SetPlatformName(s string) *SpanFaultUpdateOne {
 	sfuo.mutation.SetPlatformName(s)
@@ -368,16 +346,16 @@ func (sfuo *SpanFaultUpdateOne) SetNillablePlatformName(s *string) *SpanFaultUpd
 	return sfuo
 }
 
-// SetClusterName sets the "ClusterName" field.
-func (sfuo *SpanFaultUpdateOne) SetClusterName(s string) *SpanFaultUpdateOne {
-	sfuo.mutation.SetClusterName(s)
+// SetAppCluster sets the "AppCluster" field.
+func (sfuo *SpanFaultUpdateOne) SetAppCluster(s string) *SpanFaultUpdateOne {
+	sfuo.mutation.SetAppCluster(s)
 	return sfuo
 }
 
-// SetNillableClusterName sets the "ClusterName" field if the given value is not nil.
-func (sfuo *SpanFaultUpdateOne) SetNillableClusterName(s *string) *SpanFaultUpdateOne {
+// SetNillableAppCluster sets the "AppCluster" field if the given value is not nil.
+func (sfuo *SpanFaultUpdateOne) SetNillableAppCluster(s *string) *SpanFaultUpdateOne {
 	if s != nil {
-		sfuo.SetClusterName(*s)
+		sfuo.SetAppCluster(*s)
 	}
 	return sfuo
 }
@@ -410,12 +388,6 @@ func (sfuo *SpanFaultUpdateOne) SetNillableRootServiceName(s *string) *SpanFault
 	return sfuo
 }
 
-// ClearRootServiceName clears the value of the "RootServiceName" field.
-func (sfuo *SpanFaultUpdateOne) ClearRootServiceName() *SpanFaultUpdateOne {
-	sfuo.mutation.ClearRootServiceName()
-	return sfuo
-}
-
 // SetRootSpanName sets the "RootSpanName" field.
 func (sfuo *SpanFaultUpdateOne) SetRootSpanName(s string) *SpanFaultUpdateOne {
 	sfuo.mutation.SetRootSpanName(s)
@@ -430,9 +402,24 @@ func (sfuo *SpanFaultUpdateOne) SetNillableRootSpanName(s *string) *SpanFaultUpd
 	return sfuo
 }
 
-// ClearRootSpanName clears the value of the "RootSpanName" field.
-func (sfuo *SpanFaultUpdateOne) ClearRootSpanName() *SpanFaultUpdateOne {
-	sfuo.mutation.ClearRootSpanName()
+// SetRootDuration sets the "RootDuration" field.
+func (sfuo *SpanFaultUpdateOne) SetRootDuration(i int64) *SpanFaultUpdateOne {
+	sfuo.mutation.ResetRootDuration()
+	sfuo.mutation.SetRootDuration(i)
+	return sfuo
+}
+
+// SetNillableRootDuration sets the "RootDuration" field if the given value is not nil.
+func (sfuo *SpanFaultUpdateOne) SetNillableRootDuration(i *int64) *SpanFaultUpdateOne {
+	if i != nil {
+		sfuo.SetRootDuration(*i)
+	}
+	return sfuo
+}
+
+// AddRootDuration adds i to the "RootDuration" field.
+func (sfuo *SpanFaultUpdateOne) AddRootDuration(i int64) *SpanFaultUpdateOne {
+	sfuo.mutation.AddRootDuration(i)
 	return sfuo
 }
 
@@ -446,6 +433,20 @@ func (sfuo *SpanFaultUpdateOne) SetParentSpanId(s string) *SpanFaultUpdateOne {
 func (sfuo *SpanFaultUpdateOne) SetNillableParentSpanId(s *string) *SpanFaultUpdateOne {
 	if s != nil {
 		sfuo.SetParentSpanId(*s)
+	}
+	return sfuo
+}
+
+// SetSpanId sets the "SpanId" field.
+func (sfuo *SpanFaultUpdateOne) SetSpanId(s string) *SpanFaultUpdateOne {
+	sfuo.mutation.SetSpanId(s)
+	return sfuo
+}
+
+// SetNillableSpanId sets the "SpanId" field if the given value is not nil.
+func (sfuo *SpanFaultUpdateOne) SetNillableSpanId(s *string) *SpanFaultUpdateOne {
+	if s != nil {
+		sfuo.SetSpanId(*s)
 	}
 	return sfuo
 }
@@ -488,20 +489,6 @@ func (sfuo *SpanFaultUpdateOne) SetFaultKind(s string) *SpanFaultUpdateOne {
 func (sfuo *SpanFaultUpdateOne) SetNillableFaultKind(s *string) *SpanFaultUpdateOne {
 	if s != nil {
 		sfuo.SetFaultKind(*s)
-	}
-	return sfuo
-}
-
-// SetIsCause sets the "IsCause" field.
-func (sfuo *SpanFaultUpdateOne) SetIsCause(b bool) *SpanFaultUpdateOne {
-	sfuo.mutation.SetIsCause(b)
-	return sfuo
-}
-
-// SetNillableIsCause sets the "IsCause" field if the given value is not nil.
-func (sfuo *SpanFaultUpdateOne) SetNillableIsCause(b *bool) *SpanFaultUpdateOne {
-	if b != nil {
-		sfuo.SetIsCause(*b)
 	}
 	return sfuo
 }
@@ -583,14 +570,11 @@ func (sfuo *SpanFaultUpdateOne) sqlSave(ctx context.Context) (_node *SpanFault, 
 	if sfuo.mutation.TimestampCleared() {
 		_spec.ClearField(spanfault.FieldTimestamp, field.TypeTime)
 	}
-	if value, ok := sfuo.mutation.TraceId(); ok {
-		_spec.SetField(spanfault.FieldTraceId, field.TypeString, value)
-	}
 	if value, ok := sfuo.mutation.PlatformName(); ok {
 		_spec.SetField(spanfault.FieldPlatformName, field.TypeString, value)
 	}
-	if value, ok := sfuo.mutation.ClusterName(); ok {
-		_spec.SetField(spanfault.FieldClusterName, field.TypeString, value)
+	if value, ok := sfuo.mutation.AppCluster(); ok {
+		_spec.SetField(spanfault.FieldAppCluster, field.TypeString, value)
 	}
 	if value, ok := sfuo.mutation.InstanceName(); ok {
 		_spec.SetField(spanfault.FieldInstanceName, field.TypeString, value)
@@ -598,17 +582,20 @@ func (sfuo *SpanFaultUpdateOne) sqlSave(ctx context.Context) (_node *SpanFault, 
 	if value, ok := sfuo.mutation.RootServiceName(); ok {
 		_spec.SetField(spanfault.FieldRootServiceName, field.TypeString, value)
 	}
-	if sfuo.mutation.RootServiceNameCleared() {
-		_spec.ClearField(spanfault.FieldRootServiceName, field.TypeString)
-	}
 	if value, ok := sfuo.mutation.RootSpanName(); ok {
 		_spec.SetField(spanfault.FieldRootSpanName, field.TypeString, value)
 	}
-	if sfuo.mutation.RootSpanNameCleared() {
-		_spec.ClearField(spanfault.FieldRootSpanName, field.TypeString)
+	if value, ok := sfuo.mutation.RootDuration(); ok {
+		_spec.SetField(spanfault.FieldRootDuration, field.TypeInt64, value)
+	}
+	if value, ok := sfuo.mutation.AddedRootDuration(); ok {
+		_spec.AddField(spanfault.FieldRootDuration, field.TypeInt64, value)
 	}
 	if value, ok := sfuo.mutation.ParentSpanId(); ok {
 		_spec.SetField(spanfault.FieldParentSpanId, field.TypeString, value)
+	}
+	if value, ok := sfuo.mutation.SpanId(); ok {
+		_spec.SetField(spanfault.FieldSpanId, field.TypeString, value)
 	}
 	if value, ok := sfuo.mutation.ServiceName(); ok {
 		_spec.SetField(spanfault.FieldServiceName, field.TypeString, value)
@@ -618,9 +605,6 @@ func (sfuo *SpanFaultUpdateOne) sqlSave(ctx context.Context) (_node *SpanFault, 
 	}
 	if value, ok := sfuo.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
-	}
-	if value, ok := sfuo.mutation.IsCause(); ok {
-		_spec.SetField(spanfault.FieldIsCause, field.TypeBool, value)
 	}
 	_node = &SpanFault{config: sfuo.config}
 	_spec.Assign = _node.assignValues

@@ -19,28 +19,28 @@ type SpanFault struct {
 	ID string `json:"id,omitempty"`
 	// Timestamp holds the value of the "Timestamp" field.
 	Timestamp time.Time `json:"Timestamp,omitempty"`
-	// TraceId holds the value of the "TraceId" field.
-	TraceId string `json:"TraceId,omitempty"`
 	// PlatformName holds the value of the "PlatformName" field.
 	PlatformName string `json:"PlatformName,omitempty"`
-	// ClusterName holds the value of the "ClusterName" field.
-	ClusterName string `json:"ClusterName,omitempty"`
+	// AppCluster holds the value of the "AppCluster" field.
+	AppCluster string `json:"AppCluster,omitempty"`
 	// InstanceName holds the value of the "InstanceName" field.
 	InstanceName string `json:"InstanceName,omitempty"`
 	// RootServiceName holds the value of the "RootServiceName" field.
 	RootServiceName string `json:"RootServiceName,omitempty"`
 	// RootSpanName holds the value of the "RootSpanName" field.
 	RootSpanName string `json:"RootSpanName,omitempty"`
+	// RootDuration holds the value of the "RootDuration" field.
+	RootDuration int64 `json:"RootDuration,omitempty"`
 	// ParentSpanId holds the value of the "ParentSpanId" field.
 	ParentSpanId string `json:"ParentSpanId,omitempty"`
+	// SpanId holds the value of the "SpanId" field.
+	SpanId string `json:"SpanId,omitempty"`
 	// ServiceName holds the value of the "ServiceName" field.
 	ServiceName string `json:"ServiceName,omitempty"`
 	// SpanName holds the value of the "SpanName" field.
 	SpanName string `json:"SpanName,omitempty"`
 	// FaultKind holds the value of the "FaultKind" field.
-	FaultKind string `json:"FaultKind,omitempty"`
-	// IsCause holds the value of the "IsCause" field.
-	IsCause      bool `json:"IsCause,omitempty"`
+	FaultKind    string `json:"FaultKind,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -49,9 +49,9 @@ func (*SpanFault) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case spanfault.FieldIsCause:
-			values[i] = new(sql.NullBool)
-		case spanfault.FieldID, spanfault.FieldTraceId, spanfault.FieldPlatformName, spanfault.FieldClusterName, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldParentSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldFaultKind:
+		case spanfault.FieldRootDuration:
+			values[i] = new(sql.NullInt64)
+		case spanfault.FieldID, spanfault.FieldPlatformName, spanfault.FieldAppCluster, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldParentSpanId, spanfault.FieldSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldFaultKind:
 			values[i] = new(sql.NullString)
 		case spanfault.FieldTimestamp:
 			values[i] = new(sql.NullTime)
@@ -82,23 +82,17 @@ func (sf *SpanFault) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sf.Timestamp = value.Time
 			}
-		case spanfault.FieldTraceId:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field TraceId", values[i])
-			} else if value.Valid {
-				sf.TraceId = value.String
-			}
 		case spanfault.FieldPlatformName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field PlatformName", values[i])
 			} else if value.Valid {
 				sf.PlatformName = value.String
 			}
-		case spanfault.FieldClusterName:
+		case spanfault.FieldAppCluster:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field ClusterName", values[i])
+				return fmt.Errorf("unexpected type %T for field AppCluster", values[i])
 			} else if value.Valid {
-				sf.ClusterName = value.String
+				sf.AppCluster = value.String
 			}
 		case spanfault.FieldInstanceName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -118,11 +112,23 @@ func (sf *SpanFault) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sf.RootSpanName = value.String
 			}
+		case spanfault.FieldRootDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field RootDuration", values[i])
+			} else if value.Valid {
+				sf.RootDuration = value.Int64
+			}
 		case spanfault.FieldParentSpanId:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ParentSpanId", values[i])
 			} else if value.Valid {
 				sf.ParentSpanId = value.String
+			}
+		case spanfault.FieldSpanId:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field SpanId", values[i])
+			} else if value.Valid {
+				sf.SpanId = value.String
 			}
 		case spanfault.FieldServiceName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -141,12 +147,6 @@ func (sf *SpanFault) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field FaultKind", values[i])
 			} else if value.Valid {
 				sf.FaultKind = value.String
-			}
-		case spanfault.FieldIsCause:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field IsCause", values[i])
-			} else if value.Valid {
-				sf.IsCause = value.Bool
 			}
 		default:
 			sf.selectValues.Set(columns[i], values[i])
@@ -187,14 +187,11 @@ func (sf *SpanFault) String() string {
 	builder.WriteString("Timestamp=")
 	builder.WriteString(sf.Timestamp.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("TraceId=")
-	builder.WriteString(sf.TraceId)
-	builder.WriteString(", ")
 	builder.WriteString("PlatformName=")
 	builder.WriteString(sf.PlatformName)
 	builder.WriteString(", ")
-	builder.WriteString("ClusterName=")
-	builder.WriteString(sf.ClusterName)
+	builder.WriteString("AppCluster=")
+	builder.WriteString(sf.AppCluster)
 	builder.WriteString(", ")
 	builder.WriteString("InstanceName=")
 	builder.WriteString(sf.InstanceName)
@@ -205,8 +202,14 @@ func (sf *SpanFault) String() string {
 	builder.WriteString("RootSpanName=")
 	builder.WriteString(sf.RootSpanName)
 	builder.WriteString(", ")
+	builder.WriteString("RootDuration=")
+	builder.WriteString(fmt.Sprintf("%v", sf.RootDuration))
+	builder.WriteString(", ")
 	builder.WriteString("ParentSpanId=")
 	builder.WriteString(sf.ParentSpanId)
+	builder.WriteString(", ")
+	builder.WriteString("SpanId=")
+	builder.WriteString(sf.SpanId)
 	builder.WriteString(", ")
 	builder.WriteString("ServiceName=")
 	builder.WriteString(sf.ServiceName)
@@ -216,9 +219,6 @@ func (sf *SpanFault) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("FaultKind=")
 	builder.WriteString(sf.FaultKind)
-	builder.WriteString(", ")
-	builder.WriteString("IsCause=")
-	builder.WriteString(fmt.Sprintf("%v", sf.IsCause))
 	builder.WriteByte(')')
 	return builder.String()
 }

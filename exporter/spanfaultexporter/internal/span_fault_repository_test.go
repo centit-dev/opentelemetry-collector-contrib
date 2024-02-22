@@ -21,10 +21,10 @@ func DisabledTestSpanFaultRepositoryImpl_SaveAll(t *testing.T) {
 	causes := make([]*ent.SpanFault, 0, 10)
 	traceId := uuid.NewString()
 	for i := 0; i < 10; i++ {
-		causes = append(causes, buildSpanFault(traceId))
+		causes = append(causes, buildSpanFault(traceId).SpanFault)
 	}
 
-	err := repo.SaveAll(context.Background(), causes, nil)
+	err := repo.SaveAll(context.Background(), causes)
 	if err != nil {
 		t.Errorf("failed to save span faults: %v", err)
 	}
@@ -33,19 +33,8 @@ func DisabledTestSpanFaultRepositoryImpl_SaveAll(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		causes[i].FaultKind = ""
 	}
-	err = repo.SaveAll(context.Background(), nil, causes[:5])
+	err = repo.SaveAll(context.Background(), nil)
 	if err != nil {
 		t.Errorf("failed to update span faults: %v", err)
-	}
-
-	// and they are updated
-	causes, err = repo.GetSpanFaultsByTraceIds(context.Background(), []string{traceId})
-	if err != nil {
-		t.Errorf("failed to get span faults: %v", err)
-	}
-	for i := 0; i < 5; i++ {
-		if causes[i].FaultKind != "" {
-			t.Errorf("failed to update span faults: %v", err)
-		}
 	}
 }

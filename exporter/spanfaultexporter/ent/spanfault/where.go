@@ -69,19 +69,14 @@ func Timestamp(v time.Time) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldTimestamp, v))
 }
 
-// TraceId applies equality check predicate on the "TraceId" field. It's identical to TraceIdEQ.
-func TraceId(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEQ(FieldTraceId, v))
-}
-
 // PlatformName applies equality check predicate on the "PlatformName" field. It's identical to PlatformNameEQ.
 func PlatformName(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldPlatformName, v))
 }
 
-// ClusterName applies equality check predicate on the "ClusterName" field. It's identical to ClusterNameEQ.
-func ClusterName(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEQ(FieldClusterName, v))
+// AppCluster applies equality check predicate on the "AppCluster" field. It's identical to AppClusterEQ.
+func AppCluster(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldAppCluster, v))
 }
 
 // InstanceName applies equality check predicate on the "InstanceName" field. It's identical to InstanceNameEQ.
@@ -99,9 +94,19 @@ func RootSpanName(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldRootSpanName, v))
 }
 
+// RootDuration applies equality check predicate on the "RootDuration" field. It's identical to RootDurationEQ.
+func RootDuration(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldRootDuration, v))
+}
+
 // ParentSpanId applies equality check predicate on the "ParentSpanId" field. It's identical to ParentSpanIdEQ.
 func ParentSpanId(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldParentSpanId, v))
+}
+
+// SpanId applies equality check predicate on the "SpanId" field. It's identical to SpanIdEQ.
+func SpanId(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldSpanId, v))
 }
 
 // ServiceName applies equality check predicate on the "ServiceName" field. It's identical to ServiceNameEQ.
@@ -117,11 +122,6 @@ func SpanName(v string) predicate.SpanFault {
 // FaultKind applies equality check predicate on the "FaultKind" field. It's identical to FaultKindEQ.
 func FaultKind(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldFaultKind, v))
-}
-
-// IsCause applies equality check predicate on the "IsCause" field. It's identical to IsCauseEQ.
-func IsCause(v bool) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEQ(FieldIsCause, v))
 }
 
 // TimestampEQ applies the EQ predicate on the "Timestamp" field.
@@ -172,71 +172,6 @@ func TimestampIsNil() predicate.SpanFault {
 // TimestampNotNil applies the NotNil predicate on the "Timestamp" field.
 func TimestampNotNil() predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldNotNull(FieldTimestamp))
-}
-
-// TraceIdEQ applies the EQ predicate on the "TraceId" field.
-func TraceIdEQ(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEQ(FieldTraceId, v))
-}
-
-// TraceIdNEQ applies the NEQ predicate on the "TraceId" field.
-func TraceIdNEQ(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldNEQ(FieldTraceId, v))
-}
-
-// TraceIdIn applies the In predicate on the "TraceId" field.
-func TraceIdIn(vs ...string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldIn(FieldTraceId, vs...))
-}
-
-// TraceIdNotIn applies the NotIn predicate on the "TraceId" field.
-func TraceIdNotIn(vs ...string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldNotIn(FieldTraceId, vs...))
-}
-
-// TraceIdGT applies the GT predicate on the "TraceId" field.
-func TraceIdGT(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldGT(FieldTraceId, v))
-}
-
-// TraceIdGTE applies the GTE predicate on the "TraceId" field.
-func TraceIdGTE(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldGTE(FieldTraceId, v))
-}
-
-// TraceIdLT applies the LT predicate on the "TraceId" field.
-func TraceIdLT(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldLT(FieldTraceId, v))
-}
-
-// TraceIdLTE applies the LTE predicate on the "TraceId" field.
-func TraceIdLTE(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldLTE(FieldTraceId, v))
-}
-
-// TraceIdContains applies the Contains predicate on the "TraceId" field.
-func TraceIdContains(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldContains(FieldTraceId, v))
-}
-
-// TraceIdHasPrefix applies the HasPrefix predicate on the "TraceId" field.
-func TraceIdHasPrefix(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldHasPrefix(FieldTraceId, v))
-}
-
-// TraceIdHasSuffix applies the HasSuffix predicate on the "TraceId" field.
-func TraceIdHasSuffix(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldHasSuffix(FieldTraceId, v))
-}
-
-// TraceIdEqualFold applies the EqualFold predicate on the "TraceId" field.
-func TraceIdEqualFold(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEqualFold(FieldTraceId, v))
-}
-
-// TraceIdContainsFold applies the ContainsFold predicate on the "TraceId" field.
-func TraceIdContainsFold(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldContainsFold(FieldTraceId, v))
 }
 
 // PlatformNameEQ applies the EQ predicate on the "PlatformName" field.
@@ -304,69 +239,69 @@ func PlatformNameContainsFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldContainsFold(FieldPlatformName, v))
 }
 
-// ClusterNameEQ applies the EQ predicate on the "ClusterName" field.
-func ClusterNameEQ(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEQ(FieldClusterName, v))
+// AppClusterEQ applies the EQ predicate on the "AppCluster" field.
+func AppClusterEQ(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldAppCluster, v))
 }
 
-// ClusterNameNEQ applies the NEQ predicate on the "ClusterName" field.
-func ClusterNameNEQ(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldNEQ(FieldClusterName, v))
+// AppClusterNEQ applies the NEQ predicate on the "AppCluster" field.
+func AppClusterNEQ(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldAppCluster, v))
 }
 
-// ClusterNameIn applies the In predicate on the "ClusterName" field.
-func ClusterNameIn(vs ...string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldIn(FieldClusterName, vs...))
+// AppClusterIn applies the In predicate on the "AppCluster" field.
+func AppClusterIn(vs ...string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldAppCluster, vs...))
 }
 
-// ClusterNameNotIn applies the NotIn predicate on the "ClusterName" field.
-func ClusterNameNotIn(vs ...string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldNotIn(FieldClusterName, vs...))
+// AppClusterNotIn applies the NotIn predicate on the "AppCluster" field.
+func AppClusterNotIn(vs ...string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldAppCluster, vs...))
 }
 
-// ClusterNameGT applies the GT predicate on the "ClusterName" field.
-func ClusterNameGT(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldGT(FieldClusterName, v))
+// AppClusterGT applies the GT predicate on the "AppCluster" field.
+func AppClusterGT(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldAppCluster, v))
 }
 
-// ClusterNameGTE applies the GTE predicate on the "ClusterName" field.
-func ClusterNameGTE(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldGTE(FieldClusterName, v))
+// AppClusterGTE applies the GTE predicate on the "AppCluster" field.
+func AppClusterGTE(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldAppCluster, v))
 }
 
-// ClusterNameLT applies the LT predicate on the "ClusterName" field.
-func ClusterNameLT(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldLT(FieldClusterName, v))
+// AppClusterLT applies the LT predicate on the "AppCluster" field.
+func AppClusterLT(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldAppCluster, v))
 }
 
-// ClusterNameLTE applies the LTE predicate on the "ClusterName" field.
-func ClusterNameLTE(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldLTE(FieldClusterName, v))
+// AppClusterLTE applies the LTE predicate on the "AppCluster" field.
+func AppClusterLTE(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldAppCluster, v))
 }
 
-// ClusterNameContains applies the Contains predicate on the "ClusterName" field.
-func ClusterNameContains(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldContains(FieldClusterName, v))
+// AppClusterContains applies the Contains predicate on the "AppCluster" field.
+func AppClusterContains(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldContains(FieldAppCluster, v))
 }
 
-// ClusterNameHasPrefix applies the HasPrefix predicate on the "ClusterName" field.
-func ClusterNameHasPrefix(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldHasPrefix(FieldClusterName, v))
+// AppClusterHasPrefix applies the HasPrefix predicate on the "AppCluster" field.
+func AppClusterHasPrefix(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldHasPrefix(FieldAppCluster, v))
 }
 
-// ClusterNameHasSuffix applies the HasSuffix predicate on the "ClusterName" field.
-func ClusterNameHasSuffix(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldHasSuffix(FieldClusterName, v))
+// AppClusterHasSuffix applies the HasSuffix predicate on the "AppCluster" field.
+func AppClusterHasSuffix(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldHasSuffix(FieldAppCluster, v))
 }
 
-// ClusterNameEqualFold applies the EqualFold predicate on the "ClusterName" field.
-func ClusterNameEqualFold(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEqualFold(FieldClusterName, v))
+// AppClusterEqualFold applies the EqualFold predicate on the "AppCluster" field.
+func AppClusterEqualFold(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEqualFold(FieldAppCluster, v))
 }
 
-// ClusterNameContainsFold applies the ContainsFold predicate on the "ClusterName" field.
-func ClusterNameContainsFold(v string) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldContainsFold(FieldClusterName, v))
+// AppClusterContainsFold applies the ContainsFold predicate on the "AppCluster" field.
+func AppClusterContainsFold(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldContainsFold(FieldAppCluster, v))
 }
 
 // InstanceNameEQ applies the EQ predicate on the "InstanceName" field.
@@ -489,16 +424,6 @@ func RootServiceNameHasSuffix(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldHasSuffix(FieldRootServiceName, v))
 }
 
-// RootServiceNameIsNil applies the IsNil predicate on the "RootServiceName" field.
-func RootServiceNameIsNil() predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldIsNull(FieldRootServiceName))
-}
-
-// RootServiceNameNotNil applies the NotNil predicate on the "RootServiceName" field.
-func RootServiceNameNotNil() predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldNotNull(FieldRootServiceName))
-}
-
 // RootServiceNameEqualFold applies the EqualFold predicate on the "RootServiceName" field.
 func RootServiceNameEqualFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEqualFold(FieldRootServiceName, v))
@@ -564,16 +489,6 @@ func RootSpanNameHasSuffix(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldHasSuffix(FieldRootSpanName, v))
 }
 
-// RootSpanNameIsNil applies the IsNil predicate on the "RootSpanName" field.
-func RootSpanNameIsNil() predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldIsNull(FieldRootSpanName))
-}
-
-// RootSpanNameNotNil applies the NotNil predicate on the "RootSpanName" field.
-func RootSpanNameNotNil() predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldNotNull(FieldRootSpanName))
-}
-
 // RootSpanNameEqualFold applies the EqualFold predicate on the "RootSpanName" field.
 func RootSpanNameEqualFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEqualFold(FieldRootSpanName, v))
@@ -582,6 +497,46 @@ func RootSpanNameEqualFold(v string) predicate.SpanFault {
 // RootSpanNameContainsFold applies the ContainsFold predicate on the "RootSpanName" field.
 func RootSpanNameContainsFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldContainsFold(FieldRootSpanName, v))
+}
+
+// RootDurationEQ applies the EQ predicate on the "RootDuration" field.
+func RootDurationEQ(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldRootDuration, v))
+}
+
+// RootDurationNEQ applies the NEQ predicate on the "RootDuration" field.
+func RootDurationNEQ(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldRootDuration, v))
+}
+
+// RootDurationIn applies the In predicate on the "RootDuration" field.
+func RootDurationIn(vs ...int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldRootDuration, vs...))
+}
+
+// RootDurationNotIn applies the NotIn predicate on the "RootDuration" field.
+func RootDurationNotIn(vs ...int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldRootDuration, vs...))
+}
+
+// RootDurationGT applies the GT predicate on the "RootDuration" field.
+func RootDurationGT(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldRootDuration, v))
+}
+
+// RootDurationGTE applies the GTE predicate on the "RootDuration" field.
+func RootDurationGTE(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldRootDuration, v))
+}
+
+// RootDurationLT applies the LT predicate on the "RootDuration" field.
+func RootDurationLT(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldRootDuration, v))
+}
+
+// RootDurationLTE applies the LTE predicate on the "RootDuration" field.
+func RootDurationLTE(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldRootDuration, v))
 }
 
 // ParentSpanIdEQ applies the EQ predicate on the "ParentSpanId" field.
@@ -647,6 +602,71 @@ func ParentSpanIdEqualFold(v string) predicate.SpanFault {
 // ParentSpanIdContainsFold applies the ContainsFold predicate on the "ParentSpanId" field.
 func ParentSpanIdContainsFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldContainsFold(FieldParentSpanId, v))
+}
+
+// SpanIdEQ applies the EQ predicate on the "SpanId" field.
+func SpanIdEQ(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldSpanId, v))
+}
+
+// SpanIdNEQ applies the NEQ predicate on the "SpanId" field.
+func SpanIdNEQ(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldSpanId, v))
+}
+
+// SpanIdIn applies the In predicate on the "SpanId" field.
+func SpanIdIn(vs ...string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldSpanId, vs...))
+}
+
+// SpanIdNotIn applies the NotIn predicate on the "SpanId" field.
+func SpanIdNotIn(vs ...string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldSpanId, vs...))
+}
+
+// SpanIdGT applies the GT predicate on the "SpanId" field.
+func SpanIdGT(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldSpanId, v))
+}
+
+// SpanIdGTE applies the GTE predicate on the "SpanId" field.
+func SpanIdGTE(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldSpanId, v))
+}
+
+// SpanIdLT applies the LT predicate on the "SpanId" field.
+func SpanIdLT(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldSpanId, v))
+}
+
+// SpanIdLTE applies the LTE predicate on the "SpanId" field.
+func SpanIdLTE(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldSpanId, v))
+}
+
+// SpanIdContains applies the Contains predicate on the "SpanId" field.
+func SpanIdContains(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldContains(FieldSpanId, v))
+}
+
+// SpanIdHasPrefix applies the HasPrefix predicate on the "SpanId" field.
+func SpanIdHasPrefix(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldHasPrefix(FieldSpanId, v))
+}
+
+// SpanIdHasSuffix applies the HasSuffix predicate on the "SpanId" field.
+func SpanIdHasSuffix(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldHasSuffix(FieldSpanId, v))
+}
+
+// SpanIdEqualFold applies the EqualFold predicate on the "SpanId" field.
+func SpanIdEqualFold(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEqualFold(FieldSpanId, v))
+}
+
+// SpanIdContainsFold applies the ContainsFold predicate on the "SpanId" field.
+func SpanIdContainsFold(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldContainsFold(FieldSpanId, v))
 }
 
 // ServiceNameEQ applies the EQ predicate on the "ServiceName" field.
@@ -842,16 +862,6 @@ func FaultKindEqualFold(v string) predicate.SpanFault {
 // FaultKindContainsFold applies the ContainsFold predicate on the "FaultKind" field.
 func FaultKindContainsFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldContainsFold(FieldFaultKind, v))
-}
-
-// IsCauseEQ applies the EQ predicate on the "IsCause" field.
-func IsCauseEQ(v bool) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldEQ(FieldIsCause, v))
-}
-
-// IsCauseNEQ applies the NEQ predicate on the "IsCause" field.
-func IsCauseNEQ(v bool) predicate.SpanFault {
-	return predicate.SpanFault(sql.FieldNEQ(FieldIsCause, v))
 }
 
 // And groups predicates with the AND operator between them.

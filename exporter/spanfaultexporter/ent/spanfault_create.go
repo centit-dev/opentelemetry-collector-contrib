@@ -34,21 +34,15 @@ func (sfc *SpanFaultCreate) SetNillableTimestamp(t *time.Time) *SpanFaultCreate 
 	return sfc
 }
 
-// SetTraceId sets the "TraceId" field.
-func (sfc *SpanFaultCreate) SetTraceId(s string) *SpanFaultCreate {
-	sfc.mutation.SetTraceId(s)
-	return sfc
-}
-
 // SetPlatformName sets the "PlatformName" field.
 func (sfc *SpanFaultCreate) SetPlatformName(s string) *SpanFaultCreate {
 	sfc.mutation.SetPlatformName(s)
 	return sfc
 }
 
-// SetClusterName sets the "ClusterName" field.
-func (sfc *SpanFaultCreate) SetClusterName(s string) *SpanFaultCreate {
-	sfc.mutation.SetClusterName(s)
+// SetAppCluster sets the "AppCluster" field.
+func (sfc *SpanFaultCreate) SetAppCluster(s string) *SpanFaultCreate {
+	sfc.mutation.SetAppCluster(s)
 	return sfc
 }
 
@@ -64,31 +58,27 @@ func (sfc *SpanFaultCreate) SetRootServiceName(s string) *SpanFaultCreate {
 	return sfc
 }
 
-// SetNillableRootServiceName sets the "RootServiceName" field if the given value is not nil.
-func (sfc *SpanFaultCreate) SetNillableRootServiceName(s *string) *SpanFaultCreate {
-	if s != nil {
-		sfc.SetRootServiceName(*s)
-	}
-	return sfc
-}
-
 // SetRootSpanName sets the "RootSpanName" field.
 func (sfc *SpanFaultCreate) SetRootSpanName(s string) *SpanFaultCreate {
 	sfc.mutation.SetRootSpanName(s)
 	return sfc
 }
 
-// SetNillableRootSpanName sets the "RootSpanName" field if the given value is not nil.
-func (sfc *SpanFaultCreate) SetNillableRootSpanName(s *string) *SpanFaultCreate {
-	if s != nil {
-		sfc.SetRootSpanName(*s)
-	}
+// SetRootDuration sets the "RootDuration" field.
+func (sfc *SpanFaultCreate) SetRootDuration(i int64) *SpanFaultCreate {
+	sfc.mutation.SetRootDuration(i)
 	return sfc
 }
 
 // SetParentSpanId sets the "ParentSpanId" field.
 func (sfc *SpanFaultCreate) SetParentSpanId(s string) *SpanFaultCreate {
 	sfc.mutation.SetParentSpanId(s)
+	return sfc
+}
+
+// SetSpanId sets the "SpanId" field.
+func (sfc *SpanFaultCreate) SetSpanId(s string) *SpanFaultCreate {
+	sfc.mutation.SetSpanId(s)
 	return sfc
 }
 
@@ -107,12 +97,6 @@ func (sfc *SpanFaultCreate) SetSpanName(s string) *SpanFaultCreate {
 // SetFaultKind sets the "FaultKind" field.
 func (sfc *SpanFaultCreate) SetFaultKind(s string) *SpanFaultCreate {
 	sfc.mutation.SetFaultKind(s)
-	return sfc
-}
-
-// SetIsCause sets the "IsCause" field.
-func (sfc *SpanFaultCreate) SetIsCause(b bool) *SpanFaultCreate {
-	sfc.mutation.SetIsCause(b)
 	return sfc
 }
 
@@ -156,20 +140,29 @@ func (sfc *SpanFaultCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (sfc *SpanFaultCreate) check() error {
-	if _, ok := sfc.mutation.TraceId(); !ok {
-		return &ValidationError{Name: "TraceId", err: errors.New(`ent: missing required field "SpanFault.TraceId"`)}
-	}
 	if _, ok := sfc.mutation.PlatformName(); !ok {
 		return &ValidationError{Name: "PlatformName", err: errors.New(`ent: missing required field "SpanFault.PlatformName"`)}
 	}
-	if _, ok := sfc.mutation.ClusterName(); !ok {
-		return &ValidationError{Name: "ClusterName", err: errors.New(`ent: missing required field "SpanFault.ClusterName"`)}
+	if _, ok := sfc.mutation.AppCluster(); !ok {
+		return &ValidationError{Name: "AppCluster", err: errors.New(`ent: missing required field "SpanFault.AppCluster"`)}
 	}
 	if _, ok := sfc.mutation.InstanceName(); !ok {
 		return &ValidationError{Name: "InstanceName", err: errors.New(`ent: missing required field "SpanFault.InstanceName"`)}
 	}
+	if _, ok := sfc.mutation.RootServiceName(); !ok {
+		return &ValidationError{Name: "RootServiceName", err: errors.New(`ent: missing required field "SpanFault.RootServiceName"`)}
+	}
+	if _, ok := sfc.mutation.RootSpanName(); !ok {
+		return &ValidationError{Name: "RootSpanName", err: errors.New(`ent: missing required field "SpanFault.RootSpanName"`)}
+	}
+	if _, ok := sfc.mutation.RootDuration(); !ok {
+		return &ValidationError{Name: "RootDuration", err: errors.New(`ent: missing required field "SpanFault.RootDuration"`)}
+	}
 	if _, ok := sfc.mutation.ParentSpanId(); !ok {
 		return &ValidationError{Name: "ParentSpanId", err: errors.New(`ent: missing required field "SpanFault.ParentSpanId"`)}
+	}
+	if _, ok := sfc.mutation.SpanId(); !ok {
+		return &ValidationError{Name: "SpanId", err: errors.New(`ent: missing required field "SpanFault.SpanId"`)}
 	}
 	if _, ok := sfc.mutation.ServiceName(); !ok {
 		return &ValidationError{Name: "ServiceName", err: errors.New(`ent: missing required field "SpanFault.ServiceName"`)}
@@ -179,9 +172,6 @@ func (sfc *SpanFaultCreate) check() error {
 	}
 	if _, ok := sfc.mutation.FaultKind(); !ok {
 		return &ValidationError{Name: "FaultKind", err: errors.New(`ent: missing required field "SpanFault.FaultKind"`)}
-	}
-	if _, ok := sfc.mutation.IsCause(); !ok {
-		return &ValidationError{Name: "IsCause", err: errors.New(`ent: missing required field "SpanFault.IsCause"`)}
 	}
 	return nil
 }
@@ -222,17 +212,13 @@ func (sfc *SpanFaultCreate) createSpec() (*SpanFault, *sqlgraph.CreateSpec) {
 		_spec.SetField(spanfault.FieldTimestamp, field.TypeTime, value)
 		_node.Timestamp = value
 	}
-	if value, ok := sfc.mutation.TraceId(); ok {
-		_spec.SetField(spanfault.FieldTraceId, field.TypeString, value)
-		_node.TraceId = value
-	}
 	if value, ok := sfc.mutation.PlatformName(); ok {
 		_spec.SetField(spanfault.FieldPlatformName, field.TypeString, value)
 		_node.PlatformName = value
 	}
-	if value, ok := sfc.mutation.ClusterName(); ok {
-		_spec.SetField(spanfault.FieldClusterName, field.TypeString, value)
-		_node.ClusterName = value
+	if value, ok := sfc.mutation.AppCluster(); ok {
+		_spec.SetField(spanfault.FieldAppCluster, field.TypeString, value)
+		_node.AppCluster = value
 	}
 	if value, ok := sfc.mutation.InstanceName(); ok {
 		_spec.SetField(spanfault.FieldInstanceName, field.TypeString, value)
@@ -246,9 +232,17 @@ func (sfc *SpanFaultCreate) createSpec() (*SpanFault, *sqlgraph.CreateSpec) {
 		_spec.SetField(spanfault.FieldRootSpanName, field.TypeString, value)
 		_node.RootSpanName = value
 	}
+	if value, ok := sfc.mutation.RootDuration(); ok {
+		_spec.SetField(spanfault.FieldRootDuration, field.TypeInt64, value)
+		_node.RootDuration = value
+	}
 	if value, ok := sfc.mutation.ParentSpanId(); ok {
 		_spec.SetField(spanfault.FieldParentSpanId, field.TypeString, value)
 		_node.ParentSpanId = value
+	}
+	if value, ok := sfc.mutation.SpanId(); ok {
+		_spec.SetField(spanfault.FieldSpanId, field.TypeString, value)
+		_node.SpanId = value
 	}
 	if value, ok := sfc.mutation.ServiceName(); ok {
 		_spec.SetField(spanfault.FieldServiceName, field.TypeString, value)
@@ -261,10 +255,6 @@ func (sfc *SpanFaultCreate) createSpec() (*SpanFault, *sqlgraph.CreateSpec) {
 	if value, ok := sfc.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
 		_node.FaultKind = value
-	}
-	if value, ok := sfc.mutation.IsCause(); ok {
-		_spec.SetField(spanfault.FieldIsCause, field.TypeBool, value)
-		_node.IsCause = value
 	}
 	return _node, _spec
 }

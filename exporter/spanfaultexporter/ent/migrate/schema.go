@@ -9,36 +9,36 @@ import (
 )
 
 var (
-	// OtelSpanFaultsColumns holds the columns for the "otel_span_faults" table.
-	OtelSpanFaultsColumns = []*schema.Column{
-		{Name: "SpanId", Type: field.TypeString},
-		{Name: "Timestamp", Type: field.TypeTime, Nullable: true},
+	// OtelTraceFaultsColumns holds the columns for the "otel_trace_faults" table.
+	OtelTraceFaultsColumns = []*schema.Column{
 		{Name: "TraceId", Type: field.TypeString},
+		{Name: "Timestamp", Type: field.TypeTime, Nullable: true},
 		{Name: "PlatformName", Type: field.TypeString},
-		{Name: "ClusterName", Type: field.TypeString},
+		{Name: "AppCluster", Type: field.TypeString},
 		{Name: "InstanceName", Type: field.TypeString},
-		{Name: "RootServiceName", Type: field.TypeString, Nullable: true},
-		{Name: "RootSpanName", Type: field.TypeString, Nullable: true},
+		{Name: "RootServiceName", Type: field.TypeString},
+		{Name: "RootSpanName", Type: field.TypeString},
+		{Name: "RootDuration", Type: field.TypeInt64},
 		{Name: "ParentSpanId", Type: field.TypeString},
+		{Name: "SpanId", Type: field.TypeString},
 		{Name: "ServiceName", Type: field.TypeString},
 		{Name: "SpanName", Type: field.TypeString},
 		{Name: "FaultKind", Type: field.TypeString},
-		{Name: "IsRoot", Type: field.TypeBool},
 	}
-	// OtelSpanFaultsTable holds the schema information for the "otel_span_faults" table.
-	OtelSpanFaultsTable = &schema.Table{
-		Name:       "otel_span_faults",
-		Columns:    OtelSpanFaultsColumns,
-		PrimaryKey: []*schema.Column{OtelSpanFaultsColumns[0]},
+	// OtelTraceFaultsTable holds the schema information for the "otel_trace_faults" table.
+	OtelTraceFaultsTable = &schema.Table{
+		Name:       "otel_trace_faults",
+		Columns:    OtelTraceFaultsColumns,
+		PrimaryKey: []*schema.Column{OtelTraceFaultsColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		OtelSpanFaultsTable,
+		OtelTraceFaultsTable,
 	}
 )
 
 func init() {
-	OtelSpanFaultsTable.Annotation = &entsql.Annotation{
-		Table: "otel_span_faults",
+	OtelTraceFaultsTable.Annotation = &entsql.Annotation{
+		Table: "otel_trace_faults",
 	}
 }

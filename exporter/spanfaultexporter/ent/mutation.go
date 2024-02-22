@@ -34,17 +34,18 @@ type SpanFaultMutation struct {
 	typ              string
 	id               *string
 	_Timestamp       *time.Time
-	_TraceId         *string
 	_PlatformName    *string
-	_ClusterName     *string
+	_AppCluster      *string
 	_InstanceName    *string
 	_RootServiceName *string
 	_RootSpanName    *string
+	_RootDuration    *int64
+	add_RootDuration *int64
 	_ParentSpanId    *string
+	_SpanId          *string
 	_ServiceName     *string
 	_SpanName        *string
 	_FaultKind       *string
-	_IsCause         *bool
 	clearedFields    map[string]struct{}
 	done             bool
 	oldValue         func(context.Context) (*SpanFault, error)
@@ -204,42 +205,6 @@ func (m *SpanFaultMutation) ResetTimestamp() {
 	delete(m.clearedFields, spanfault.FieldTimestamp)
 }
 
-// SetTraceId sets the "TraceId" field.
-func (m *SpanFaultMutation) SetTraceId(s string) {
-	m._TraceId = &s
-}
-
-// TraceId returns the value of the "TraceId" field in the mutation.
-func (m *SpanFaultMutation) TraceId() (r string, exists bool) {
-	v := m._TraceId
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTraceId returns the old "TraceId" field's value of the SpanFault entity.
-// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SpanFaultMutation) OldTraceId(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTraceId is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTraceId requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTraceId: %w", err)
-	}
-	return oldValue.TraceId, nil
-}
-
-// ResetTraceId resets all changes to the "TraceId" field.
-func (m *SpanFaultMutation) ResetTraceId() {
-	m._TraceId = nil
-}
-
 // SetPlatformName sets the "PlatformName" field.
 func (m *SpanFaultMutation) SetPlatformName(s string) {
 	m._PlatformName = &s
@@ -276,40 +241,40 @@ func (m *SpanFaultMutation) ResetPlatformName() {
 	m._PlatformName = nil
 }
 
-// SetClusterName sets the "ClusterName" field.
-func (m *SpanFaultMutation) SetClusterName(s string) {
-	m._ClusterName = &s
+// SetAppCluster sets the "AppCluster" field.
+func (m *SpanFaultMutation) SetAppCluster(s string) {
+	m._AppCluster = &s
 }
 
-// ClusterName returns the value of the "ClusterName" field in the mutation.
-func (m *SpanFaultMutation) ClusterName() (r string, exists bool) {
-	v := m._ClusterName
+// AppCluster returns the value of the "AppCluster" field in the mutation.
+func (m *SpanFaultMutation) AppCluster() (r string, exists bool) {
+	v := m._AppCluster
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldClusterName returns the old "ClusterName" field's value of the SpanFault entity.
+// OldAppCluster returns the old "AppCluster" field's value of the SpanFault entity.
 // If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SpanFaultMutation) OldClusterName(ctx context.Context) (v string, err error) {
+func (m *SpanFaultMutation) OldAppCluster(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClusterName is only allowed on UpdateOne operations")
+		return v, errors.New("OldAppCluster is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClusterName requires an ID field in the mutation")
+		return v, errors.New("OldAppCluster requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClusterName: %w", err)
+		return v, fmt.Errorf("querying old value for OldAppCluster: %w", err)
 	}
-	return oldValue.ClusterName, nil
+	return oldValue.AppCluster, nil
 }
 
-// ResetClusterName resets all changes to the "ClusterName" field.
-func (m *SpanFaultMutation) ResetClusterName() {
-	m._ClusterName = nil
+// ResetAppCluster resets all changes to the "AppCluster" field.
+func (m *SpanFaultMutation) ResetAppCluster() {
+	m._AppCluster = nil
 }
 
 // SetInstanceName sets the "InstanceName" field.
@@ -379,22 +344,9 @@ func (m *SpanFaultMutation) OldRootServiceName(ctx context.Context) (v string, e
 	return oldValue.RootServiceName, nil
 }
 
-// ClearRootServiceName clears the value of the "RootServiceName" field.
-func (m *SpanFaultMutation) ClearRootServiceName() {
-	m._RootServiceName = nil
-	m.clearedFields[spanfault.FieldRootServiceName] = struct{}{}
-}
-
-// RootServiceNameCleared returns if the "RootServiceName" field was cleared in this mutation.
-func (m *SpanFaultMutation) RootServiceNameCleared() bool {
-	_, ok := m.clearedFields[spanfault.FieldRootServiceName]
-	return ok
-}
-
 // ResetRootServiceName resets all changes to the "RootServiceName" field.
 func (m *SpanFaultMutation) ResetRootServiceName() {
 	m._RootServiceName = nil
-	delete(m.clearedFields, spanfault.FieldRootServiceName)
 }
 
 // SetRootSpanName sets the "RootSpanName" field.
@@ -428,22 +380,65 @@ func (m *SpanFaultMutation) OldRootSpanName(ctx context.Context) (v string, err 
 	return oldValue.RootSpanName, nil
 }
 
-// ClearRootSpanName clears the value of the "RootSpanName" field.
-func (m *SpanFaultMutation) ClearRootSpanName() {
-	m._RootSpanName = nil
-	m.clearedFields[spanfault.FieldRootSpanName] = struct{}{}
-}
-
-// RootSpanNameCleared returns if the "RootSpanName" field was cleared in this mutation.
-func (m *SpanFaultMutation) RootSpanNameCleared() bool {
-	_, ok := m.clearedFields[spanfault.FieldRootSpanName]
-	return ok
-}
-
 // ResetRootSpanName resets all changes to the "RootSpanName" field.
 func (m *SpanFaultMutation) ResetRootSpanName() {
 	m._RootSpanName = nil
-	delete(m.clearedFields, spanfault.FieldRootSpanName)
+}
+
+// SetRootDuration sets the "RootDuration" field.
+func (m *SpanFaultMutation) SetRootDuration(i int64) {
+	m._RootDuration = &i
+	m.add_RootDuration = nil
+}
+
+// RootDuration returns the value of the "RootDuration" field in the mutation.
+func (m *SpanFaultMutation) RootDuration() (r int64, exists bool) {
+	v := m._RootDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRootDuration returns the old "RootDuration" field's value of the SpanFault entity.
+// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SpanFaultMutation) OldRootDuration(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRootDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRootDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRootDuration: %w", err)
+	}
+	return oldValue.RootDuration, nil
+}
+
+// AddRootDuration adds i to the "RootDuration" field.
+func (m *SpanFaultMutation) AddRootDuration(i int64) {
+	if m.add_RootDuration != nil {
+		*m.add_RootDuration += i
+	} else {
+		m.add_RootDuration = &i
+	}
+}
+
+// AddedRootDuration returns the value that was added to the "RootDuration" field in this mutation.
+func (m *SpanFaultMutation) AddedRootDuration() (r int64, exists bool) {
+	v := m.add_RootDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRootDuration resets all changes to the "RootDuration" field.
+func (m *SpanFaultMutation) ResetRootDuration() {
+	m._RootDuration = nil
+	m.add_RootDuration = nil
 }
 
 // SetParentSpanId sets the "ParentSpanId" field.
@@ -480,6 +475,42 @@ func (m *SpanFaultMutation) OldParentSpanId(ctx context.Context) (v string, err 
 // ResetParentSpanId resets all changes to the "ParentSpanId" field.
 func (m *SpanFaultMutation) ResetParentSpanId() {
 	m._ParentSpanId = nil
+}
+
+// SetSpanId sets the "SpanId" field.
+func (m *SpanFaultMutation) SetSpanId(s string) {
+	m._SpanId = &s
+}
+
+// SpanId returns the value of the "SpanId" field in the mutation.
+func (m *SpanFaultMutation) SpanId() (r string, exists bool) {
+	v := m._SpanId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpanId returns the old "SpanId" field's value of the SpanFault entity.
+// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SpanFaultMutation) OldSpanId(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpanId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpanId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpanId: %w", err)
+	}
+	return oldValue.SpanId, nil
+}
+
+// ResetSpanId resets all changes to the "SpanId" field.
+func (m *SpanFaultMutation) ResetSpanId() {
+	m._SpanId = nil
 }
 
 // SetServiceName sets the "ServiceName" field.
@@ -590,42 +621,6 @@ func (m *SpanFaultMutation) ResetFaultKind() {
 	m._FaultKind = nil
 }
 
-// SetIsCause sets the "IsCause" field.
-func (m *SpanFaultMutation) SetIsCause(b bool) {
-	m._IsCause = &b
-}
-
-// IsCause returns the value of the "IsCause" field in the mutation.
-func (m *SpanFaultMutation) IsCause() (r bool, exists bool) {
-	v := m._IsCause
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsCause returns the old "IsCause" field's value of the SpanFault entity.
-// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SpanFaultMutation) OldIsCause(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsCause is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsCause requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsCause: %w", err)
-	}
-	return oldValue.IsCause, nil
-}
-
-// ResetIsCause resets all changes to the "IsCause" field.
-func (m *SpanFaultMutation) ResetIsCause() {
-	m._IsCause = nil
-}
-
 // Where appends a list predicates to the SpanFaultMutation builder.
 func (m *SpanFaultMutation) Where(ps ...predicate.SpanFault) {
 	m.predicates = append(m.predicates, ps...)
@@ -664,14 +659,11 @@ func (m *SpanFaultMutation) Fields() []string {
 	if m._Timestamp != nil {
 		fields = append(fields, spanfault.FieldTimestamp)
 	}
-	if m._TraceId != nil {
-		fields = append(fields, spanfault.FieldTraceId)
-	}
 	if m._PlatformName != nil {
 		fields = append(fields, spanfault.FieldPlatformName)
 	}
-	if m._ClusterName != nil {
-		fields = append(fields, spanfault.FieldClusterName)
+	if m._AppCluster != nil {
+		fields = append(fields, spanfault.FieldAppCluster)
 	}
 	if m._InstanceName != nil {
 		fields = append(fields, spanfault.FieldInstanceName)
@@ -682,8 +674,14 @@ func (m *SpanFaultMutation) Fields() []string {
 	if m._RootSpanName != nil {
 		fields = append(fields, spanfault.FieldRootSpanName)
 	}
+	if m._RootDuration != nil {
+		fields = append(fields, spanfault.FieldRootDuration)
+	}
 	if m._ParentSpanId != nil {
 		fields = append(fields, spanfault.FieldParentSpanId)
+	}
+	if m._SpanId != nil {
+		fields = append(fields, spanfault.FieldSpanId)
 	}
 	if m._ServiceName != nil {
 		fields = append(fields, spanfault.FieldServiceName)
@@ -693,9 +691,6 @@ func (m *SpanFaultMutation) Fields() []string {
 	}
 	if m._FaultKind != nil {
 		fields = append(fields, spanfault.FieldFaultKind)
-	}
-	if m._IsCause != nil {
-		fields = append(fields, spanfault.FieldIsCause)
 	}
 	return fields
 }
@@ -707,28 +702,28 @@ func (m *SpanFaultMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case spanfault.FieldTimestamp:
 		return m.Timestamp()
-	case spanfault.FieldTraceId:
-		return m.TraceId()
 	case spanfault.FieldPlatformName:
 		return m.PlatformName()
-	case spanfault.FieldClusterName:
-		return m.ClusterName()
+	case spanfault.FieldAppCluster:
+		return m.AppCluster()
 	case spanfault.FieldInstanceName:
 		return m.InstanceName()
 	case spanfault.FieldRootServiceName:
 		return m.RootServiceName()
 	case spanfault.FieldRootSpanName:
 		return m.RootSpanName()
+	case spanfault.FieldRootDuration:
+		return m.RootDuration()
 	case spanfault.FieldParentSpanId:
 		return m.ParentSpanId()
+	case spanfault.FieldSpanId:
+		return m.SpanId()
 	case spanfault.FieldServiceName:
 		return m.ServiceName()
 	case spanfault.FieldSpanName:
 		return m.SpanName()
 	case spanfault.FieldFaultKind:
 		return m.FaultKind()
-	case spanfault.FieldIsCause:
-		return m.IsCause()
 	}
 	return nil, false
 }
@@ -740,28 +735,28 @@ func (m *SpanFaultMutation) OldField(ctx context.Context, name string) (ent.Valu
 	switch name {
 	case spanfault.FieldTimestamp:
 		return m.OldTimestamp(ctx)
-	case spanfault.FieldTraceId:
-		return m.OldTraceId(ctx)
 	case spanfault.FieldPlatformName:
 		return m.OldPlatformName(ctx)
-	case spanfault.FieldClusterName:
-		return m.OldClusterName(ctx)
+	case spanfault.FieldAppCluster:
+		return m.OldAppCluster(ctx)
 	case spanfault.FieldInstanceName:
 		return m.OldInstanceName(ctx)
 	case spanfault.FieldRootServiceName:
 		return m.OldRootServiceName(ctx)
 	case spanfault.FieldRootSpanName:
 		return m.OldRootSpanName(ctx)
+	case spanfault.FieldRootDuration:
+		return m.OldRootDuration(ctx)
 	case spanfault.FieldParentSpanId:
 		return m.OldParentSpanId(ctx)
+	case spanfault.FieldSpanId:
+		return m.OldSpanId(ctx)
 	case spanfault.FieldServiceName:
 		return m.OldServiceName(ctx)
 	case spanfault.FieldSpanName:
 		return m.OldSpanName(ctx)
 	case spanfault.FieldFaultKind:
 		return m.OldFaultKind(ctx)
-	case spanfault.FieldIsCause:
-		return m.OldIsCause(ctx)
 	}
 	return nil, fmt.Errorf("unknown SpanFault field %s", name)
 }
@@ -778,13 +773,6 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTimestamp(v)
 		return nil
-	case spanfault.FieldTraceId:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTraceId(v)
-		return nil
 	case spanfault.FieldPlatformName:
 		v, ok := value.(string)
 		if !ok {
@@ -792,12 +780,12 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPlatformName(v)
 		return nil
-	case spanfault.FieldClusterName:
+	case spanfault.FieldAppCluster:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetClusterName(v)
+		m.SetAppCluster(v)
 		return nil
 	case spanfault.FieldInstanceName:
 		v, ok := value.(string)
@@ -820,12 +808,26 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRootSpanName(v)
 		return nil
+	case spanfault.FieldRootDuration:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRootDuration(v)
+		return nil
 	case spanfault.FieldParentSpanId:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetParentSpanId(v)
+		return nil
+	case spanfault.FieldSpanId:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpanId(v)
 		return nil
 	case spanfault.FieldServiceName:
 		v, ok := value.(string)
@@ -848,13 +850,6 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFaultKind(v)
 		return nil
-	case spanfault.FieldIsCause:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsCause(v)
-		return nil
 	}
 	return fmt.Errorf("unknown SpanFault field %s", name)
 }
@@ -862,13 +857,21 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *SpanFaultMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.add_RootDuration != nil {
+		fields = append(fields, spanfault.FieldRootDuration)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *SpanFaultMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case spanfault.FieldRootDuration:
+		return m.AddedRootDuration()
+	}
 	return nil, false
 }
 
@@ -877,6 +880,13 @@ func (m *SpanFaultMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *SpanFaultMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case spanfault.FieldRootDuration:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRootDuration(v)
+		return nil
 	}
 	return fmt.Errorf("unknown SpanFault numeric field %s", name)
 }
@@ -887,12 +897,6 @@ func (m *SpanFaultMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(spanfault.FieldTimestamp) {
 		fields = append(fields, spanfault.FieldTimestamp)
-	}
-	if m.FieldCleared(spanfault.FieldRootServiceName) {
-		fields = append(fields, spanfault.FieldRootServiceName)
-	}
-	if m.FieldCleared(spanfault.FieldRootSpanName) {
-		fields = append(fields, spanfault.FieldRootSpanName)
 	}
 	return fields
 }
@@ -911,12 +915,6 @@ func (m *SpanFaultMutation) ClearField(name string) error {
 	case spanfault.FieldTimestamp:
 		m.ClearTimestamp()
 		return nil
-	case spanfault.FieldRootServiceName:
-		m.ClearRootServiceName()
-		return nil
-	case spanfault.FieldRootSpanName:
-		m.ClearRootSpanName()
-		return nil
 	}
 	return fmt.Errorf("unknown SpanFault nullable field %s", name)
 }
@@ -928,14 +926,11 @@ func (m *SpanFaultMutation) ResetField(name string) error {
 	case spanfault.FieldTimestamp:
 		m.ResetTimestamp()
 		return nil
-	case spanfault.FieldTraceId:
-		m.ResetTraceId()
-		return nil
 	case spanfault.FieldPlatformName:
 		m.ResetPlatformName()
 		return nil
-	case spanfault.FieldClusterName:
-		m.ResetClusterName()
+	case spanfault.FieldAppCluster:
+		m.ResetAppCluster()
 		return nil
 	case spanfault.FieldInstanceName:
 		m.ResetInstanceName()
@@ -946,8 +941,14 @@ func (m *SpanFaultMutation) ResetField(name string) error {
 	case spanfault.FieldRootSpanName:
 		m.ResetRootSpanName()
 		return nil
+	case spanfault.FieldRootDuration:
+		m.ResetRootDuration()
+		return nil
 	case spanfault.FieldParentSpanId:
 		m.ResetParentSpanId()
+		return nil
+	case spanfault.FieldSpanId:
+		m.ResetSpanId()
 		return nil
 	case spanfault.FieldServiceName:
 		m.ResetServiceName()
@@ -957,9 +958,6 @@ func (m *SpanFaultMutation) ResetField(name string) error {
 		return nil
 	case spanfault.FieldFaultKind:
 		m.ResetFaultKind()
-		return nil
-	case spanfault.FieldIsCause:
-		m.ResetIsCause()
 		return nil
 	}
 	return fmt.Errorf("unknown SpanFault field %s", name)
