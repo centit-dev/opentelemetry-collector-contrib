@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent/middlewaredefinition"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent/softwaredefinition"
 )
 
 // Client is the client that holds all ent builders.
@@ -22,8 +22,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// MiddlewareDefinition is the client for interacting with the MiddlewareDefinition builders.
-	MiddlewareDefinition *MiddlewareDefinitionClient
+	// SoftwareDefinition is the client for interacting with the SoftwareDefinition builders.
+	SoftwareDefinition *SoftwareDefinitionClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -35,7 +35,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.MiddlewareDefinition = NewMiddlewareDefinitionClient(c.config)
+	c.SoftwareDefinition = NewSoftwareDefinitionClient(c.config)
 }
 
 type (
@@ -126,9 +126,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                  ctx,
-		config:               cfg,
-		MiddlewareDefinition: NewMiddlewareDefinitionClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		SoftwareDefinition: NewSoftwareDefinitionClient(cfg),
 	}, nil
 }
 
@@ -146,16 +146,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                  ctx,
-		config:               cfg,
-		MiddlewareDefinition: NewMiddlewareDefinitionClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		SoftwareDefinition: NewSoftwareDefinitionClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		MiddlewareDefinition.
+//		SoftwareDefinition.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -177,126 +177,126 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.MiddlewareDefinition.Use(hooks...)
+	c.SoftwareDefinition.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.MiddlewareDefinition.Intercept(interceptors...)
+	c.SoftwareDefinition.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *MiddlewareDefinitionMutation:
-		return c.MiddlewareDefinition.mutate(ctx, m)
+	case *SoftwareDefinitionMutation:
+		return c.SoftwareDefinition.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
 }
 
-// MiddlewareDefinitionClient is a client for the MiddlewareDefinition schema.
-type MiddlewareDefinitionClient struct {
+// SoftwareDefinitionClient is a client for the SoftwareDefinition schema.
+type SoftwareDefinitionClient struct {
 	config
 }
 
-// NewMiddlewareDefinitionClient returns a client for the MiddlewareDefinition from the given config.
-func NewMiddlewareDefinitionClient(c config) *MiddlewareDefinitionClient {
-	return &MiddlewareDefinitionClient{config: c}
+// NewSoftwareDefinitionClient returns a client for the SoftwareDefinition from the given config.
+func NewSoftwareDefinitionClient(c config) *SoftwareDefinitionClient {
+	return &SoftwareDefinitionClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `middlewaredefinition.Hooks(f(g(h())))`.
-func (c *MiddlewareDefinitionClient) Use(hooks ...Hook) {
-	c.hooks.MiddlewareDefinition = append(c.hooks.MiddlewareDefinition, hooks...)
+// A call to `Use(f, g, h)` equals to `softwaredefinition.Hooks(f(g(h())))`.
+func (c *SoftwareDefinitionClient) Use(hooks ...Hook) {
+	c.hooks.SoftwareDefinition = append(c.hooks.SoftwareDefinition, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `middlewaredefinition.Intercept(f(g(h())))`.
-func (c *MiddlewareDefinitionClient) Intercept(interceptors ...Interceptor) {
-	c.inters.MiddlewareDefinition = append(c.inters.MiddlewareDefinition, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `softwaredefinition.Intercept(f(g(h())))`.
+func (c *SoftwareDefinitionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SoftwareDefinition = append(c.inters.SoftwareDefinition, interceptors...)
 }
 
-// Create returns a builder for creating a MiddlewareDefinition entity.
-func (c *MiddlewareDefinitionClient) Create() *MiddlewareDefinitionCreate {
-	mutation := newMiddlewareDefinitionMutation(c.config, OpCreate)
-	return &MiddlewareDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a SoftwareDefinition entity.
+func (c *SoftwareDefinitionClient) Create() *SoftwareDefinitionCreate {
+	mutation := newSoftwareDefinitionMutation(c.config, OpCreate)
+	return &SoftwareDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of MiddlewareDefinition entities.
-func (c *MiddlewareDefinitionClient) CreateBulk(builders ...*MiddlewareDefinitionCreate) *MiddlewareDefinitionCreateBulk {
-	return &MiddlewareDefinitionCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of SoftwareDefinition entities.
+func (c *SoftwareDefinitionClient) CreateBulk(builders ...*SoftwareDefinitionCreate) *SoftwareDefinitionCreateBulk {
+	return &SoftwareDefinitionCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *MiddlewareDefinitionClient) MapCreateBulk(slice any, setFunc func(*MiddlewareDefinitionCreate, int)) *MiddlewareDefinitionCreateBulk {
+func (c *SoftwareDefinitionClient) MapCreateBulk(slice any, setFunc func(*SoftwareDefinitionCreate, int)) *SoftwareDefinitionCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &MiddlewareDefinitionCreateBulk{err: fmt.Errorf("calling to MiddlewareDefinitionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &SoftwareDefinitionCreateBulk{err: fmt.Errorf("calling to SoftwareDefinitionClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*MiddlewareDefinitionCreate, rv.Len())
+	builders := make([]*SoftwareDefinitionCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &MiddlewareDefinitionCreateBulk{config: c.config, builders: builders}
+	return &SoftwareDefinitionCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for MiddlewareDefinition.
-func (c *MiddlewareDefinitionClient) Update() *MiddlewareDefinitionUpdate {
-	mutation := newMiddlewareDefinitionMutation(c.config, OpUpdate)
-	return &MiddlewareDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for SoftwareDefinition.
+func (c *SoftwareDefinitionClient) Update() *SoftwareDefinitionUpdate {
+	mutation := newSoftwareDefinitionMutation(c.config, OpUpdate)
+	return &SoftwareDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *MiddlewareDefinitionClient) UpdateOne(md *MiddlewareDefinition) *MiddlewareDefinitionUpdateOne {
-	mutation := newMiddlewareDefinitionMutation(c.config, OpUpdateOne, withMiddlewareDefinition(md))
-	return &MiddlewareDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SoftwareDefinitionClient) UpdateOne(sd *SoftwareDefinition) *SoftwareDefinitionUpdateOne {
+	mutation := newSoftwareDefinitionMutation(c.config, OpUpdateOne, withSoftwareDefinition(sd))
+	return &SoftwareDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *MiddlewareDefinitionClient) UpdateOneID(id int64) *MiddlewareDefinitionUpdateOne {
-	mutation := newMiddlewareDefinitionMutation(c.config, OpUpdateOne, withMiddlewareDefinitionID(id))
-	return &MiddlewareDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SoftwareDefinitionClient) UpdateOneID(id int64) *SoftwareDefinitionUpdateOne {
+	mutation := newSoftwareDefinitionMutation(c.config, OpUpdateOne, withSoftwareDefinitionID(id))
+	return &SoftwareDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for MiddlewareDefinition.
-func (c *MiddlewareDefinitionClient) Delete() *MiddlewareDefinitionDelete {
-	mutation := newMiddlewareDefinitionMutation(c.config, OpDelete)
-	return &MiddlewareDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for SoftwareDefinition.
+func (c *SoftwareDefinitionClient) Delete() *SoftwareDefinitionDelete {
+	mutation := newSoftwareDefinitionMutation(c.config, OpDelete)
+	return &SoftwareDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *MiddlewareDefinitionClient) DeleteOne(md *MiddlewareDefinition) *MiddlewareDefinitionDeleteOne {
-	return c.DeleteOneID(md.ID)
+func (c *SoftwareDefinitionClient) DeleteOne(sd *SoftwareDefinition) *SoftwareDefinitionDeleteOne {
+	return c.DeleteOneID(sd.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *MiddlewareDefinitionClient) DeleteOneID(id int64) *MiddlewareDefinitionDeleteOne {
-	builder := c.Delete().Where(middlewaredefinition.ID(id))
+func (c *SoftwareDefinitionClient) DeleteOneID(id int64) *SoftwareDefinitionDeleteOne {
+	builder := c.Delete().Where(softwaredefinition.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &MiddlewareDefinitionDeleteOne{builder}
+	return &SoftwareDefinitionDeleteOne{builder}
 }
 
-// Query returns a query builder for MiddlewareDefinition.
-func (c *MiddlewareDefinitionClient) Query() *MiddlewareDefinitionQuery {
-	return &MiddlewareDefinitionQuery{
+// Query returns a query builder for SoftwareDefinition.
+func (c *SoftwareDefinitionClient) Query() *SoftwareDefinitionQuery {
+	return &SoftwareDefinitionQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeMiddlewareDefinition},
+		ctx:    &QueryContext{Type: TypeSoftwareDefinition},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a MiddlewareDefinition entity by its id.
-func (c *MiddlewareDefinitionClient) Get(ctx context.Context, id int64) (*MiddlewareDefinition, error) {
-	return c.Query().Where(middlewaredefinition.ID(id)).Only(ctx)
+// Get returns a SoftwareDefinition entity by its id.
+func (c *SoftwareDefinitionClient) Get(ctx context.Context, id int64) (*SoftwareDefinition, error) {
+	return c.Query().Where(softwaredefinition.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *MiddlewareDefinitionClient) GetX(ctx context.Context, id int64) *MiddlewareDefinition {
+func (c *SoftwareDefinitionClient) GetX(ctx context.Context, id int64) *SoftwareDefinition {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -305,36 +305,36 @@ func (c *MiddlewareDefinitionClient) GetX(ctx context.Context, id int64) *Middle
 }
 
 // Hooks returns the client hooks.
-func (c *MiddlewareDefinitionClient) Hooks() []Hook {
-	return c.hooks.MiddlewareDefinition
+func (c *SoftwareDefinitionClient) Hooks() []Hook {
+	return c.hooks.SoftwareDefinition
 }
 
 // Interceptors returns the client interceptors.
-func (c *MiddlewareDefinitionClient) Interceptors() []Interceptor {
-	return c.inters.MiddlewareDefinition
+func (c *SoftwareDefinitionClient) Interceptors() []Interceptor {
+	return c.inters.SoftwareDefinition
 }
 
-func (c *MiddlewareDefinitionClient) mutate(ctx context.Context, m *MiddlewareDefinitionMutation) (Value, error) {
+func (c *SoftwareDefinitionClient) mutate(ctx context.Context, m *SoftwareDefinitionMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&MiddlewareDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SoftwareDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&MiddlewareDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SoftwareDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&MiddlewareDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SoftwareDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&MiddlewareDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&SoftwareDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown MiddlewareDefinition mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown SoftwareDefinition mutation op: %q", m.Op())
 	}
 }
 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		MiddlewareDefinition []ent.Hook
+		SoftwareDefinition []ent.Hook
 	}
 	inters struct {
-		MiddlewareDefinition []ent.Interceptor
+		SoftwareDefinition []ent.Interceptor
 	}
 )

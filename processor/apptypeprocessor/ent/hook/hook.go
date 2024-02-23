@@ -9,16 +9,16 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent"
 )
 
-// The MiddlewareDefinitionFunc type is an adapter to allow the use of ordinary
-// function as MiddlewareDefinition mutator.
-type MiddlewareDefinitionFunc func(context.Context, *ent.MiddlewareDefinitionMutation) (ent.Value, error)
+// The SoftwareDefinitionFunc type is an adapter to allow the use of ordinary
+// function as SoftwareDefinition mutator.
+type SoftwareDefinitionFunc func(context.Context, *ent.SoftwareDefinitionMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f MiddlewareDefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.MiddlewareDefinitionMutation); ok {
+func (f SoftwareDefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SoftwareDefinitionMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MiddlewareDefinitionMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SoftwareDefinitionMutation", m)
 }
 
 // Condition is a hook condition function.

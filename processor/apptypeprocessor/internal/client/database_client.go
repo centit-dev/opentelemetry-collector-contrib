@@ -7,7 +7,7 @@ import (
 	"entgo.io/ent/dialect"
 	_ "github.com/lib/pq"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent/middlewaredefinition"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent/softwaredefinition"
 	"go.uber.org/zap"
 )
 
@@ -20,7 +20,7 @@ type PostgresConfig struct {
 }
 
 type DatabaseClient interface {
-	FindAllDefinitions(context context.Context) ([]*ent.MiddlewareDefinition, error)
+	FindAllDefinitions(context context.Context) ([]*ent.SoftwareDefinition, error)
 	Shutdown() error
 }
 
@@ -41,9 +41,9 @@ func CreateClient(config *PostgresConfig, logger *zap.Logger) (*PostgresClient, 
 	return &PostgresClient{delegate}, nil
 }
 
-func (client *PostgresClient) FindAllDefinitions(context context.Context) ([]*ent.MiddlewareDefinition, error) {
-	return client.delegate.MiddlewareDefinition.Query().
-		Where(middlewaredefinition.IsValid(1)).
+func (client *PostgresClient) FindAllDefinitions(context context.Context) ([]*ent.SoftwareDefinition, error) {
+	return client.delegate.SoftwareDefinition.Query().
+		Where(softwaredefinition.IsValid(1)).
 		All(context)
 }
 

@@ -10,12 +10,12 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent/middlewaredefinition"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent/schema"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent/softwaredefinition"
 )
 
-// MiddlewareDefinition is the model entity for the MiddlewareDefinition schema.
-type MiddlewareDefinition struct {
+// SoftwareDefinition is the model entity for the SoftwareDefinition schema.
+type SoftwareDefinition struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
@@ -24,7 +24,7 @@ type MiddlewareDefinition struct {
 	// Type holds the value of the "type" field.
 	Type int16 `json:"type,omitempty"`
 	// SpanConditions holds the value of the "span_conditions" field.
-	SpanConditions []schema.MiddlewareDefinitionCondition `json:"span_conditions,omitempty"`
+	SpanConditions []schema.SoftwareDefinitionCondition `json:"span_conditions,omitempty"`
 	// IsValid holds the value of the "is_valid" field.
 	IsValid int `json:"is_valid,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
@@ -35,17 +35,17 @@ type MiddlewareDefinition struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*MiddlewareDefinition) scanValues(columns []string) ([]any, error) {
+func (*SoftwareDefinition) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case middlewaredefinition.FieldSpanConditions:
+		case softwaredefinition.FieldSpanConditions:
 			values[i] = new([]byte)
-		case middlewaredefinition.FieldID, middlewaredefinition.FieldType, middlewaredefinition.FieldIsValid:
+		case softwaredefinition.FieldID, softwaredefinition.FieldType, softwaredefinition.FieldIsValid:
 			values[i] = new(sql.NullInt64)
-		case middlewaredefinition.FieldName:
+		case softwaredefinition.FieldName:
 			values[i] = new(sql.NullString)
-		case middlewaredefinition.FieldCreateTime, middlewaredefinition.FieldUpdateTime:
+		case softwaredefinition.FieldCreateTime, softwaredefinition.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -55,113 +55,113 @@ func (*MiddlewareDefinition) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the MiddlewareDefinition fields.
-func (md *MiddlewareDefinition) assignValues(columns []string, values []any) error {
+// to the SoftwareDefinition fields.
+func (sd *SoftwareDefinition) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case middlewaredefinition.FieldID:
+		case softwaredefinition.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			md.ID = int64(value.Int64)
-		case middlewaredefinition.FieldName:
+			sd.ID = int64(value.Int64)
+		case softwaredefinition.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				md.Name = value.String
+				sd.Name = value.String
 			}
-		case middlewaredefinition.FieldType:
+		case softwaredefinition.FieldType:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				md.Type = int16(value.Int64)
+				sd.Type = int16(value.Int64)
 			}
-		case middlewaredefinition.FieldSpanConditions:
+		case softwaredefinition.FieldSpanConditions:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field span_conditions", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &md.SpanConditions); err != nil {
+				if err := json.Unmarshal(*value, &sd.SpanConditions); err != nil {
 					return fmt.Errorf("unmarshal field span_conditions: %w", err)
 				}
 			}
-		case middlewaredefinition.FieldIsValid:
+		case softwaredefinition.FieldIsValid:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field is_valid", values[i])
 			} else if value.Valid {
-				md.IsValid = int(value.Int64)
+				sd.IsValid = int(value.Int64)
 			}
-		case middlewaredefinition.FieldCreateTime:
+		case softwaredefinition.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
 			} else if value.Valid {
-				md.CreateTime = value.Time
+				sd.CreateTime = value.Time
 			}
-		case middlewaredefinition.FieldUpdateTime:
+		case softwaredefinition.FieldUpdateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
-				md.UpdateTime = value.Time
+				sd.UpdateTime = value.Time
 			}
 		default:
-			md.selectValues.Set(columns[i], values[i])
+			sd.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the MiddlewareDefinition.
+// Value returns the ent.Value that was dynamically selected and assigned to the SoftwareDefinition.
 // This includes values selected through modifiers, order, etc.
-func (md *MiddlewareDefinition) Value(name string) (ent.Value, error) {
-	return md.selectValues.Get(name)
+func (sd *SoftwareDefinition) Value(name string) (ent.Value, error) {
+	return sd.selectValues.Get(name)
 }
 
-// Update returns a builder for updating this MiddlewareDefinition.
-// Note that you need to call MiddlewareDefinition.Unwrap() before calling this method if this MiddlewareDefinition
+// Update returns a builder for updating this SoftwareDefinition.
+// Note that you need to call SoftwareDefinition.Unwrap() before calling this method if this SoftwareDefinition
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (md *MiddlewareDefinition) Update() *MiddlewareDefinitionUpdateOne {
-	return NewMiddlewareDefinitionClient(md.config).UpdateOne(md)
+func (sd *SoftwareDefinition) Update() *SoftwareDefinitionUpdateOne {
+	return NewSoftwareDefinitionClient(sd.config).UpdateOne(sd)
 }
 
-// Unwrap unwraps the MiddlewareDefinition entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the SoftwareDefinition entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (md *MiddlewareDefinition) Unwrap() *MiddlewareDefinition {
-	_tx, ok := md.config.driver.(*txDriver)
+func (sd *SoftwareDefinition) Unwrap() *SoftwareDefinition {
+	_tx, ok := sd.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: MiddlewareDefinition is not a transactional entity")
+		panic("ent: SoftwareDefinition is not a transactional entity")
 	}
-	md.config.driver = _tx.drv
-	return md
+	sd.config.driver = _tx.drv
+	return sd
 }
 
 // String implements the fmt.Stringer.
-func (md *MiddlewareDefinition) String() string {
+func (sd *SoftwareDefinition) String() string {
 	var builder strings.Builder
-	builder.WriteString("MiddlewareDefinition(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", md.ID))
+	builder.WriteString("SoftwareDefinition(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", sd.ID))
 	builder.WriteString("name=")
-	builder.WriteString(md.Name)
+	builder.WriteString(sd.Name)
 	builder.WriteString(", ")
 	builder.WriteString("type=")
-	builder.WriteString(fmt.Sprintf("%v", md.Type))
+	builder.WriteString(fmt.Sprintf("%v", sd.Type))
 	builder.WriteString(", ")
 	builder.WriteString("span_conditions=")
-	builder.WriteString(fmt.Sprintf("%v", md.SpanConditions))
+	builder.WriteString(fmt.Sprintf("%v", sd.SpanConditions))
 	builder.WriteString(", ")
 	builder.WriteString("is_valid=")
-	builder.WriteString(fmt.Sprintf("%v", md.IsValid))
+	builder.WriteString(fmt.Sprintf("%v", sd.IsValid))
 	builder.WriteString(", ")
 	builder.WriteString("create_time=")
-	builder.WriteString(md.CreateTime.Format(time.ANSIC))
+	builder.WriteString(sd.CreateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
-	builder.WriteString(md.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(sd.UpdateTime.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// MiddlewareDefinitions is a parsable slice of MiddlewareDefinition.
-type MiddlewareDefinitions []*MiddlewareDefinition
+// SoftwareDefinitions is a parsable slice of SoftwareDefinition.
+type SoftwareDefinitions []*SoftwareDefinition

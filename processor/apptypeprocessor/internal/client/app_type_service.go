@@ -28,12 +28,12 @@ type AppTypeService struct {
 	groups *spangroup.SpanGroups
 	ticker *time.Ticker
 
-	records map[string]*ent.MiddlewareDefinition
+	records map[string]*ent.SoftwareDefinition
 }
 
 func CreateAppTypeService(client DatabaseClient, cacheTtlMinutes time.Duration, logger *zap.Logger) *AppTypeService {
 	ticker := time.NewTicker(cacheTtlMinutes * time.Minute)
-	service := &AppTypeService{logger, client, nil, ticker, make(map[string]*ent.MiddlewareDefinition)}
+	service := &AppTypeService{logger, client, nil, ticker, make(map[string]*ent.SoftwareDefinition)}
 	go func() {
 		// build cache asynchronously for every 5 minutes so the first few batches won't be tagged and blocked
 		defer ticker.Stop()

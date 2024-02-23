@@ -6,5 +6,5 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// MiddlewareDefinition is the predicate function for middlewaredefinition builders.
-type MiddlewareDefinition func(*sql.Selector)
+// SoftwareDefinition is the predicate function for softwaredefinition builders.
+type SoftwareDefinition func(*sql.Selector)

@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	// TbMiddlewareDefineColumns holds the columns for the "tb_middleware_define" table.
-	TbMiddlewareDefineColumns = []*schema.Column{
+	// TbSoftwareDefineColumns holds the columns for the "tb_software_define" table.
+	TbSoftwareDefineColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 100},
 		{Name: "type", Type: field.TypeInt16},
@@ -19,20 +19,20 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 	}
-	// TbMiddlewareDefineTable holds the schema information for the "tb_middleware_define" table.
-	TbMiddlewareDefineTable = &schema.Table{
-		Name:       "tb_middleware_define",
-		Columns:    TbMiddlewareDefineColumns,
-		PrimaryKey: []*schema.Column{TbMiddlewareDefineColumns[0]},
+	// TbSoftwareDefineTable holds the schema information for the "tb_software_define" table.
+	TbSoftwareDefineTable = &schema.Table{
+		Name:       "tb_software_define",
+		Columns:    TbSoftwareDefineColumns,
+		PrimaryKey: []*schema.Column{TbSoftwareDefineColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		TbMiddlewareDefineTable,
+		TbSoftwareDefineTable,
 	}
 )
 
 func init() {
-	TbMiddlewareDefineTable.Annotation = &entsql.Annotation{
-		Table: "tb_middleware_define",
+	TbSoftwareDefineTable.Annotation = &entsql.Annotation{
+		Table: "tb_software_define",
 	}
 }

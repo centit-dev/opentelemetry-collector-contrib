@@ -9,24 +9,24 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-type MiddlewareDefinitionCondition struct {
+type SoftwareDefinitionCondition struct {
 	Column string
 	Op     string
 	Value  interface{}
 }
 
-// MiddlewareDefinition holds the schema definition for the MiddlewareDefinition entity.
-type MiddlewareDefinition struct {
+// SoftwareDefinition holds the schema definition for the SoftwareDefinition entity.
+type SoftwareDefinition struct {
 	ent.Schema
 }
 
 // Fields of the MiddlewareDefinition.
-func (MiddlewareDefinition) Fields() []ent.Field {
+func (SoftwareDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id").Positive(),
 		field.String("name").MaxLen(100).NotEmpty(),
 		field.Int16("type"),
-		field.JSON("span_conditions", []MiddlewareDefinitionCondition{}).Optional(),
+		field.JSON("span_conditions", []SoftwareDefinitionCondition{}).Optional(),
 		field.Int("is_valid").Default(1),
 		field.Time("create_time").Immutable().Default(time.Now),
 		field.Time("update_time").Default(time.Now),
@@ -34,12 +34,12 @@ func (MiddlewareDefinition) Fields() []ent.Field {
 }
 
 // Edges of the MiddlewareDefinition.
-func (MiddlewareDefinition) Edges() []ent.Edge {
+func (SoftwareDefinition) Edges() []ent.Edge {
 	return nil
 }
 
-func (MiddlewareDefinition) Annotations() []schema.Annotation {
+func (SoftwareDefinition) Annotations() []schema.Annotation {
 	return []schema.Annotation{
-		entsql.Annotation{Table: "tb_middleware_define"},
+		entsql.Annotation{Table: "tb_software_define"},
 	}
 }
