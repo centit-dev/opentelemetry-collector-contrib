@@ -20,18 +20,6 @@ type BatchConfig struct {
 	IntervalInMilliseconds int `mapstructure:"interval_in_milliseconds"`
 }
 
-type spanFaultOperator int
-
-const (
-	create spanFaultOperator = iota
-	update
-)
-
-type spanFaultEntry struct {
-	op   spanFaultOperator
-	item *ent.SpanFault
-}
-
 type spanTree struct {
 	rootSpan *spanTreeItem
 	spans    map[string]*spanTreeItem
@@ -134,21 +122,21 @@ func (service *SpanFaultServiceImpl) Save(ctx context.Context, items []*spanTree
 
 	for _, tree := range trees {
 		var cause *ent.SpanFault
-		var depth int16 = 0
+		var depth int16 = -1
 		for _, span := range tree.spans {
 			spanDepth := span.Depth(&tree.spans)
-			if spanDepth > depth {
+			if spanDepth > depth && span.FaultKind != "" {
 				depth = spanDepth
 				cause = span.SpanFault
 			}
 		}
-		if tree.rootSpan == nil {
+		if tree.rootSpan == nil || cause == nil {
 			continue
 		}
 		cause.RootServiceName = tree.rootSpan.ServiceName
 		cause.RootSpanName = tree.rootSpan.SpanName
 		cause.RootDuration = tree.rootSpan.duration
-		service.faultChannel <- rxgo.Of(&spanFaultEntry{create, cause})
+		service.faultChannel <- rxgo.Of(cause)
 	}
 	return nil
 }
