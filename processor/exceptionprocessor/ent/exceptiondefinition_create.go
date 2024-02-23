@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/exceptioncategory"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/exceptiondefinition"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/schema"
 )
 
 // ExceptionDefinitionCreate is the builder for creating a ExceptionDefinition entity.
@@ -37,26 +36,6 @@ func (edc *ExceptionDefinitionCreate) SetShortName(s string) *ExceptionDefinitio
 // SetLongName sets the "long_name" field.
 func (edc *ExceptionDefinitionCreate) SetLongName(s string) *ExceptionDefinitionCreate {
 	edc.mutation.SetLongName(s)
-	return edc
-}
-
-// SetRelatedMiddlewareID sets the "related_middleware_id" field.
-func (edc *ExceptionDefinitionCreate) SetRelatedMiddlewareID(i int64) *ExceptionDefinitionCreate {
-	edc.mutation.SetRelatedMiddlewareID(i)
-	return edc
-}
-
-// SetNillableRelatedMiddlewareID sets the "related_middleware_id" field if the given value is not nil.
-func (edc *ExceptionDefinitionCreate) SetNillableRelatedMiddlewareID(i *int64) *ExceptionDefinitionCreate {
-	if i != nil {
-		edc.SetRelatedMiddlewareID(*i)
-	}
-	return edc
-}
-
-// SetRelatedMiddlewareConditions sets the "related_middleware_conditions" field.
-func (edc *ExceptionDefinitionCreate) SetRelatedMiddlewareConditions(sdc []schema.ExceptionDefinitionCondition) *ExceptionDefinitionCreate {
-	edc.mutation.SetRelatedMiddlewareConditions(sdc)
 	return edc
 }
 
@@ -250,14 +229,6 @@ func (edc *ExceptionDefinitionCreate) createSpec() (*ExceptionDefinition, *sqlgr
 	if value, ok := edc.mutation.LongName(); ok {
 		_spec.SetField(exceptiondefinition.FieldLongName, field.TypeString, value)
 		_node.LongName = value
-	}
-	if value, ok := edc.mutation.RelatedMiddlewareID(); ok {
-		_spec.SetField(exceptiondefinition.FieldRelatedMiddlewareID, field.TypeInt64, value)
-		_node.RelatedMiddlewareID = value
-	}
-	if value, ok := edc.mutation.RelatedMiddlewareConditions(); ok {
-		_spec.SetField(exceptiondefinition.FieldRelatedMiddlewareConditions, field.TypeJSON, value)
-		_node.RelatedMiddlewareConditions = value
 	}
 	if value, ok := edc.mutation.IsValid(); ok {
 		_spec.SetField(exceptiondefinition.FieldIsValid, field.TypeInt, value)

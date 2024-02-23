@@ -10,12 +10,10 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/exceptioncategory"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/exceptiondefinition"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/predicate"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/schema"
 )
 
 // ExceptionDefinitionUpdate is the builder for updating ExceptionDefinition entities.
@@ -37,9 +35,25 @@ func (edu *ExceptionDefinitionUpdate) SetCategoryID(i int64) *ExceptionDefinitio
 	return edu
 }
 
+// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
+func (edu *ExceptionDefinitionUpdate) SetNillableCategoryID(i *int64) *ExceptionDefinitionUpdate {
+	if i != nil {
+		edu.SetCategoryID(*i)
+	}
+	return edu
+}
+
 // SetShortName sets the "short_name" field.
 func (edu *ExceptionDefinitionUpdate) SetShortName(s string) *ExceptionDefinitionUpdate {
 	edu.mutation.SetShortName(s)
+	return edu
+}
+
+// SetNillableShortName sets the "short_name" field if the given value is not nil.
+func (edu *ExceptionDefinitionUpdate) SetNillableShortName(s *string) *ExceptionDefinitionUpdate {
+	if s != nil {
+		edu.SetShortName(*s)
+	}
 	return edu
 }
 
@@ -49,48 +63,11 @@ func (edu *ExceptionDefinitionUpdate) SetLongName(s string) *ExceptionDefinition
 	return edu
 }
 
-// SetRelatedMiddlewareID sets the "related_middleware_id" field.
-func (edu *ExceptionDefinitionUpdate) SetRelatedMiddlewareID(i int64) *ExceptionDefinitionUpdate {
-	edu.mutation.ResetRelatedMiddlewareID()
-	edu.mutation.SetRelatedMiddlewareID(i)
-	return edu
-}
-
-// SetNillableRelatedMiddlewareID sets the "related_middleware_id" field if the given value is not nil.
-func (edu *ExceptionDefinitionUpdate) SetNillableRelatedMiddlewareID(i *int64) *ExceptionDefinitionUpdate {
-	if i != nil {
-		edu.SetRelatedMiddlewareID(*i)
+// SetNillableLongName sets the "long_name" field if the given value is not nil.
+func (edu *ExceptionDefinitionUpdate) SetNillableLongName(s *string) *ExceptionDefinitionUpdate {
+	if s != nil {
+		edu.SetLongName(*s)
 	}
-	return edu
-}
-
-// AddRelatedMiddlewareID adds i to the "related_middleware_id" field.
-func (edu *ExceptionDefinitionUpdate) AddRelatedMiddlewareID(i int64) *ExceptionDefinitionUpdate {
-	edu.mutation.AddRelatedMiddlewareID(i)
-	return edu
-}
-
-// ClearRelatedMiddlewareID clears the value of the "related_middleware_id" field.
-func (edu *ExceptionDefinitionUpdate) ClearRelatedMiddlewareID() *ExceptionDefinitionUpdate {
-	edu.mutation.ClearRelatedMiddlewareID()
-	return edu
-}
-
-// SetRelatedMiddlewareConditions sets the "related_middleware_conditions" field.
-func (edu *ExceptionDefinitionUpdate) SetRelatedMiddlewareConditions(sdc []schema.ExceptionDefinitionCondition) *ExceptionDefinitionUpdate {
-	edu.mutation.SetRelatedMiddlewareConditions(sdc)
-	return edu
-}
-
-// AppendRelatedMiddlewareConditions appends sdc to the "related_middleware_conditions" field.
-func (edu *ExceptionDefinitionUpdate) AppendRelatedMiddlewareConditions(sdc []schema.ExceptionDefinitionCondition) *ExceptionDefinitionUpdate {
-	edu.mutation.AppendRelatedMiddlewareConditions(sdc)
-	return edu
-}
-
-// ClearRelatedMiddlewareConditions clears the value of the "related_middleware_conditions" field.
-func (edu *ExceptionDefinitionUpdate) ClearRelatedMiddlewareConditions() *ExceptionDefinitionUpdate {
-	edu.mutation.ClearRelatedMiddlewareConditions()
 	return edu
 }
 
@@ -219,26 +196,6 @@ func (edu *ExceptionDefinitionUpdate) sqlSave(ctx context.Context) (n int, err e
 	if value, ok := edu.mutation.LongName(); ok {
 		_spec.SetField(exceptiondefinition.FieldLongName, field.TypeString, value)
 	}
-	if value, ok := edu.mutation.RelatedMiddlewareID(); ok {
-		_spec.SetField(exceptiondefinition.FieldRelatedMiddlewareID, field.TypeInt64, value)
-	}
-	if value, ok := edu.mutation.AddedRelatedMiddlewareID(); ok {
-		_spec.AddField(exceptiondefinition.FieldRelatedMiddlewareID, field.TypeInt64, value)
-	}
-	if edu.mutation.RelatedMiddlewareIDCleared() {
-		_spec.ClearField(exceptiondefinition.FieldRelatedMiddlewareID, field.TypeInt64)
-	}
-	if value, ok := edu.mutation.RelatedMiddlewareConditions(); ok {
-		_spec.SetField(exceptiondefinition.FieldRelatedMiddlewareConditions, field.TypeJSON, value)
-	}
-	if value, ok := edu.mutation.AppendedRelatedMiddlewareConditions(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, exceptiondefinition.FieldRelatedMiddlewareConditions, value)
-		})
-	}
-	if edu.mutation.RelatedMiddlewareConditionsCleared() {
-		_spec.ClearField(exceptiondefinition.FieldRelatedMiddlewareConditions, field.TypeJSON)
-	}
 	if value, ok := edu.mutation.IsValid(); ok {
 		_spec.SetField(exceptiondefinition.FieldIsValid, field.TypeInt, value)
 	}
@@ -303,9 +260,25 @@ func (eduo *ExceptionDefinitionUpdateOne) SetCategoryID(i int64) *ExceptionDefin
 	return eduo
 }
 
+// SetNillableCategoryID sets the "category_id" field if the given value is not nil.
+func (eduo *ExceptionDefinitionUpdateOne) SetNillableCategoryID(i *int64) *ExceptionDefinitionUpdateOne {
+	if i != nil {
+		eduo.SetCategoryID(*i)
+	}
+	return eduo
+}
+
 // SetShortName sets the "short_name" field.
 func (eduo *ExceptionDefinitionUpdateOne) SetShortName(s string) *ExceptionDefinitionUpdateOne {
 	eduo.mutation.SetShortName(s)
+	return eduo
+}
+
+// SetNillableShortName sets the "short_name" field if the given value is not nil.
+func (eduo *ExceptionDefinitionUpdateOne) SetNillableShortName(s *string) *ExceptionDefinitionUpdateOne {
+	if s != nil {
+		eduo.SetShortName(*s)
+	}
 	return eduo
 }
 
@@ -315,48 +288,11 @@ func (eduo *ExceptionDefinitionUpdateOne) SetLongName(s string) *ExceptionDefini
 	return eduo
 }
 
-// SetRelatedMiddlewareID sets the "related_middleware_id" field.
-func (eduo *ExceptionDefinitionUpdateOne) SetRelatedMiddlewareID(i int64) *ExceptionDefinitionUpdateOne {
-	eduo.mutation.ResetRelatedMiddlewareID()
-	eduo.mutation.SetRelatedMiddlewareID(i)
-	return eduo
-}
-
-// SetNillableRelatedMiddlewareID sets the "related_middleware_id" field if the given value is not nil.
-func (eduo *ExceptionDefinitionUpdateOne) SetNillableRelatedMiddlewareID(i *int64) *ExceptionDefinitionUpdateOne {
-	if i != nil {
-		eduo.SetRelatedMiddlewareID(*i)
+// SetNillableLongName sets the "long_name" field if the given value is not nil.
+func (eduo *ExceptionDefinitionUpdateOne) SetNillableLongName(s *string) *ExceptionDefinitionUpdateOne {
+	if s != nil {
+		eduo.SetLongName(*s)
 	}
-	return eduo
-}
-
-// AddRelatedMiddlewareID adds i to the "related_middleware_id" field.
-func (eduo *ExceptionDefinitionUpdateOne) AddRelatedMiddlewareID(i int64) *ExceptionDefinitionUpdateOne {
-	eduo.mutation.AddRelatedMiddlewareID(i)
-	return eduo
-}
-
-// ClearRelatedMiddlewareID clears the value of the "related_middleware_id" field.
-func (eduo *ExceptionDefinitionUpdateOne) ClearRelatedMiddlewareID() *ExceptionDefinitionUpdateOne {
-	eduo.mutation.ClearRelatedMiddlewareID()
-	return eduo
-}
-
-// SetRelatedMiddlewareConditions sets the "related_middleware_conditions" field.
-func (eduo *ExceptionDefinitionUpdateOne) SetRelatedMiddlewareConditions(sdc []schema.ExceptionDefinitionCondition) *ExceptionDefinitionUpdateOne {
-	eduo.mutation.SetRelatedMiddlewareConditions(sdc)
-	return eduo
-}
-
-// AppendRelatedMiddlewareConditions appends sdc to the "related_middleware_conditions" field.
-func (eduo *ExceptionDefinitionUpdateOne) AppendRelatedMiddlewareConditions(sdc []schema.ExceptionDefinitionCondition) *ExceptionDefinitionUpdateOne {
-	eduo.mutation.AppendRelatedMiddlewareConditions(sdc)
-	return eduo
-}
-
-// ClearRelatedMiddlewareConditions clears the value of the "related_middleware_conditions" field.
-func (eduo *ExceptionDefinitionUpdateOne) ClearRelatedMiddlewareConditions() *ExceptionDefinitionUpdateOne {
-	eduo.mutation.ClearRelatedMiddlewareConditions()
 	return eduo
 }
 
@@ -514,26 +450,6 @@ func (eduo *ExceptionDefinitionUpdateOne) sqlSave(ctx context.Context) (_node *E
 	}
 	if value, ok := eduo.mutation.LongName(); ok {
 		_spec.SetField(exceptiondefinition.FieldLongName, field.TypeString, value)
-	}
-	if value, ok := eduo.mutation.RelatedMiddlewareID(); ok {
-		_spec.SetField(exceptiondefinition.FieldRelatedMiddlewareID, field.TypeInt64, value)
-	}
-	if value, ok := eduo.mutation.AddedRelatedMiddlewareID(); ok {
-		_spec.AddField(exceptiondefinition.FieldRelatedMiddlewareID, field.TypeInt64, value)
-	}
-	if eduo.mutation.RelatedMiddlewareIDCleared() {
-		_spec.ClearField(exceptiondefinition.FieldRelatedMiddlewareID, field.TypeInt64)
-	}
-	if value, ok := eduo.mutation.RelatedMiddlewareConditions(); ok {
-		_spec.SetField(exceptiondefinition.FieldRelatedMiddlewareConditions, field.TypeJSON, value)
-	}
-	if value, ok := eduo.mutation.AppendedRelatedMiddlewareConditions(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, exceptiondefinition.FieldRelatedMiddlewareConditions, value)
-		})
-	}
-	if eduo.mutation.RelatedMiddlewareConditionsCleared() {
-		_spec.ClearField(exceptiondefinition.FieldRelatedMiddlewareConditions, field.TypeJSON)
 	}
 	if value, ok := eduo.mutation.IsValid(); ok {
 		_spec.SetField(exceptiondefinition.FieldIsValid, field.TypeInt, value)

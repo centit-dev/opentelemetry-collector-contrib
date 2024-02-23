@@ -28,8 +28,6 @@ var (
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "short_name", Type: field.TypeString, Size: 100},
 		{Name: "long_name", Type: field.TypeString, Size: 2147483647},
-		{Name: "related_middleware_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "related_middleware_conditions", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_valid", Type: field.TypeInt, Default: 1},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
@@ -43,7 +41,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "tb_exception_define_tb_exception_category_exception_definitions",
-				Columns:    []*schema.Column{TbExceptionDefineColumns[8]},
+				Columns:    []*schema.Column{TbExceptionDefineColumns[6]},
 				RefColumns: []*schema.Column{TbExceptionCategoryColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

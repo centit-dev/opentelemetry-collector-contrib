@@ -77,15 +77,15 @@ func init() {
 	// exceptiondefinition.LongNameValidator is a validator for the "long_name" field. It is called by the builders before save.
 	exceptiondefinition.LongNameValidator = exceptiondefinitionDescLongName.Validators[0].(func(string) error)
 	// exceptiondefinitionDescIsValid is the schema descriptor for is_valid field.
-	exceptiondefinitionDescIsValid := exceptiondefinitionFields[6].Descriptor()
+	exceptiondefinitionDescIsValid := exceptiondefinitionFields[4].Descriptor()
 	// exceptiondefinition.DefaultIsValid holds the default value on creation for the is_valid field.
 	exceptiondefinition.DefaultIsValid = exceptiondefinitionDescIsValid.Default.(int)
 	// exceptiondefinitionDescCreateTime is the schema descriptor for create_time field.
-	exceptiondefinitionDescCreateTime := exceptiondefinitionFields[7].Descriptor()
+	exceptiondefinitionDescCreateTime := exceptiondefinitionFields[5].Descriptor()
 	// exceptiondefinition.DefaultCreateTime holds the default value on creation for the create_time field.
 	exceptiondefinition.DefaultCreateTime = exceptiondefinitionDescCreateTime.Default.(func() time.Time)
 	// exceptiondefinitionDescUpdateTime is the schema descriptor for update_time field.
-	exceptiondefinitionDescUpdateTime := exceptiondefinitionFields[8].Descriptor()
+	exceptiondefinitionDescUpdateTime := exceptiondefinitionFields[6].Descriptor()
 	// exceptiondefinition.DefaultUpdateTime holds the default value on creation for the update_time field.
 	exceptiondefinition.DefaultUpdateTime = exceptiondefinitionDescUpdateTime.Default.(func() time.Time)
 	// exceptiondefinitionDescID is the schema descriptor for id field.

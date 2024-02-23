@@ -35,6 +35,14 @@ func (ecu *ExceptionCategoryUpdate) SetName(s string) *ExceptionCategoryUpdate {
 	return ecu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (ecu *ExceptionCategoryUpdate) SetNillableName(s *string) *ExceptionCategoryUpdate {
+	if s != nil {
+		ecu.SetName(*s)
+	}
+	return ecu
+}
+
 // SetIsValid sets the "is_valid" field.
 func (ecu *ExceptionCategoryUpdate) SetIsValid(i int) *ExceptionCategoryUpdate {
 	ecu.mutation.ResetIsValid()
@@ -241,6 +249,14 @@ type ExceptionCategoryUpdateOne struct {
 // SetName sets the "name" field.
 func (ecuo *ExceptionCategoryUpdateOne) SetName(s string) *ExceptionCategoryUpdateOne {
 	ecuo.mutation.SetName(s)
+	return ecuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (ecuo *ExceptionCategoryUpdateOne) SetNillableName(s *string) *ExceptionCategoryUpdateOne {
+	if s != nil {
+		ecuo.SetName(*s)
+	}
 	return ecuo
 }
 

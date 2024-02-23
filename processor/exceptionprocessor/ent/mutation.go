@@ -14,7 +14,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/exceptioncategory"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/exceptiondefinition"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/predicate"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/schema"
 )
 
 const (
@@ -656,25 +655,21 @@ func (m *ExceptionCategoryMutation) ResetEdge(name string) error {
 // ExceptionDefinitionMutation represents an operation that mutates the ExceptionDefinition nodes in the graph.
 type ExceptionDefinitionMutation struct {
 	config
-	op                                  Op
-	typ                                 string
-	id                                  *int64
-	short_name                          *string
-	long_name                           *string
-	related_middleware_id               *int64
-	addrelated_middleware_id            *int64
-	related_middleware_conditions       *[]schema.ExceptionDefinitionCondition
-	appendrelated_middleware_conditions []schema.ExceptionDefinitionCondition
-	is_valid                            *int
-	addis_valid                         *int
-	create_time                         *time.Time
-	update_time                         *time.Time
-	clearedFields                       map[string]struct{}
-	exception_category                  *int64
-	clearedexception_category           bool
-	done                                bool
-	oldValue                            func(context.Context) (*ExceptionDefinition, error)
-	predicates                          []predicate.ExceptionDefinition
+	op                        Op
+	typ                       string
+	id                        *int64
+	short_name                *string
+	long_name                 *string
+	is_valid                  *int
+	addis_valid               *int
+	create_time               *time.Time
+	update_time               *time.Time
+	clearedFields             map[string]struct{}
+	exception_category        *int64
+	clearedexception_category bool
+	done                      bool
+	oldValue                  func(context.Context) (*ExceptionDefinition, error)
+	predicates                []predicate.ExceptionDefinition
 }
 
 var _ ent.Mutation = (*ExceptionDefinitionMutation)(nil)
@@ -889,141 +884,6 @@ func (m *ExceptionDefinitionMutation) ResetLongName() {
 	m.long_name = nil
 }
 
-// SetRelatedMiddlewareID sets the "related_middleware_id" field.
-func (m *ExceptionDefinitionMutation) SetRelatedMiddlewareID(i int64) {
-	m.related_middleware_id = &i
-	m.addrelated_middleware_id = nil
-}
-
-// RelatedMiddlewareID returns the value of the "related_middleware_id" field in the mutation.
-func (m *ExceptionDefinitionMutation) RelatedMiddlewareID() (r int64, exists bool) {
-	v := m.related_middleware_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRelatedMiddlewareID returns the old "related_middleware_id" field's value of the ExceptionDefinition entity.
-// If the ExceptionDefinition object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ExceptionDefinitionMutation) OldRelatedMiddlewareID(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRelatedMiddlewareID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRelatedMiddlewareID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRelatedMiddlewareID: %w", err)
-	}
-	return oldValue.RelatedMiddlewareID, nil
-}
-
-// AddRelatedMiddlewareID adds i to the "related_middleware_id" field.
-func (m *ExceptionDefinitionMutation) AddRelatedMiddlewareID(i int64) {
-	if m.addrelated_middleware_id != nil {
-		*m.addrelated_middleware_id += i
-	} else {
-		m.addrelated_middleware_id = &i
-	}
-}
-
-// AddedRelatedMiddlewareID returns the value that was added to the "related_middleware_id" field in this mutation.
-func (m *ExceptionDefinitionMutation) AddedRelatedMiddlewareID() (r int64, exists bool) {
-	v := m.addrelated_middleware_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearRelatedMiddlewareID clears the value of the "related_middleware_id" field.
-func (m *ExceptionDefinitionMutation) ClearRelatedMiddlewareID() {
-	m.related_middleware_id = nil
-	m.addrelated_middleware_id = nil
-	m.clearedFields[exceptiondefinition.FieldRelatedMiddlewareID] = struct{}{}
-}
-
-// RelatedMiddlewareIDCleared returns if the "related_middleware_id" field was cleared in this mutation.
-func (m *ExceptionDefinitionMutation) RelatedMiddlewareIDCleared() bool {
-	_, ok := m.clearedFields[exceptiondefinition.FieldRelatedMiddlewareID]
-	return ok
-}
-
-// ResetRelatedMiddlewareID resets all changes to the "related_middleware_id" field.
-func (m *ExceptionDefinitionMutation) ResetRelatedMiddlewareID() {
-	m.related_middleware_id = nil
-	m.addrelated_middleware_id = nil
-	delete(m.clearedFields, exceptiondefinition.FieldRelatedMiddlewareID)
-}
-
-// SetRelatedMiddlewareConditions sets the "related_middleware_conditions" field.
-func (m *ExceptionDefinitionMutation) SetRelatedMiddlewareConditions(sdc []schema.ExceptionDefinitionCondition) {
-	m.related_middleware_conditions = &sdc
-	m.appendrelated_middleware_conditions = nil
-}
-
-// RelatedMiddlewareConditions returns the value of the "related_middleware_conditions" field in the mutation.
-func (m *ExceptionDefinitionMutation) RelatedMiddlewareConditions() (r []schema.ExceptionDefinitionCondition, exists bool) {
-	v := m.related_middleware_conditions
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRelatedMiddlewareConditions returns the old "related_middleware_conditions" field's value of the ExceptionDefinition entity.
-// If the ExceptionDefinition object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ExceptionDefinitionMutation) OldRelatedMiddlewareConditions(ctx context.Context) (v []schema.ExceptionDefinitionCondition, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRelatedMiddlewareConditions is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRelatedMiddlewareConditions requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRelatedMiddlewareConditions: %w", err)
-	}
-	return oldValue.RelatedMiddlewareConditions, nil
-}
-
-// AppendRelatedMiddlewareConditions adds sdc to the "related_middleware_conditions" field.
-func (m *ExceptionDefinitionMutation) AppendRelatedMiddlewareConditions(sdc []schema.ExceptionDefinitionCondition) {
-	m.appendrelated_middleware_conditions = append(m.appendrelated_middleware_conditions, sdc...)
-}
-
-// AppendedRelatedMiddlewareConditions returns the list of values that were appended to the "related_middleware_conditions" field in this mutation.
-func (m *ExceptionDefinitionMutation) AppendedRelatedMiddlewareConditions() ([]schema.ExceptionDefinitionCondition, bool) {
-	if len(m.appendrelated_middleware_conditions) == 0 {
-		return nil, false
-	}
-	return m.appendrelated_middleware_conditions, true
-}
-
-// ClearRelatedMiddlewareConditions clears the value of the "related_middleware_conditions" field.
-func (m *ExceptionDefinitionMutation) ClearRelatedMiddlewareConditions() {
-	m.related_middleware_conditions = nil
-	m.appendrelated_middleware_conditions = nil
-	m.clearedFields[exceptiondefinition.FieldRelatedMiddlewareConditions] = struct{}{}
-}
-
-// RelatedMiddlewareConditionsCleared returns if the "related_middleware_conditions" field was cleared in this mutation.
-func (m *ExceptionDefinitionMutation) RelatedMiddlewareConditionsCleared() bool {
-	_, ok := m.clearedFields[exceptiondefinition.FieldRelatedMiddlewareConditions]
-	return ok
-}
-
-// ResetRelatedMiddlewareConditions resets all changes to the "related_middleware_conditions" field.
-func (m *ExceptionDefinitionMutation) ResetRelatedMiddlewareConditions() {
-	m.related_middleware_conditions = nil
-	m.appendrelated_middleware_conditions = nil
-	delete(m.clearedFields, exceptiondefinition.FieldRelatedMiddlewareConditions)
-}
-
 // SetIsValid sets the "is_valid" field.
 func (m *ExceptionDefinitionMutation) SetIsValid(i int) {
 	m.is_valid = &i
@@ -1226,7 +1086,7 @@ func (m *ExceptionDefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ExceptionDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 6)
 	if m.exception_category != nil {
 		fields = append(fields, exceptiondefinition.FieldCategoryID)
 	}
@@ -1235,12 +1095,6 @@ func (m *ExceptionDefinitionMutation) Fields() []string {
 	}
 	if m.long_name != nil {
 		fields = append(fields, exceptiondefinition.FieldLongName)
-	}
-	if m.related_middleware_id != nil {
-		fields = append(fields, exceptiondefinition.FieldRelatedMiddlewareID)
-	}
-	if m.related_middleware_conditions != nil {
-		fields = append(fields, exceptiondefinition.FieldRelatedMiddlewareConditions)
 	}
 	if m.is_valid != nil {
 		fields = append(fields, exceptiondefinition.FieldIsValid)
@@ -1265,10 +1119,6 @@ func (m *ExceptionDefinitionMutation) Field(name string) (ent.Value, bool) {
 		return m.ShortName()
 	case exceptiondefinition.FieldLongName:
 		return m.LongName()
-	case exceptiondefinition.FieldRelatedMiddlewareID:
-		return m.RelatedMiddlewareID()
-	case exceptiondefinition.FieldRelatedMiddlewareConditions:
-		return m.RelatedMiddlewareConditions()
 	case exceptiondefinition.FieldIsValid:
 		return m.IsValid()
 	case exceptiondefinition.FieldCreateTime:
@@ -1290,10 +1140,6 @@ func (m *ExceptionDefinitionMutation) OldField(ctx context.Context, name string)
 		return m.OldShortName(ctx)
 	case exceptiondefinition.FieldLongName:
 		return m.OldLongName(ctx)
-	case exceptiondefinition.FieldRelatedMiddlewareID:
-		return m.OldRelatedMiddlewareID(ctx)
-	case exceptiondefinition.FieldRelatedMiddlewareConditions:
-		return m.OldRelatedMiddlewareConditions(ctx)
 	case exceptiondefinition.FieldIsValid:
 		return m.OldIsValid(ctx)
 	case exceptiondefinition.FieldCreateTime:
@@ -1330,20 +1176,6 @@ func (m *ExceptionDefinitionMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetLongName(v)
 		return nil
-	case exceptiondefinition.FieldRelatedMiddlewareID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRelatedMiddlewareID(v)
-		return nil
-	case exceptiondefinition.FieldRelatedMiddlewareConditions:
-		v, ok := value.([]schema.ExceptionDefinitionCondition)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRelatedMiddlewareConditions(v)
-		return nil
 	case exceptiondefinition.FieldIsValid:
 		v, ok := value.(int)
 		if !ok {
@@ -1373,9 +1205,6 @@ func (m *ExceptionDefinitionMutation) SetField(name string, value ent.Value) err
 // this mutation.
 func (m *ExceptionDefinitionMutation) AddedFields() []string {
 	var fields []string
-	if m.addrelated_middleware_id != nil {
-		fields = append(fields, exceptiondefinition.FieldRelatedMiddlewareID)
-	}
 	if m.addis_valid != nil {
 		fields = append(fields, exceptiondefinition.FieldIsValid)
 	}
@@ -1387,8 +1216,6 @@ func (m *ExceptionDefinitionMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *ExceptionDefinitionMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case exceptiondefinition.FieldRelatedMiddlewareID:
-		return m.AddedRelatedMiddlewareID()
 	case exceptiondefinition.FieldIsValid:
 		return m.AddedIsValid()
 	}
@@ -1400,13 +1227,6 @@ func (m *ExceptionDefinitionMutation) AddedField(name string) (ent.Value, bool) 
 // type.
 func (m *ExceptionDefinitionMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case exceptiondefinition.FieldRelatedMiddlewareID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRelatedMiddlewareID(v)
-		return nil
 	case exceptiondefinition.FieldIsValid:
 		v, ok := value.(int)
 		if !ok {
@@ -1421,14 +1241,7 @@ func (m *ExceptionDefinitionMutation) AddField(name string, value ent.Value) err
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ExceptionDefinitionMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(exceptiondefinition.FieldRelatedMiddlewareID) {
-		fields = append(fields, exceptiondefinition.FieldRelatedMiddlewareID)
-	}
-	if m.FieldCleared(exceptiondefinition.FieldRelatedMiddlewareConditions) {
-		fields = append(fields, exceptiondefinition.FieldRelatedMiddlewareConditions)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1441,14 +1254,6 @@ func (m *ExceptionDefinitionMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ExceptionDefinitionMutation) ClearField(name string) error {
-	switch name {
-	case exceptiondefinition.FieldRelatedMiddlewareID:
-		m.ClearRelatedMiddlewareID()
-		return nil
-	case exceptiondefinition.FieldRelatedMiddlewareConditions:
-		m.ClearRelatedMiddlewareConditions()
-		return nil
-	}
 	return fmt.Errorf("unknown ExceptionDefinition nullable field %s", name)
 }
 
@@ -1464,12 +1269,6 @@ func (m *ExceptionDefinitionMutation) ResetField(name string) error {
 		return nil
 	case exceptiondefinition.FieldLongName:
 		m.ResetLongName()
-		return nil
-	case exceptiondefinition.FieldRelatedMiddlewareID:
-		m.ResetRelatedMiddlewareID()
-		return nil
-	case exceptiondefinition.FieldRelatedMiddlewareConditions:
-		m.ResetRelatedMiddlewareConditions()
 		return nil
 	case exceptiondefinition.FieldIsValid:
 		m.ResetIsValid()

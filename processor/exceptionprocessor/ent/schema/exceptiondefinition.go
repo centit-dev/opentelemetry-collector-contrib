@@ -28,8 +28,6 @@ func (ExceptionDefinition) Fields() []ent.Field {
 		field.Int64("category_id").Positive(),
 		field.String("short_name").MaxLen(100).NotEmpty(),
 		field.Text("long_name").NotEmpty(),
-		field.Int64("related_middleware_id").Optional(),
-		field.JSON("related_middleware_conditions", []ExceptionDefinitionCondition{}).Optional(),
 		field.Int("is_valid").Default(1),
 		field.Time("create_time").Immutable().Default(time.Now),
 		field.Time("update_time").Default(time.Now),

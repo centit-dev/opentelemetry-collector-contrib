@@ -20,10 +20,6 @@ const (
 	FieldShortName = "short_name"
 	// FieldLongName holds the string denoting the long_name field in the database.
 	FieldLongName = "long_name"
-	// FieldRelatedMiddlewareID holds the string denoting the related_middleware_id field in the database.
-	FieldRelatedMiddlewareID = "related_middleware_id"
-	// FieldRelatedMiddlewareConditions holds the string denoting the related_middleware_conditions field in the database.
-	FieldRelatedMiddlewareConditions = "related_middleware_conditions"
 	// FieldIsValid holds the string denoting the is_valid field in the database.
 	FieldIsValid = "is_valid"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
@@ -49,8 +45,6 @@ var Columns = []string{
 	FieldCategoryID,
 	FieldShortName,
 	FieldLongName,
-	FieldRelatedMiddlewareID,
-	FieldRelatedMiddlewareConditions,
 	FieldIsValid,
 	FieldCreateTime,
 	FieldUpdateTime,
@@ -104,11 +98,6 @@ func ByShortName(opts ...sql.OrderTermOption) OrderOption {
 // ByLongName orders the results by the long_name field.
 func ByLongName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLongName, opts...).ToFunc()
-}
-
-// ByRelatedMiddlewareID orders the results by the related_middleware_id field.
-func ByRelatedMiddlewareID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRelatedMiddlewareID, opts...).ToFunc()
 }
 
 // ByIsValid orders the results by the is_valid field.

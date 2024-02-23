@@ -70,11 +70,6 @@ func LongName(v string) predicate.ExceptionDefinition {
 	return predicate.ExceptionDefinition(sql.FieldEQ(FieldLongName, v))
 }
 
-// RelatedMiddlewareID applies equality check predicate on the "related_middleware_id" field. It's identical to RelatedMiddlewareIDEQ.
-func RelatedMiddlewareID(v int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldEQ(FieldRelatedMiddlewareID, v))
-}
-
 // IsValid applies equality check predicate on the "is_valid" field. It's identical to IsValidEQ.
 func IsValid(v int) predicate.ExceptionDefinition {
 	return predicate.ExceptionDefinition(sql.FieldEQ(FieldIsValid, v))
@@ -238,66 +233,6 @@ func LongNameEqualFold(v string) predicate.ExceptionDefinition {
 // LongNameContainsFold applies the ContainsFold predicate on the "long_name" field.
 func LongNameContainsFold(v string) predicate.ExceptionDefinition {
 	return predicate.ExceptionDefinition(sql.FieldContainsFold(FieldLongName, v))
-}
-
-// RelatedMiddlewareIDEQ applies the EQ predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDEQ(v int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldEQ(FieldRelatedMiddlewareID, v))
-}
-
-// RelatedMiddlewareIDNEQ applies the NEQ predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDNEQ(v int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldNEQ(FieldRelatedMiddlewareID, v))
-}
-
-// RelatedMiddlewareIDIn applies the In predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDIn(vs ...int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldIn(FieldRelatedMiddlewareID, vs...))
-}
-
-// RelatedMiddlewareIDNotIn applies the NotIn predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDNotIn(vs ...int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldNotIn(FieldRelatedMiddlewareID, vs...))
-}
-
-// RelatedMiddlewareIDGT applies the GT predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDGT(v int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldGT(FieldRelatedMiddlewareID, v))
-}
-
-// RelatedMiddlewareIDGTE applies the GTE predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDGTE(v int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldGTE(FieldRelatedMiddlewareID, v))
-}
-
-// RelatedMiddlewareIDLT applies the LT predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDLT(v int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldLT(FieldRelatedMiddlewareID, v))
-}
-
-// RelatedMiddlewareIDLTE applies the LTE predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDLTE(v int64) predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldLTE(FieldRelatedMiddlewareID, v))
-}
-
-// RelatedMiddlewareIDIsNil applies the IsNil predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDIsNil() predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldIsNull(FieldRelatedMiddlewareID))
-}
-
-// RelatedMiddlewareIDNotNil applies the NotNil predicate on the "related_middleware_id" field.
-func RelatedMiddlewareIDNotNil() predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldNotNull(FieldRelatedMiddlewareID))
-}
-
-// RelatedMiddlewareConditionsIsNil applies the IsNil predicate on the "related_middleware_conditions" field.
-func RelatedMiddlewareConditionsIsNil() predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldIsNull(FieldRelatedMiddlewareConditions))
-}
-
-// RelatedMiddlewareConditionsNotNil applies the NotNil predicate on the "related_middleware_conditions" field.
-func RelatedMiddlewareConditionsNotNil() predicate.ExceptionDefinition {
-	return predicate.ExceptionDefinition(sql.FieldNotNull(FieldRelatedMiddlewareConditions))
 }
 
 // IsValidEQ applies the EQ predicate on the "is_valid" field.

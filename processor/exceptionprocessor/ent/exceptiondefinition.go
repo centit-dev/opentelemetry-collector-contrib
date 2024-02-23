@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/exceptioncategory"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/exceptiondefinition"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/exceptionprocessor/ent/schema"
 )
 
 // ExceptionDefinition is the model entity for the ExceptionDefinition schema.
@@ -26,10 +24,6 @@ type ExceptionDefinition struct {
 	ShortName string `json:"short_name,omitempty"`
 	// LongName holds the value of the "long_name" field.
 	LongName string `json:"long_name,omitempty"`
-	// RelatedMiddlewareID holds the value of the "related_middleware_id" field.
-	RelatedMiddlewareID int64 `json:"related_middleware_id,omitempty"`
-	// RelatedMiddlewareConditions holds the value of the "related_middleware_conditions" field.
-	RelatedMiddlewareConditions []schema.ExceptionDefinitionCondition `json:"related_middleware_conditions,omitempty"`
 	// IsValid holds the value of the "is_valid" field.
 	IsValid int `json:"is_valid,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
@@ -69,9 +63,7 @@ func (*ExceptionDefinition) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case exceptiondefinition.FieldRelatedMiddlewareConditions:
-			values[i] = new([]byte)
-		case exceptiondefinition.FieldID, exceptiondefinition.FieldCategoryID, exceptiondefinition.FieldRelatedMiddlewareID, exceptiondefinition.FieldIsValid:
+		case exceptiondefinition.FieldID, exceptiondefinition.FieldCategoryID, exceptiondefinition.FieldIsValid:
 			values[i] = new(sql.NullInt64)
 		case exceptiondefinition.FieldShortName, exceptiondefinition.FieldLongName:
 			values[i] = new(sql.NullString)
@@ -115,20 +107,6 @@ func (ed *ExceptionDefinition) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field long_name", values[i])
 			} else if value.Valid {
 				ed.LongName = value.String
-			}
-		case exceptiondefinition.FieldRelatedMiddlewareID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field related_middleware_id", values[i])
-			} else if value.Valid {
-				ed.RelatedMiddlewareID = value.Int64
-			}
-		case exceptiondefinition.FieldRelatedMiddlewareConditions:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field related_middleware_conditions", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &ed.RelatedMiddlewareConditions); err != nil {
-					return fmt.Errorf("unmarshal field related_middleware_conditions: %w", err)
-				}
 			}
 		case exceptiondefinition.FieldIsValid:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -197,12 +175,6 @@ func (ed *ExceptionDefinition) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("long_name=")
 	builder.WriteString(ed.LongName)
-	builder.WriteString(", ")
-	builder.WriteString("related_middleware_id=")
-	builder.WriteString(fmt.Sprintf("%v", ed.RelatedMiddlewareID))
-	builder.WriteString(", ")
-	builder.WriteString("related_middleware_conditions=")
-	builder.WriteString(fmt.Sprintf("%v", ed.RelatedMiddlewareConditions))
 	builder.WriteString(", ")
 	builder.WriteString("is_valid=")
 	builder.WriteString(fmt.Sprintf("%v", ed.IsValid))
