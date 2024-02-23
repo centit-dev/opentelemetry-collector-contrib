@@ -17,7 +17,9 @@ type softwareType int16
 const (
 	serverSoftware = "server.software"
 	appType        = "application.type"
+)
 
+const (
 	typeApplication softwareType = iota
 	typeClient
 )
@@ -117,18 +119,17 @@ func (service *AppTypeService) processSpan(resources *pcommon.Map, scope *pcommo
 }
 
 func (service *AppTypeService) setAttributes(attributes *pcommon.Map, groups []string) {
-	if len(groups) == 0 {
-		return
-	}
-	record, ok := service.records[groups[0]]
-	if !ok {
-		return
-	}
-	switch record.Type {
-	case int16(typeApplication):
-		attributes.PutStr(appType, record.Name)
-	case int16(typeClient):
-		attributes.PutStr(serverSoftware, record.Name)
+	for _, group := range groups {
+		record, ok := service.records[group]
+		if !ok {
+			continue
+		}
+		switch record.Type {
+		case int16(typeApplication):
+			attributes.PutStr(appType, record.Name)
+		case int16(typeClient):
+			attributes.PutStr(serverSoftware, record.Name)
+		}
 	}
 }
 
