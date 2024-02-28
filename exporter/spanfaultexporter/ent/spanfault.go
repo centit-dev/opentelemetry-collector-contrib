@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/schema"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/spanfault"
 )
 
@@ -40,8 +41,12 @@ type SpanFault struct {
 	// SpanName holds the value of the "SpanName" field.
 	SpanName string `json:"SpanName,omitempty"`
 	// FaultKind holds the value of the "FaultKind" field.
-	FaultKind    string `json:"FaultKind,omitempty"`
-	selectValues sql.SelectValues
+	FaultKind string `json:"FaultKind,omitempty"`
+	// ResourceAttributes holds the value of the "ResourceAttributes" field.
+	ResourceAttributes *schema.Attributes `json:"ResourceAttributes,omitempty"`
+	// SpanAttributes holds the value of the "SpanAttributes" field.
+	SpanAttributes *schema.Attributes `json:"SpanAttributes,omitempty"`
+	selectValues   sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -49,6 +54,8 @@ func (*SpanFault) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case spanfault.FieldResourceAttributes, spanfault.FieldSpanAttributes:
+			values[i] = new(schema.Attributes)
 		case spanfault.FieldRootDuration:
 			values[i] = new(sql.NullInt64)
 		case spanfault.FieldID, spanfault.FieldPlatformName, spanfault.FieldAppCluster, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldParentSpanId, spanfault.FieldSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldFaultKind:
@@ -148,6 +155,18 @@ func (sf *SpanFault) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sf.FaultKind = value.String
 			}
+		case spanfault.FieldResourceAttributes:
+			if value, ok := values[i].(*schema.Attributes); !ok {
+				return fmt.Errorf("unexpected type %T for field ResourceAttributes", values[i])
+			} else if value != nil {
+				sf.ResourceAttributes = value
+			}
+		case spanfault.FieldSpanAttributes:
+			if value, ok := values[i].(*schema.Attributes); !ok {
+				return fmt.Errorf("unexpected type %T for field SpanAttributes", values[i])
+			} else if value != nil {
+				sf.SpanAttributes = value
+			}
 		default:
 			sf.selectValues.Set(columns[i], values[i])
 		}
@@ -219,6 +238,12 @@ func (sf *SpanFault) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("FaultKind=")
 	builder.WriteString(sf.FaultKind)
+	builder.WriteString(", ")
+	builder.WriteString("ResourceAttributes=")
+	builder.WriteString(fmt.Sprintf("%v", sf.ResourceAttributes))
+	builder.WriteString(", ")
+	builder.WriteString("SpanAttributes=")
+	builder.WriteString(fmt.Sprintf("%v", sf.SpanAttributes))
 	builder.WriteByte(')')
 	return builder.String()
 }

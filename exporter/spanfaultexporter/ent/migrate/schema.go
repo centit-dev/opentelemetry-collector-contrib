@@ -24,6 +24,8 @@ var (
 		{Name: "ServiceName", Type: field.TypeString},
 		{Name: "SpanName", Type: field.TypeString},
 		{Name: "FaultKind", Type: field.TypeString},
+		{Name: "ResourceAttributes", Type: field.TypeOther, SchemaType: map[string]string{"clickhouse": "Map(String, String)"}},
+		{Name: "SpanAttributes", Type: field.TypeOther, SchemaType: map[string]string{"clickhouse": "Map(String, String)"}},
 	}
 	// OtelTraceFaultsTable holds the schema information for the "otel_trace_faults" table.
 	OtelTraceFaultsTable = &schema.Table{

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/predicate"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/schema"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/spanfault"
 )
 
@@ -209,6 +210,18 @@ func (sfu *SpanFaultUpdate) SetNillableFaultKind(s *string) *SpanFaultUpdate {
 	return sfu
 }
 
+// SetResourceAttributes sets the "ResourceAttributes" field.
+func (sfu *SpanFaultUpdate) SetResourceAttributes(s *schema.Attributes) *SpanFaultUpdate {
+	sfu.mutation.SetResourceAttributes(s)
+	return sfu
+}
+
+// SetSpanAttributes sets the "SpanAttributes" field.
+func (sfu *SpanFaultUpdate) SetSpanAttributes(s *schema.Attributes) *SpanFaultUpdate {
+	sfu.mutation.SetSpanAttributes(s)
+	return sfu
+}
+
 // Mutation returns the SpanFaultMutation object of the builder.
 func (sfu *SpanFaultUpdate) Mutation() *SpanFaultMutation {
 	return sfu.mutation
@@ -291,6 +304,12 @@ func (sfu *SpanFaultUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := sfu.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
+	}
+	if value, ok := sfu.mutation.ResourceAttributes(); ok {
+		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)
+	}
+	if value, ok := sfu.mutation.SpanAttributes(); ok {
+		_spec.SetField(spanfault.FieldSpanAttributes, field.TypeOther, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, sfu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -493,6 +512,18 @@ func (sfuo *SpanFaultUpdateOne) SetNillableFaultKind(s *string) *SpanFaultUpdate
 	return sfuo
 }
 
+// SetResourceAttributes sets the "ResourceAttributes" field.
+func (sfuo *SpanFaultUpdateOne) SetResourceAttributes(s *schema.Attributes) *SpanFaultUpdateOne {
+	sfuo.mutation.SetResourceAttributes(s)
+	return sfuo
+}
+
+// SetSpanAttributes sets the "SpanAttributes" field.
+func (sfuo *SpanFaultUpdateOne) SetSpanAttributes(s *schema.Attributes) *SpanFaultUpdateOne {
+	sfuo.mutation.SetSpanAttributes(s)
+	return sfuo
+}
+
 // Mutation returns the SpanFaultMutation object of the builder.
 func (sfuo *SpanFaultUpdateOne) Mutation() *SpanFaultMutation {
 	return sfuo.mutation
@@ -605,6 +636,12 @@ func (sfuo *SpanFaultUpdateOne) sqlSave(ctx context.Context) (_node *SpanFault, 
 	}
 	if value, ok := sfuo.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
+	}
+	if value, ok := sfuo.mutation.ResourceAttributes(); ok {
+		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)
+	}
+	if value, ok := sfuo.mutation.SpanAttributes(); ok {
+		_spec.SetField(spanfault.FieldSpanAttributes, field.TypeOther, value)
 	}
 	_node = &SpanFault{config: sfuo.config}
 	_spec.Assign = _node.assignValues

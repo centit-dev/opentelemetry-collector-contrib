@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/predicate"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/schema"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/spanfault"
 )
 
@@ -30,26 +31,28 @@ const (
 // SpanFaultMutation represents an operation that mutates the SpanFault nodes in the graph.
 type SpanFaultMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *string
-	_Timestamp       *time.Time
-	_PlatformName    *string
-	_AppCluster      *string
-	_InstanceName    *string
-	_RootServiceName *string
-	_RootSpanName    *string
-	_RootDuration    *int64
-	add_RootDuration *int64
-	_ParentSpanId    *string
-	_SpanId          *string
-	_ServiceName     *string
-	_SpanName        *string
-	_FaultKind       *string
-	clearedFields    map[string]struct{}
-	done             bool
-	oldValue         func(context.Context) (*SpanFault, error)
-	predicates       []predicate.SpanFault
+	op                  Op
+	typ                 string
+	id                  *string
+	_Timestamp          *time.Time
+	_PlatformName       *string
+	_AppCluster         *string
+	_InstanceName       *string
+	_RootServiceName    *string
+	_RootSpanName       *string
+	_RootDuration       *int64
+	add_RootDuration    *int64
+	_ParentSpanId       *string
+	_SpanId             *string
+	_ServiceName        *string
+	_SpanName           *string
+	_FaultKind          *string
+	_ResourceAttributes **schema.Attributes
+	_SpanAttributes     **schema.Attributes
+	clearedFields       map[string]struct{}
+	done                bool
+	oldValue            func(context.Context) (*SpanFault, error)
+	predicates          []predicate.SpanFault
 }
 
 var _ ent.Mutation = (*SpanFaultMutation)(nil)
@@ -621,6 +624,78 @@ func (m *SpanFaultMutation) ResetFaultKind() {
 	m._FaultKind = nil
 }
 
+// SetResourceAttributes sets the "ResourceAttributes" field.
+func (m *SpanFaultMutation) SetResourceAttributes(s *schema.Attributes) {
+	m._ResourceAttributes = &s
+}
+
+// ResourceAttributes returns the value of the "ResourceAttributes" field in the mutation.
+func (m *SpanFaultMutation) ResourceAttributes() (r *schema.Attributes, exists bool) {
+	v := m._ResourceAttributes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResourceAttributes returns the old "ResourceAttributes" field's value of the SpanFault entity.
+// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SpanFaultMutation) OldResourceAttributes(ctx context.Context) (v *schema.Attributes, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResourceAttributes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResourceAttributes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResourceAttributes: %w", err)
+	}
+	return oldValue.ResourceAttributes, nil
+}
+
+// ResetResourceAttributes resets all changes to the "ResourceAttributes" field.
+func (m *SpanFaultMutation) ResetResourceAttributes() {
+	m._ResourceAttributes = nil
+}
+
+// SetSpanAttributes sets the "SpanAttributes" field.
+func (m *SpanFaultMutation) SetSpanAttributes(s *schema.Attributes) {
+	m._SpanAttributes = &s
+}
+
+// SpanAttributes returns the value of the "SpanAttributes" field in the mutation.
+func (m *SpanFaultMutation) SpanAttributes() (r *schema.Attributes, exists bool) {
+	v := m._SpanAttributes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpanAttributes returns the old "SpanAttributes" field's value of the SpanFault entity.
+// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SpanFaultMutation) OldSpanAttributes(ctx context.Context) (v *schema.Attributes, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpanAttributes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpanAttributes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpanAttributes: %w", err)
+	}
+	return oldValue.SpanAttributes, nil
+}
+
+// ResetSpanAttributes resets all changes to the "SpanAttributes" field.
+func (m *SpanFaultMutation) ResetSpanAttributes() {
+	m._SpanAttributes = nil
+}
+
 // Where appends a list predicates to the SpanFaultMutation builder.
 func (m *SpanFaultMutation) Where(ps ...predicate.SpanFault) {
 	m.predicates = append(m.predicates, ps...)
@@ -655,7 +730,7 @@ func (m *SpanFaultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SpanFaultMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 14)
 	if m._Timestamp != nil {
 		fields = append(fields, spanfault.FieldTimestamp)
 	}
@@ -692,6 +767,12 @@ func (m *SpanFaultMutation) Fields() []string {
 	if m._FaultKind != nil {
 		fields = append(fields, spanfault.FieldFaultKind)
 	}
+	if m._ResourceAttributes != nil {
+		fields = append(fields, spanfault.FieldResourceAttributes)
+	}
+	if m._SpanAttributes != nil {
+		fields = append(fields, spanfault.FieldSpanAttributes)
+	}
 	return fields
 }
 
@@ -724,6 +805,10 @@ func (m *SpanFaultMutation) Field(name string) (ent.Value, bool) {
 		return m.SpanName()
 	case spanfault.FieldFaultKind:
 		return m.FaultKind()
+	case spanfault.FieldResourceAttributes:
+		return m.ResourceAttributes()
+	case spanfault.FieldSpanAttributes:
+		return m.SpanAttributes()
 	}
 	return nil, false
 }
@@ -757,6 +842,10 @@ func (m *SpanFaultMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSpanName(ctx)
 	case spanfault.FieldFaultKind:
 		return m.OldFaultKind(ctx)
+	case spanfault.FieldResourceAttributes:
+		return m.OldResourceAttributes(ctx)
+	case spanfault.FieldSpanAttributes:
+		return m.OldSpanAttributes(ctx)
 	}
 	return nil, fmt.Errorf("unknown SpanFault field %s", name)
 }
@@ -849,6 +938,20 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFaultKind(v)
+		return nil
+	case spanfault.FieldResourceAttributes:
+		v, ok := value.(*schema.Attributes)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResourceAttributes(v)
+		return nil
+	case spanfault.FieldSpanAttributes:
+		v, ok := value.(*schema.Attributes)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpanAttributes(v)
 		return nil
 	}
 	return fmt.Errorf("unknown SpanFault field %s", name)
@@ -958,6 +1061,12 @@ func (m *SpanFaultMutation) ResetField(name string) error {
 		return nil
 	case spanfault.FieldFaultKind:
 		m.ResetFaultKind()
+		return nil
+	case spanfault.FieldResourceAttributes:
+		m.ResetResourceAttributes()
+		return nil
+	case spanfault.FieldSpanAttributes:
+		m.ResetSpanAttributes()
 		return nil
 	}
 	return fmt.Errorf("unknown SpanFault field %s", name)

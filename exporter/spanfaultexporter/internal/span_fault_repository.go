@@ -2,10 +2,13 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/schema"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/spanfault"
 	"go.uber.org/zap"
 )
@@ -31,13 +34,15 @@ func (repo *SpanFaultRepositoryImpl) SaveAll(ctx context.Context, creates []*ent
 			"(%s, %s, "+
 			"%s, %s, %s, "+
 			"%s, %s, %s, "+
-			"%s, %s, %s, %s, %s) "+
+			"%s, %s, %s, %s, %s, "+
+			"%s, %s) "+
 			"VALUES %s",
 		spanfault.Table,
 		spanfault.FieldTimestamp, spanfault.FieldID,
 		spanfault.FieldPlatformName, spanfault.FieldAppCluster, spanfault.FieldInstanceName,
 		spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldRootDuration,
 		spanfault.FieldParentSpanId, spanfault.FieldSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldFaultKind,
+		spanfault.FieldResourceAttributes, spanfault.FieldSpanAttributes,
 		values,
 	)
 	_, err := repo.client.driver.ExecContext(ctx, query)
@@ -56,11 +61,13 @@ func (repo *SpanFaultRepositoryImpl) buildValues(entities ...*ent.SpanFault) str
 			"('%s.%d', '%s', "+
 				"'%s', '%s', '%s', "+
 				"'%s', '%s', %v, "+
-				"'%s', '%s', '%s', '%s', '%s')",
+				"'%s', '%s', '%s', '%s', '%s', "+
+				"%v, %v)",
 			date, nanoseconds, entity.ID,
 			entity.PlatformName, entity.AppCluster, entity.InstanceName,
 			entity.RootServiceName, entity.RootSpanName, entity.RootDuration,
 			entity.ParentSpanId, entity.SpanId, entity.ServiceName, entity.SpanName, entity.FaultKind,
+			formatMap(entity.ResourceAttributes), formatMap(entity.SpanAttributes),
 		)
 	}
 	return values
@@ -68,4 +75,16 @@ func (repo *SpanFaultRepositoryImpl) buildValues(entities ...*ent.SpanFault) str
 
 func (repo *SpanFaultRepositoryImpl) Shutdown(ctx context.Context) error {
 	return repo.client.delegate.Close()
+}
+
+func formatMap(attributes *schema.Attributes) string {
+	if attributes == nil {
+		return ""
+	}
+	data, _ := attributes.Value()
+	bytes, _ := json.Marshal(data)
+	value := string(bytes)
+	value = strings.ReplaceAll(value, "'", "\\'")
+	value = strings.ReplaceAll(value, "\"", "'")
+	return value
 }

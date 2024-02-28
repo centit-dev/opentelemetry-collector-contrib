@@ -1,11 +1,45 @@
 package schema
 
 import (
+	"database/sql/driver"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
+
+type Attributes struct {
+	value *map[string]string
+}
+
+func (attributes *Attributes) Add(key string, value string) {
+	if attributes.value == nil {
+		attributes.value = &map[string]string{}
+	}
+	(*attributes.value)[key] = value
+}
+
+func (attributes *Attributes) Get(key string) string {
+	if attributes.value == nil {
+		return ""
+	}
+	return (*attributes.value)[key]
+}
+
+func (attributes *Attributes) Value() (driver.Value, error) {
+	return attributes.value, nil
+}
+
+func (attributes *Attributes) Scan(src interface{}) error {
+	switch src := src.(type) {
+	case map[string]string:
+		attributes.value = &src
+		return nil
+	default:
+		return nil
+	}
+}
 
 // SpanFault holds the schema definition for the SpanFault entity.
 type SpanFault struct {
@@ -34,6 +68,16 @@ func (SpanFault) Fields() []ent.Field {
 		field.String("ServiceName").StorageKey("ServiceName"),
 		field.String("SpanName").StorageKey("SpanName"),
 		field.String("FaultKind").StorageKey("FaultKind"),
+		field.Other("ResourceAttributes", &Attributes{}).
+			SchemaType(map[string]string{
+				"clickhouse": "Map(String, String)",
+			}).
+			StorageKey("ResourceAttributes"),
+		field.Other("SpanAttributes", &Attributes{}).
+			SchemaType(map[string]string{
+				"clickhouse": "Map(String, String)",
+			}).
+			StorageKey("SpanAttributes"),
 	}
 }
 

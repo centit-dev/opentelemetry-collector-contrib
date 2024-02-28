@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/schema"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/spanfault"
 )
 
@@ -100,6 +101,18 @@ func (sfc *SpanFaultCreate) SetFaultKind(s string) *SpanFaultCreate {
 	return sfc
 }
 
+// SetResourceAttributes sets the "ResourceAttributes" field.
+func (sfc *SpanFaultCreate) SetResourceAttributes(s *schema.Attributes) *SpanFaultCreate {
+	sfc.mutation.SetResourceAttributes(s)
+	return sfc
+}
+
+// SetSpanAttributes sets the "SpanAttributes" field.
+func (sfc *SpanFaultCreate) SetSpanAttributes(s *schema.Attributes) *SpanFaultCreate {
+	sfc.mutation.SetSpanAttributes(s)
+	return sfc
+}
+
 // SetID sets the "id" field.
 func (sfc *SpanFaultCreate) SetID(s string) *SpanFaultCreate {
 	sfc.mutation.SetID(s)
@@ -172,6 +185,12 @@ func (sfc *SpanFaultCreate) check() error {
 	}
 	if _, ok := sfc.mutation.FaultKind(); !ok {
 		return &ValidationError{Name: "FaultKind", err: errors.New(`ent: missing required field "SpanFault.FaultKind"`)}
+	}
+	if _, ok := sfc.mutation.ResourceAttributes(); !ok {
+		return &ValidationError{Name: "ResourceAttributes", err: errors.New(`ent: missing required field "SpanFault.ResourceAttributes"`)}
+	}
+	if _, ok := sfc.mutation.SpanAttributes(); !ok {
+		return &ValidationError{Name: "SpanAttributes", err: errors.New(`ent: missing required field "SpanFault.SpanAttributes"`)}
 	}
 	return nil
 }
@@ -255,6 +274,14 @@ func (sfc *SpanFaultCreate) createSpec() (*SpanFault, *sqlgraph.CreateSpec) {
 	if value, ok := sfc.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
 		_node.FaultKind = value
+	}
+	if value, ok := sfc.mutation.ResourceAttributes(); ok {
+		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)
+		_node.ResourceAttributes = value
+	}
+	if value, ok := sfc.mutation.SpanAttributes(); ok {
+		_spec.SetField(spanfault.FieldSpanAttributes, field.TypeOther, value)
+		_node.SpanAttributes = value
 	}
 	return _node, _spec
 }

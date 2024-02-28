@@ -35,6 +35,10 @@ const (
 	FieldSpanName = "SpanName"
 	// FieldFaultKind holds the string denoting the faultkind field in the database.
 	FieldFaultKind = "FaultKind"
+	// FieldResourceAttributes holds the string denoting the resourceattributes field in the database.
+	FieldResourceAttributes = "ResourceAttributes"
+	// FieldSpanAttributes holds the string denoting the spanattributes field in the database.
+	FieldSpanAttributes = "SpanAttributes"
 	// Table holds the table name of the spanfault in the database.
 	Table = "otel_trace_faults"
 )
@@ -54,6 +58,8 @@ var Columns = []string{
 	FieldServiceName,
 	FieldSpanName,
 	FieldFaultKind,
+	FieldResourceAttributes,
+	FieldSpanAttributes,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -132,4 +138,14 @@ func BySpanName(opts ...sql.OrderTermOption) OrderOption {
 // ByFaultKind orders the results by the FaultKind field.
 func ByFaultKind(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFaultKind, opts...).ToFunc()
+}
+
+// ByResourceAttributes orders the results by the ResourceAttributes field.
+func ByResourceAttributes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResourceAttributes, opts...).ToFunc()
+}
+
+// BySpanAttributes orders the results by the SpanAttributes field.
+func BySpanAttributes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSpanAttributes, opts...).ToFunc()
 }

@@ -7,6 +7,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/predicate"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/spanfaultexporter/ent/schema"
 )
 
 // ID filters vertices based on their ID field.
@@ -122,6 +123,16 @@ func SpanName(v string) predicate.SpanFault {
 // FaultKind applies equality check predicate on the "FaultKind" field. It's identical to FaultKindEQ.
 func FaultKind(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldFaultKind, v))
+}
+
+// ResourceAttributes applies equality check predicate on the "ResourceAttributes" field. It's identical to ResourceAttributesEQ.
+func ResourceAttributes(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldResourceAttributes, v))
+}
+
+// SpanAttributes applies equality check predicate on the "SpanAttributes" field. It's identical to SpanAttributesEQ.
+func SpanAttributes(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldSpanAttributes, v))
 }
 
 // TimestampEQ applies the EQ predicate on the "Timestamp" field.
@@ -862,6 +873,86 @@ func FaultKindEqualFold(v string) predicate.SpanFault {
 // FaultKindContainsFold applies the ContainsFold predicate on the "FaultKind" field.
 func FaultKindContainsFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldContainsFold(FieldFaultKind, v))
+}
+
+// ResourceAttributesEQ applies the EQ predicate on the "ResourceAttributes" field.
+func ResourceAttributesEQ(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldResourceAttributes, v))
+}
+
+// ResourceAttributesNEQ applies the NEQ predicate on the "ResourceAttributes" field.
+func ResourceAttributesNEQ(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldResourceAttributes, v))
+}
+
+// ResourceAttributesIn applies the In predicate on the "ResourceAttributes" field.
+func ResourceAttributesIn(vs ...*schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldResourceAttributes, vs...))
+}
+
+// ResourceAttributesNotIn applies the NotIn predicate on the "ResourceAttributes" field.
+func ResourceAttributesNotIn(vs ...*schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldResourceAttributes, vs...))
+}
+
+// ResourceAttributesGT applies the GT predicate on the "ResourceAttributes" field.
+func ResourceAttributesGT(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldResourceAttributes, v))
+}
+
+// ResourceAttributesGTE applies the GTE predicate on the "ResourceAttributes" field.
+func ResourceAttributesGTE(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldResourceAttributes, v))
+}
+
+// ResourceAttributesLT applies the LT predicate on the "ResourceAttributes" field.
+func ResourceAttributesLT(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldResourceAttributes, v))
+}
+
+// ResourceAttributesLTE applies the LTE predicate on the "ResourceAttributes" field.
+func ResourceAttributesLTE(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldResourceAttributes, v))
+}
+
+// SpanAttributesEQ applies the EQ predicate on the "SpanAttributes" field.
+func SpanAttributesEQ(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldSpanAttributes, v))
+}
+
+// SpanAttributesNEQ applies the NEQ predicate on the "SpanAttributes" field.
+func SpanAttributesNEQ(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldSpanAttributes, v))
+}
+
+// SpanAttributesIn applies the In predicate on the "SpanAttributes" field.
+func SpanAttributesIn(vs ...*schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldSpanAttributes, vs...))
+}
+
+// SpanAttributesNotIn applies the NotIn predicate on the "SpanAttributes" field.
+func SpanAttributesNotIn(vs ...*schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldSpanAttributes, vs...))
+}
+
+// SpanAttributesGT applies the GT predicate on the "SpanAttributes" field.
+func SpanAttributesGT(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldSpanAttributes, v))
+}
+
+// SpanAttributesGTE applies the GTE predicate on the "SpanAttributes" field.
+func SpanAttributesGTE(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldSpanAttributes, v))
+}
+
+// SpanAttributesLT applies the LT predicate on the "SpanAttributes" field.
+func SpanAttributesLT(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldSpanAttributes, v))
+}
+
+// SpanAttributesLTE applies the LTE predicate on the "SpanAttributes" field.
+func SpanAttributesLTE(v *schema.Attributes) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldSpanAttributes, v))
 }
 
 // And groups predicates with the AND operator between them.
