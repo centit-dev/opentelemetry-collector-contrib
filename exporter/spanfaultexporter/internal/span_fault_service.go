@@ -130,8 +130,11 @@ func (service *SpanFaultServiceImpl) Save(ctx context.Context, items []*spanTree
 				cause = span.SpanFault
 			}
 		}
-		if tree.rootSpan == nil || cause == nil {
+		if tree.rootSpan == nil {
 			continue
+		}
+		if cause == nil {
+			cause = tree.rootSpan.SpanFault
 		}
 		cause.RootServiceName = tree.rootSpan.ServiceName
 		cause.RootSpanName = tree.rootSpan.SpanName
