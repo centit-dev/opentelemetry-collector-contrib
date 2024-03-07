@@ -84,13 +84,31 @@ func (t *TraceExporter) buildFaultTreeItem(attributes *pcommon.Map, span *ptrace
 		SpanId:             span.SpanID().String(),
 		ServiceName:        serviceName,
 		SpanName:           span.Name(),
-		SpanKind:           span.Kind().String(),
+		SpanKind:           spanKindStr(span.Kind()),
 		FaultKind:          faultKind,
 		ResourceAttributes: attributesToMap(*attributes),
 		SpanAttributes:     attributesToMap(span.Attributes()),
 	}
 	duration := span.EndTimestamp().AsTime().Sub(span.StartTimestamp().AsTime()).Nanoseconds()
 	return &spanTreeItem{fault, duration, nil, 0}
+}
+
+func spanKindStr(sk ptrace.SpanKind) string {
+	switch sk {
+	case ptrace.SpanKindUnspecified:
+		return "SPAN_KIND_UNSPECIFIED"
+	case ptrace.SpanKindInternal:
+		return "SPAN_KIND_INTERNAL"
+	case ptrace.SpanKindServer:
+		return "SPAN_KIND_SERVER"
+	case ptrace.SpanKindClient:
+		return "SPAN_KIND_CLIENT"
+	case ptrace.SpanKindProducer:
+		return "SPAN_KIND_PRODUCER"
+	case ptrace.SpanKindConsumer:
+		return "SPAN_KIND_CONSUMER"
+	}
+	return ""
 }
 
 func attributesToMap(attributes pcommon.Map) *schema.Attributes {
