@@ -40,6 +40,8 @@ type SpanFault struct {
 	ServiceName string `json:"ServiceName,omitempty"`
 	// SpanName holds the value of the "SpanName" field.
 	SpanName string `json:"SpanName,omitempty"`
+	// SpanKind holds the value of the "SpanKind" field.
+	SpanKind string `json:"SpanKind,omitempty"`
 	// FaultKind holds the value of the "FaultKind" field.
 	FaultKind string `json:"FaultKind,omitempty"`
 	// ResourceAttributes holds the value of the "ResourceAttributes" field.
@@ -58,7 +60,7 @@ func (*SpanFault) scanValues(columns []string) ([]any, error) {
 			values[i] = new(schema.Attributes)
 		case spanfault.FieldRootDuration:
 			values[i] = new(sql.NullInt64)
-		case spanfault.FieldID, spanfault.FieldPlatformName, spanfault.FieldAppCluster, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldParentSpanId, spanfault.FieldSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldFaultKind:
+		case spanfault.FieldID, spanfault.FieldPlatformName, spanfault.FieldAppCluster, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldParentSpanId, spanfault.FieldSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldSpanKind, spanfault.FieldFaultKind:
 			values[i] = new(sql.NullString)
 		case spanfault.FieldTimestamp:
 			values[i] = new(sql.NullTime)
@@ -149,6 +151,12 @@ func (sf *SpanFault) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sf.SpanName = value.String
 			}
+		case spanfault.FieldSpanKind:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field SpanKind", values[i])
+			} else if value.Valid {
+				sf.SpanKind = value.String
+			}
 		case spanfault.FieldFaultKind:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field FaultKind", values[i])
@@ -235,6 +243,9 @@ func (sf *SpanFault) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("SpanName=")
 	builder.WriteString(sf.SpanName)
+	builder.WriteString(", ")
+	builder.WriteString("SpanKind=")
+	builder.WriteString(sf.SpanKind)
 	builder.WriteString(", ")
 	builder.WriteString("FaultKind=")
 	builder.WriteString(sf.FaultKind)

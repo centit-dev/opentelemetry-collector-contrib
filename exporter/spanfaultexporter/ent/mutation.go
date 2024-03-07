@@ -46,6 +46,7 @@ type SpanFaultMutation struct {
 	_SpanId             *string
 	_ServiceName        *string
 	_SpanName           *string
+	_SpanKind           *string
 	_FaultKind          *string
 	_ResourceAttributes **schema.Attributes
 	_SpanAttributes     **schema.Attributes
@@ -588,6 +589,42 @@ func (m *SpanFaultMutation) ResetSpanName() {
 	m._SpanName = nil
 }
 
+// SetSpanKind sets the "SpanKind" field.
+func (m *SpanFaultMutation) SetSpanKind(s string) {
+	m._SpanKind = &s
+}
+
+// SpanKind returns the value of the "SpanKind" field in the mutation.
+func (m *SpanFaultMutation) SpanKind() (r string, exists bool) {
+	v := m._SpanKind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpanKind returns the old "SpanKind" field's value of the SpanFault entity.
+// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SpanFaultMutation) OldSpanKind(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpanKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpanKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpanKind: %w", err)
+	}
+	return oldValue.SpanKind, nil
+}
+
+// ResetSpanKind resets all changes to the "SpanKind" field.
+func (m *SpanFaultMutation) ResetSpanKind() {
+	m._SpanKind = nil
+}
+
 // SetFaultKind sets the "FaultKind" field.
 func (m *SpanFaultMutation) SetFaultKind(s string) {
 	m._FaultKind = &s
@@ -730,7 +767,7 @@ func (m *SpanFaultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SpanFaultMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m._Timestamp != nil {
 		fields = append(fields, spanfault.FieldTimestamp)
 	}
@@ -763,6 +800,9 @@ func (m *SpanFaultMutation) Fields() []string {
 	}
 	if m._SpanName != nil {
 		fields = append(fields, spanfault.FieldSpanName)
+	}
+	if m._SpanKind != nil {
+		fields = append(fields, spanfault.FieldSpanKind)
 	}
 	if m._FaultKind != nil {
 		fields = append(fields, spanfault.FieldFaultKind)
@@ -803,6 +843,8 @@ func (m *SpanFaultMutation) Field(name string) (ent.Value, bool) {
 		return m.ServiceName()
 	case spanfault.FieldSpanName:
 		return m.SpanName()
+	case spanfault.FieldSpanKind:
+		return m.SpanKind()
 	case spanfault.FieldFaultKind:
 		return m.FaultKind()
 	case spanfault.FieldResourceAttributes:
@@ -840,6 +882,8 @@ func (m *SpanFaultMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldServiceName(ctx)
 	case spanfault.FieldSpanName:
 		return m.OldSpanName(ctx)
+	case spanfault.FieldSpanKind:
+		return m.OldSpanKind(ctx)
 	case spanfault.FieldFaultKind:
 		return m.OldFaultKind(ctx)
 	case spanfault.FieldResourceAttributes:
@@ -931,6 +975,13 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSpanName(v)
+		return nil
+	case spanfault.FieldSpanKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpanKind(v)
 		return nil
 	case spanfault.FieldFaultKind:
 		v, ok := value.(string)
@@ -1058,6 +1109,9 @@ func (m *SpanFaultMutation) ResetField(name string) error {
 		return nil
 	case spanfault.FieldSpanName:
 		m.ResetSpanName()
+		return nil
+	case spanfault.FieldSpanKind:
+		m.ResetSpanKind()
 		return nil
 	case spanfault.FieldFaultKind:
 		m.ResetFaultKind()

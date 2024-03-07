@@ -84,12 +84,11 @@ func (service *AppTypeService) ProcessTraces(ctx context.Context, traces ptrace.
 		batches := resource.ScopeSpans()
 		for j := 0; j < batches.Len(); j++ {
 			scopeSpans := batches.At(j)
-			scope := scopeSpans.Scope()
 			batch := scopeSpans.Spans()
 			for k := 0; k < batch.Len(); k++ {
 				span := batch.At(k)
 				// TODO process span asynchronizely
-				service.processSpan(&resourceAttributes, &scope, &span)
+				service.processSpan(&resourceAttributes, &span)
 			}
 		}
 	}
@@ -97,7 +96,7 @@ func (service *AppTypeService) ProcessTraces(ctx context.Context, traces ptrace.
 	return traces, nil
 }
 
-func (service *AppTypeService) processSpan(resources *pcommon.Map, scope *pcommon.InstrumentationScope, span *ptrace.Span) {
+func (service *AppTypeService) processSpan(resources *pcommon.Map, span *ptrace.Span) {
 	if service.groups.IsEmpty() {
 		return
 	}

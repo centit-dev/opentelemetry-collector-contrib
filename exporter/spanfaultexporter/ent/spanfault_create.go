@@ -95,6 +95,12 @@ func (sfc *SpanFaultCreate) SetSpanName(s string) *SpanFaultCreate {
 	return sfc
 }
 
+// SetSpanKind sets the "SpanKind" field.
+func (sfc *SpanFaultCreate) SetSpanKind(s string) *SpanFaultCreate {
+	sfc.mutation.SetSpanKind(s)
+	return sfc
+}
+
 // SetFaultKind sets the "FaultKind" field.
 func (sfc *SpanFaultCreate) SetFaultKind(s string) *SpanFaultCreate {
 	sfc.mutation.SetFaultKind(s)
@@ -183,6 +189,9 @@ func (sfc *SpanFaultCreate) check() error {
 	if _, ok := sfc.mutation.SpanName(); !ok {
 		return &ValidationError{Name: "SpanName", err: errors.New(`ent: missing required field "SpanFault.SpanName"`)}
 	}
+	if _, ok := sfc.mutation.SpanKind(); !ok {
+		return &ValidationError{Name: "SpanKind", err: errors.New(`ent: missing required field "SpanFault.SpanKind"`)}
+	}
 	if _, ok := sfc.mutation.FaultKind(); !ok {
 		return &ValidationError{Name: "FaultKind", err: errors.New(`ent: missing required field "SpanFault.FaultKind"`)}
 	}
@@ -270,6 +279,10 @@ func (sfc *SpanFaultCreate) createSpec() (*SpanFault, *sqlgraph.CreateSpec) {
 	if value, ok := sfc.mutation.SpanName(); ok {
 		_spec.SetField(spanfault.FieldSpanName, field.TypeString, value)
 		_node.SpanName = value
+	}
+	if value, ok := sfc.mutation.SpanKind(); ok {
+		_spec.SetField(spanfault.FieldSpanKind, field.TypeString, value)
+		_node.SpanKind = value
 	}
 	if value, ok := sfc.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)

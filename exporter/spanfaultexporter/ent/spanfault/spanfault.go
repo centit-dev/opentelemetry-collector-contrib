@@ -33,6 +33,8 @@ const (
 	FieldServiceName = "ServiceName"
 	// FieldSpanName holds the string denoting the spanname field in the database.
 	FieldSpanName = "SpanName"
+	// FieldSpanKind holds the string denoting the spankind field in the database.
+	FieldSpanKind = "SpanKind"
 	// FieldFaultKind holds the string denoting the faultkind field in the database.
 	FieldFaultKind = "FaultKind"
 	// FieldResourceAttributes holds the string denoting the resourceattributes field in the database.
@@ -57,6 +59,7 @@ var Columns = []string{
 	FieldSpanId,
 	FieldServiceName,
 	FieldSpanName,
+	FieldSpanKind,
 	FieldFaultKind,
 	FieldResourceAttributes,
 	FieldSpanAttributes,
@@ -133,6 +136,11 @@ func ByServiceName(opts ...sql.OrderTermOption) OrderOption {
 // BySpanName orders the results by the SpanName field.
 func BySpanName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSpanName, opts...).ToFunc()
+}
+
+// BySpanKind orders the results by the SpanKind field.
+func BySpanKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSpanKind, opts...).ToFunc()
 }
 
 // ByFaultKind orders the results by the FaultKind field.

@@ -120,6 +120,11 @@ func SpanName(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldSpanName, v))
 }
 
+// SpanKind applies equality check predicate on the "SpanKind" field. It's identical to SpanKindEQ.
+func SpanKind(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldSpanKind, v))
+}
+
 // FaultKind applies equality check predicate on the "FaultKind" field. It's identical to FaultKindEQ.
 func FaultKind(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldFaultKind, v))
@@ -808,6 +813,71 @@ func SpanNameEqualFold(v string) predicate.SpanFault {
 // SpanNameContainsFold applies the ContainsFold predicate on the "SpanName" field.
 func SpanNameContainsFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldContainsFold(FieldSpanName, v))
+}
+
+// SpanKindEQ applies the EQ predicate on the "SpanKind" field.
+func SpanKindEQ(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldSpanKind, v))
+}
+
+// SpanKindNEQ applies the NEQ predicate on the "SpanKind" field.
+func SpanKindNEQ(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldSpanKind, v))
+}
+
+// SpanKindIn applies the In predicate on the "SpanKind" field.
+func SpanKindIn(vs ...string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldSpanKind, vs...))
+}
+
+// SpanKindNotIn applies the NotIn predicate on the "SpanKind" field.
+func SpanKindNotIn(vs ...string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldSpanKind, vs...))
+}
+
+// SpanKindGT applies the GT predicate on the "SpanKind" field.
+func SpanKindGT(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldSpanKind, v))
+}
+
+// SpanKindGTE applies the GTE predicate on the "SpanKind" field.
+func SpanKindGTE(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldSpanKind, v))
+}
+
+// SpanKindLT applies the LT predicate on the "SpanKind" field.
+func SpanKindLT(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldSpanKind, v))
+}
+
+// SpanKindLTE applies the LTE predicate on the "SpanKind" field.
+func SpanKindLTE(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldSpanKind, v))
+}
+
+// SpanKindContains applies the Contains predicate on the "SpanKind" field.
+func SpanKindContains(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldContains(FieldSpanKind, v))
+}
+
+// SpanKindHasPrefix applies the HasPrefix predicate on the "SpanKind" field.
+func SpanKindHasPrefix(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldHasPrefix(FieldSpanKind, v))
+}
+
+// SpanKindHasSuffix applies the HasSuffix predicate on the "SpanKind" field.
+func SpanKindHasSuffix(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldHasSuffix(FieldSpanKind, v))
+}
+
+// SpanKindEqualFold applies the EqualFold predicate on the "SpanKind" field.
+func SpanKindEqualFold(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEqualFold(FieldSpanKind, v))
+}
+
+// SpanKindContainsFold applies the ContainsFold predicate on the "SpanKind" field.
+func SpanKindContainsFold(v string) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldContainsFold(FieldSpanKind, v))
 }
 
 // FaultKindEQ applies the EQ predicate on the "FaultKind" field.

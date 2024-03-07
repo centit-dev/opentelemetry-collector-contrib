@@ -196,6 +196,20 @@ func (sfu *SpanFaultUpdate) SetNillableSpanName(s *string) *SpanFaultUpdate {
 	return sfu
 }
 
+// SetSpanKind sets the "SpanKind" field.
+func (sfu *SpanFaultUpdate) SetSpanKind(s string) *SpanFaultUpdate {
+	sfu.mutation.SetSpanKind(s)
+	return sfu
+}
+
+// SetNillableSpanKind sets the "SpanKind" field if the given value is not nil.
+func (sfu *SpanFaultUpdate) SetNillableSpanKind(s *string) *SpanFaultUpdate {
+	if s != nil {
+		sfu.SetSpanKind(*s)
+	}
+	return sfu
+}
+
 // SetFaultKind sets the "FaultKind" field.
 func (sfu *SpanFaultUpdate) SetFaultKind(s string) *SpanFaultUpdate {
 	sfu.mutation.SetFaultKind(s)
@@ -301,6 +315,9 @@ func (sfu *SpanFaultUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := sfu.mutation.SpanName(); ok {
 		_spec.SetField(spanfault.FieldSpanName, field.TypeString, value)
+	}
+	if value, ok := sfu.mutation.SpanKind(); ok {
+		_spec.SetField(spanfault.FieldSpanKind, field.TypeString, value)
 	}
 	if value, ok := sfu.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
@@ -498,6 +515,20 @@ func (sfuo *SpanFaultUpdateOne) SetNillableSpanName(s *string) *SpanFaultUpdateO
 	return sfuo
 }
 
+// SetSpanKind sets the "SpanKind" field.
+func (sfuo *SpanFaultUpdateOne) SetSpanKind(s string) *SpanFaultUpdateOne {
+	sfuo.mutation.SetSpanKind(s)
+	return sfuo
+}
+
+// SetNillableSpanKind sets the "SpanKind" field if the given value is not nil.
+func (sfuo *SpanFaultUpdateOne) SetNillableSpanKind(s *string) *SpanFaultUpdateOne {
+	if s != nil {
+		sfuo.SetSpanKind(*s)
+	}
+	return sfuo
+}
+
 // SetFaultKind sets the "FaultKind" field.
 func (sfuo *SpanFaultUpdateOne) SetFaultKind(s string) *SpanFaultUpdateOne {
 	sfuo.mutation.SetFaultKind(s)
@@ -633,6 +664,9 @@ func (sfuo *SpanFaultUpdateOne) sqlSave(ctx context.Context) (_node *SpanFault, 
 	}
 	if value, ok := sfuo.mutation.SpanName(); ok {
 		_spec.SetField(spanfault.FieldSpanName, field.TypeString, value)
+	}
+	if value, ok := sfuo.mutation.SpanKind(); ok {
+		_spec.SetField(spanfault.FieldSpanKind, field.TypeString, value)
 	}
 	if value, ok := sfuo.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)

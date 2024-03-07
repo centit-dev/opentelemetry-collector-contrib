@@ -84,6 +84,7 @@ func (t *TraceExporter) buildFaultTreeItem(attributes *pcommon.Map, span *ptrace
 		SpanId:             span.SpanID().String(),
 		ServiceName:        serviceName,
 		SpanName:           span.Name(),
+		SpanKind:           span.Kind().String(),
 		FaultKind:          faultKind,
 		ResourceAttributes: attributesToMap(*attributes),
 		SpanAttributes:     attributesToMap(span.Attributes()),

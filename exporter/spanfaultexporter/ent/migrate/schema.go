@@ -23,6 +23,7 @@ var (
 		{Name: "SpanId", Type: field.TypeString},
 		{Name: "ServiceName", Type: field.TypeString},
 		{Name: "SpanName", Type: field.TypeString},
+		{Name: "SpanKind", Type: field.TypeString},
 		{Name: "FaultKind", Type: field.TypeString},
 		{Name: "ResourceAttributes", Type: field.TypeOther, SchemaType: map[string]string{"clickhouse": "Map(String, String)"}},
 		{Name: "SpanAttributes", Type: field.TypeOther, SchemaType: map[string]string{"clickhouse": "Map(String, String)"}},

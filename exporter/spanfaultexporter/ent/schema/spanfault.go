@@ -67,6 +67,7 @@ func (SpanFault) Fields() []ent.Field {
 		field.String("SpanId").StorageKey("SpanId"),
 		field.String("ServiceName").StorageKey("ServiceName"),
 		field.String("SpanName").StorageKey("SpanName"),
+		field.String("SpanKind").StorageKey("SpanKind"),
 		field.String("FaultKind").StorageKey("FaultKind"),
 		field.Other("ResourceAttributes", &Attributes{}).
 			SchemaType(map[string]string{
