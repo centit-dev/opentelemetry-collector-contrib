@@ -87,7 +87,7 @@ func (service *MetadataServiceImpl) Start(ctx context.Context) {
 			seen := make(map[string]struct{}, len(items))
 			tuples := make([]*tuple, 0, len(items))
 			for _, item := range items {
-				tuple, ok := item.(*tuple)
+				tuple, ok := item.(tuple)
 				if !ok {
 					continue
 				}
@@ -95,7 +95,7 @@ func (service *MetadataServiceImpl) Start(ctx context.Context) {
 					continue
 				}
 				seen[tuple.hash()] = struct{}{}
-				tuples = append(tuples, tuple)
+				tuples = append(tuples, &tuple)
 			}
 			err := service.consumeAttributes(ctx, tuples)
 			return items, err

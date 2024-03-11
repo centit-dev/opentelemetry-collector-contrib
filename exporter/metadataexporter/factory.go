@@ -46,7 +46,7 @@ func createTraceMetadataExporter(
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Traces, error) {
-	exporter, err := createExporter(ctx, set, cfg)
+	exporter, err := createExporter(set, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create metadata exporter: %w", err)
 	}
@@ -66,7 +66,7 @@ func createMetricMetadataExporter(
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Metrics, error) {
-	exporter, err := createExporter(ctx, set, cfg)
+	exporter, err := createExporter(set, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create metadata exporter: %w", err)
 	}
@@ -86,7 +86,7 @@ func createLogMetadataExporter(
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Logs, error) {
-	exporter, err := createExporter(ctx, set, cfg)
+	exporter, err := createExporter(set, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create metadata exporter: %w", err)
 	}
@@ -101,7 +101,7 @@ func createLogMetadataExporter(
 	)
 }
 
-func createExporter(ctx context.Context, set exporter.CreateSettings, cfg component.Config) (*internal.MetadataExporter, error) {
+func createExporter(set exporter.CreateSettings, cfg component.Config) (*internal.MetadataExporter, error) {
 	c := cfg.(*Config)
 	client, err := internal.CreateClient(&c.PostgresConfig, set.Logger)
 	if err != nil {
