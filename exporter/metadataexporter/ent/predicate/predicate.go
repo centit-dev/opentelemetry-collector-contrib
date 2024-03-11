@@ -14,3 +14,6 @@ type QueryKey func(*sql.Selector)
 
 // QueryValue is the predicate function for queryvalue builders.
 type QueryValue func(*sql.Selector)
+
+// SystemParameter is the predicate function for systemparameter builders.
+type SystemParameter func(*sql.Selector)

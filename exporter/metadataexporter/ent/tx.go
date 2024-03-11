@@ -18,6 +18,8 @@ type Tx struct {
 	QueryKey *QueryKeyClient
 	// QueryValue is the client for interacting with the QueryValue builders.
 	QueryValue *QueryValueClient
+	// SystemParameter is the client for interacting with the SystemParameter builders.
+	SystemParameter *SystemParameterClient
 
 	// lazily loaded.
 	client     *Client
@@ -152,6 +154,7 @@ func (tx *Tx) init() {
 	tx.ApplicationStructure = NewApplicationStructureClient(tx.config)
 	tx.QueryKey = NewQueryKeyClient(tx.config)
 	tx.QueryValue = NewQueryValueClient(tx.config)
+	tx.SystemParameter = NewSystemParameterClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

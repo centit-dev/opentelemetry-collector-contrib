@@ -45,6 +45,18 @@ func (f QueryValueFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QueryValueMutation", m)
 }
 
+// The SystemParameterFunc type is an adapter to allow the use of ordinary
+// function as SystemParameter mutator.
+type SystemParameterFunc func(context.Context, *ent.SystemParameterMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemParameterFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemParameterMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemParameterMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

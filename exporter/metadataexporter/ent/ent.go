@@ -15,6 +15,7 @@ import (
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/applicationstructure"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/querykey"
 	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/queryvalue"
+	"github.com/teanoon/opentelemetry-collector-contrib/exporter/metadataexporter/ent/systemparameter"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -78,6 +79,7 @@ func checkColumn(table, column string) error {
 			applicationstructure.Table: applicationstructure.ValidColumn,
 			querykey.Table:             querykey.ValidColumn,
 			queryvalue.Table:           queryvalue.ValidColumn,
+			systemparameter.Table:      systemparameter.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

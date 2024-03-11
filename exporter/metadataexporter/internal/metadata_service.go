@@ -52,6 +52,7 @@ type MetadataServiceImpl struct {
 	queryKeyTtlInDays      int
 	queryKeyRepository     QueryKeyRepository
 	queryValueRepository   QueryValueRepository
+	systemParameterService SystemParameterService
 }
 
 func CreateMetadataService(
@@ -61,6 +62,7 @@ func CreateMetadataService(
 	logger *zap.Logger,
 	queryKeyRepository QueryKeyRepository,
 	queryValueRepository QueryValueRepository,
+	systemParameterService SystemParameterService,
 ) *MetadataServiceImpl {
 	cache := expirable.NewLRU[string, *ent.QueryKey](cacheConfig.MaxSize, nil, time.Minute*time.Duration(cacheConfig.ExpireInMinutes))
 	return &MetadataServiceImpl{
@@ -71,10 +73,13 @@ func CreateMetadataService(
 		queryKeyTtlInDays:      ttl,
 		queryKeyRepository:     queryKeyRepository,
 		queryValueRepository:   queryValueRepository,
+		systemParameterService: systemParameterService,
 	}
 }
 
 func (service *MetadataServiceImpl) Start(ctx context.Context) {
+	service.systemParameterService.Start(ctx)
+
 	service.batchQueue = make(chan rxgo.Item, 100)
 	service.batchObservable = rxgo.FromChannel(service.batchQueue)
 	service.batchObservable.
@@ -288,6 +293,9 @@ func (service *MetadataServiceImpl) deprecate(ctx context.Context) error {
 }
 
 func (service *MetadataServiceImpl) ConsumeAttribute(ctx context.Context, tuple tuple) {
+	if !service.systemParameterService.ShouldRecord(ctx, tuple.name) {
+		return
+	}
 	service.batchQueue <- rxgo.Of(tuple)
 }
 

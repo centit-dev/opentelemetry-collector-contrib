@@ -14,7 +14,7 @@ func DisabledTestMetadataServiceImpl_upsertAll(t *testing.T) {
 	keyRepo := CreateQueryKeyRepository(client)
 	valueRepo := CreateQueryValueRepository(client)
 	logger := zap.NewExample()
-	service := CreateMetadataService(&CacheConfig{}, &BatchConfig{}, 90, logger, keyRepo, valueRepo)
+	service := CreateMetadataService(&CacheConfig{}, &BatchConfig{}, 90, logger, keyRepo, valueRepo, nil)
 
 	// create all new keys and values
 	queryKeys := make([]*ent.QueryKey, 0, 15)

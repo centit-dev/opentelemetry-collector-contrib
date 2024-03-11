@@ -109,13 +109,17 @@ func createExporter(set exporter.CreateSettings, cfg component.Config) (*interna
 	}
 	queryKeyRepository := internal.CreateQueryKeyRepository(client)
 	queryValueRepository := internal.CreateQueryValueRepository(client)
+	systemParameterRepository := internal.CreateSystemParameterRepository(client)
+	systemParameterService := internal.CreateSystemParameterService(systemParameterRepository)
 	metadataService := internal.CreateMetadataService(
 		&c.CacheConfig,
 		&c.BatchConfig,
 		c.TtlInDays,
 		set.Logger,
 		queryKeyRepository,
-		queryValueRepository)
+		queryValueRepository,
+		systemParameterService,
+	)
 
 	appStructureRepository := internal.CreateApplicationStructureRepository(client)
 	appStructureService := internal.CreateApplicationStructureService(

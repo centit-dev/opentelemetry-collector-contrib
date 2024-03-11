@@ -65,11 +65,25 @@ var (
 			},
 		},
 	}
+	// TbSysParameterColumns holds the columns for the "tb_sys_parameter" table.
+	TbSysParameterColumns = []*schema.Column{
+		{Name: "code", Type: field.TypeString},
+		{Name: "value", Type: field.TypeJSON},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+	}
+	// TbSysParameterTable holds the schema information for the "tb_sys_parameter" table.
+	TbSysParameterTable = &schema.Table{
+		Name:       "tb_sys_parameter",
+		Columns:    TbSysParameterColumns,
+		PrimaryKey: []*schema.Column{TbSysParameterColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		TbApplicationStructureTable,
 		TbQueryKeyTable,
 		TbQueryValueTable,
+		TbSysParameterTable,
 	}
 )
 
@@ -83,5 +97,8 @@ func init() {
 	TbQueryValueTable.ForeignKeys[0].RefTable = TbQueryKeyTable
 	TbQueryValueTable.Annotation = &entsql.Annotation{
 		Table: "tb_query_value",
+	}
+	TbSysParameterTable.Annotation = &entsql.Annotation{
+		Table: "tb_sys_parameter",
 	}
 }
