@@ -69,16 +69,16 @@ func (service *ApplicationStructureService) Start(ctx context.Context) {
 			}
 			seen := make(map[string]struct{})
 			values := make([]*structureTuple, 0, len(items))
-			for i, item := range items {
-				value, ok := item.(*structureTuple)
+			for _, item := range items {
+				value, ok := item.(structureTuple)
 				if !ok {
 					continue
 				}
-				if _, ok := seen[values[i].code]; ok {
+				if _, ok := seen[value.code]; ok {
 					continue
 				}
-				seen[values[i].code] = struct{}{}
-				values = append(values, value)
+				seen[value.code] = struct{}{}
+				values = append(values, &value)
 			}
 			err := service.upserts(ctx, values)
 			return values, err
