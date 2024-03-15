@@ -20,8 +20,8 @@ const (
 )
 
 const (
-	typeApplication softwareType = iota
-	typeClient
+	typeApplication softwareType = iota + 1
+	typeServerSoftware
 )
 
 type AppTypeService struct {
@@ -126,7 +126,7 @@ func (service *AppTypeService) setAttributes(attributes *pcommon.Map, groups []s
 		switch record.Type {
 		case int16(typeApplication):
 			attributes.PutStr(appType, record.Name)
-		case int16(typeClient):
+		case int16(typeServerSoftware):
 			attributes.PutStr(serverSoftware, record.Name)
 		}
 	}
