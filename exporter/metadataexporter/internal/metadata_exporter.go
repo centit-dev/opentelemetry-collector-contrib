@@ -184,7 +184,7 @@ func (exporter *MetadataExporter) ConsumeLogs(ctx context.Context, ld plog.Logs)
 		resourceLog := resourceLogs.At(i)
 		resourceAttributes := resourceLog.Resource().Attributes()
 		resourceAttributes.Range(func(k string, v pcommon.Value) bool {
-			k = fmt.Sprintf("Resource['%s']", k)
+			k = fmt.Sprintf("ResourceAttributes['%s']", k)
 			exporter.consumeAttribute(ctx, logSource, k, v)
 			return true
 		})
@@ -196,7 +196,7 @@ func (exporter *MetadataExporter) ConsumeLogs(ctx context.Context, ld plog.Logs)
 			for k := 0; k < logs.Len(); k++ {
 				log := logs.At(k)
 				log.Attributes().Range(func(k string, v pcommon.Value) bool {
-					k = fmt.Sprintf("Attributes['%s']", k)
+					k = fmt.Sprintf("LogAttributes['%s']", k)
 					exporter.consumeAttribute(ctx, logSource, k, v)
 					return true
 				})
