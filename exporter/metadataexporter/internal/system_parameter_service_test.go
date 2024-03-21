@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/reactivex/rxgo/v2"
+	"go.uber.org/zap"
 )
 
 func TestStart(t *testing.T) {
 	client := createTestClient()
 	repository := CreateSystemParameterRepository(client)
-	service := CreateSystemParameterService(repository)
+	service := CreateSystemParameterService(zap.NewNop(), repository)
 	service.refreshObservable = rxgo.Interval(rxgo.WithDuration(1 * time.Second))
 	ctx := context.Background()
 	service.refreshObservable.DoOnNext(func(i interface{}) {
