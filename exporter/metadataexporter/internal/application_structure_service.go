@@ -126,7 +126,7 @@ func (service *ApplicationStructureService) upserts(ctx context.Context, tuples 
 		}
 	}
 
-	validDate := time.Now().AddDate(service.ttlInDays, 0, 0)
+	validDate := time.Now().AddDate(0, 0, service.ttlInDays)
 	upserts := make([]*ent.ApplicationStructure, 0, len(tuples))
 	for _, tuple := range tuples {
 		item, ok := service.cache.Get(tuple.code)
