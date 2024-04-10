@@ -2,10 +2,8 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	conventions "go.opentelemetry.io/collector/semconv/v1.8.0"
@@ -15,14 +13,14 @@ import (
 const (
 	eventAttributeExceptionName         = "exception"
 	spanAttributeSpanNameKey            = "span.name"
-	spanAttributeExceptionDefinitionKey = "exception.definition.id"
+	spanAttributeExceptionDefinitionKey = "exception.definition.name"
 )
 
 type ExceptionCategoryService struct {
-	logger       *zap.Logger
-	repository   ExceptionCategoryRepository
-	exceptionIds map[string]string
-	ticker       *time.Ticker
+	logger     *zap.Logger
+	repository ExceptionCategoryRepository
+	exceptions map[string]string
+	ticker     *time.Ticker
 }
 
 func CreateCategoryService(repository ExceptionCategoryRepository, cacheTtlMinutes time.Duration, logger *zap.Logger) *ExceptionCategoryService {
@@ -50,28 +48,26 @@ func (service *ExceptionCategoryService) buildCache(context context.Context) {
 		return
 	}
 	for _, definition := range records {
-		service.exceptionIds[definition.LongName] = fmt.Sprint(definition.ID)
+		service.exceptions[definition.LongName] = definition.ShortName
 	}
 }
 
 // implement processorhelper.ProcessTracesFunc
 func (service *ExceptionCategoryService) ProcessTraces(ctx context.Context, traces ptrace.Traces) (ptrace.Traces, error) {
-	if len(service.exceptionIds) == 0 {
+	if len(service.exceptions) == 0 {
 		return traces, nil
 	}
 
 	slice := traces.ResourceSpans()
 	for i := 0; i < slice.Len(); i++ {
 		resource := slice.At(i)
-		resourceAttributes := resource.Resource().Attributes()
-
 		batches := resource.ScopeSpans()
 		for j := 0; j < batches.Len(); j++ {
 			batch := batches.At(j).Spans()
 			for k := 0; k < batch.Len(); k++ {
 				span := batch.At(k)
 				// TODO process span asynchronizely
-				service.processSpan(&resourceAttributes, &span)
+				service.processSpan(&span)
 			}
 		}
 	}
@@ -81,22 +77,20 @@ func (service *ExceptionCategoryService) ProcessTraces(ctx context.Context, trac
 
 // implement processorhelper.ProcessLogsFunc
 func (service *ExceptionCategoryService) ProcessLogs(ctx context.Context, logs plog.Logs) (plog.Logs, error) {
-	if len(service.exceptionIds) == 0 {
+	if len(service.exceptions) == 0 {
 		return logs, nil
 	}
 
 	slice := logs.ResourceLogs()
 	for i := 0; i < slice.Len(); i++ {
 		resource := slice.At(i)
-		resourceAttributes := resource.Resource().Attributes()
-
 		batches := resource.ScopeLogs()
 		for j := 0; j < batches.Len(); j++ {
 			batch := batches.At(j).LogRecords()
 			for k := 0; k < batch.Len(); k++ {
 				log := batch.At(k)
 				// TODO process log asynchronizely
-				service.processLog(&resourceAttributes, &log)
+				service.processLog(&log)
 			}
 		}
 	}
@@ -107,13 +101,14 @@ func (service *ExceptionCategoryService) ProcessLogs(ctx context.Context, logs p
 // check if the span contains exception
 // if yes, find the category and add exception.name and exception.type to the span
 // if not, return the span unchanged
-func (service *ExceptionCategoryService) processSpan(resources *pcommon.Map, span *ptrace.Span) {
+func (service *ExceptionCategoryService) processSpan(span *ptrace.Span) {
 	exceptionFullName := service.extractException(span)
 	if exceptionFullName == "" {
 		return
 	}
-	if id, ok := service.exceptionIds[exceptionFullName]; ok {
-		span.Attributes().PutStr(spanAttributeExceptionDefinitionKey, id)
+	span.Attributes().PutStr(conventions.AttributeExceptionType, exceptionFullName)
+	if shortName, ok := service.exceptions[exceptionFullName]; ok {
+		span.Attributes().PutStr(spanAttributeExceptionDefinitionKey, shortName)
 	}
 }
 
@@ -132,7 +127,7 @@ func (service *ExceptionCategoryService) extractException(span *ptrace.Span) str
 }
 
 // TODO logs doesn't have span name
-func (service *ExceptionCategoryService) processLog(resources *pcommon.Map, log *plog.LogRecord) {
+func (service *ExceptionCategoryService) processLog(log *plog.LogRecord) {
 	if log.SeverityNumber() < plog.SeverityNumberError {
 		return
 	}
@@ -142,8 +137,8 @@ func (service *ExceptionCategoryService) processLog(resources *pcommon.Map, log 
 		return
 	}
 	exceptionFullNameValue := exceptionFullName.AsString()
-	if id, ok := service.exceptionIds[exceptionFullNameValue]; ok {
-		log.Attributes().PutStr(spanAttributeExceptionDefinitionKey, id)
+	if shortName, ok := service.exceptions[exceptionFullNameValue]; ok {
+		log.Attributes().PutStr(spanAttributeExceptionDefinitionKey, shortName)
 	}
 }
 
