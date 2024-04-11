@@ -81,13 +81,13 @@ func newOpAMPServer(t *testing.T, connectingCallback onConnectingFuncFactory, ca
 	connectedChan := make(chan bool)
 	s := server.New(testLogger{t: t})
 	onConnectedFunc := callbacks.OnConnectedFunc
-	callbacks.OnConnectedFunc = func(conn types.Connection) {
+	callbacks.OnConnectedFunc = func(ctx context.Context, conn types.Connection) {
+		if onConnectedFunc != nil {
+			onConnectedFunc(ctx, conn)
+		}
 		agentConn.Store(conn)
 		isAgentConnected.Store(true)
 		connectedChan <- true
-		if onConnectedFunc != nil {
-			onConnectedFunc(conn)
-		}
 	}
 	onConnectionCloseFunc := callbacks.OnConnectionCloseFunc
 	callbacks.OnConnectionCloseFunc = func(conn types.Connection) {
@@ -175,7 +175,7 @@ func TestSupervisorStartsCollectorWithRemoteConfig(t *testing.T) {
 		t,
 		defaultConnectingHandler,
 		server.ConnectionCallbacksStruct{
-			OnMessageFunc: func(_ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
+			OnMessageFunc: func(_ context.Context, _ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
 				if message.EffectiveConfig != nil {
 					config := message.EffectiveConfig.ConfigMap.ConfigMap[""]
 					if config != nil {
@@ -235,7 +235,7 @@ func TestSupervisorRestartsCollectorAfterBadConfig(t *testing.T) {
 		t,
 		defaultConnectingHandler,
 		server.ConnectionCallbacksStruct{
-			OnMessageFunc: func(_ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
+			OnMessageFunc: func(_ context.Context, _ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
 				if message.Health != nil {
 					healthReport.Store(message.Health)
 				}
@@ -319,7 +319,7 @@ func TestSupervisorConfiguresCapabilities(t *testing.T) {
 		t,
 		defaultConnectingHandler,
 		server.ConnectionCallbacksStruct{
-			OnMessageFunc: func(_ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
+			OnMessageFunc: func(_ context.Context, _ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
 				capabilities.Store(message.Capabilities)
 
 				return &protobufs.ServerToAgent{}
@@ -372,7 +372,7 @@ func TestSupervisorBootstrapsCollector(t *testing.T) {
 		t,
 		defaultConnectingHandler,
 		server.ConnectionCallbacksStruct{
-			OnMessageFunc: func(_ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
+			OnMessageFunc: func(_ context.Context, _ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
 				if message.AgentDescription != nil {
 					agentDescription.Store(message.AgentDescription)
 				}
@@ -472,4 +472,49 @@ func waitForSupervisorConnection(connection chan bool, connected bool) {
 			break
 		}
 	}
+}
+
+func TestSupervisorOpAMPConnectionSettings(t *testing.T) {
+	var connectedToNewServer atomic.Bool
+	initialServer := newOpAMPServer(
+		t,
+		defaultConnectingHandler,
+		server.ConnectionCallbacksStruct{})
+
+	s := newSupervisor(t, "accepts_conn", map[string]string{"url": initialServer.addr})
+	defer s.Shutdown()
+
+	waitForSupervisorConnection(initialServer.supervisorConnected, true)
+
+	newServer := newOpAMPServer(
+		t,
+		defaultConnectingHandler,
+		server.ConnectionCallbacksStruct{
+			OnConnectedFunc: func(_ context.Context, _ types.Connection) {
+				connectedToNewServer.Store(true)
+			},
+			OnMessageFunc: func(_ context.Context, _ types.Connection, message *protobufs.AgentToServer) *protobufs.ServerToAgent {
+				return &protobufs.ServerToAgent{}
+			},
+		})
+
+	initialServer.sendToSupervisor(&protobufs.ServerToAgent{
+		ConnectionSettings: &protobufs.ConnectionSettingsOffers{
+			Opamp: &protobufs.OpAMPConnectionSettings{
+				DestinationEndpoint: "ws://" + newServer.addr + "/v1/opamp",
+				Headers: &protobufs.Headers{
+					Headers: []*protobufs.Header{
+						{
+							Key:   "x-foo",
+							Value: "bar",
+						},
+					},
+				},
+			},
+		},
+	})
+
+	require.Eventually(t, func() bool {
+		return connectedToNewServer.Load() == true
+	}, 10*time.Second, 500*time.Millisecond, "Collector did not connect to new OpAMP server")
 }
