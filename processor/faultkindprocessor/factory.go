@@ -10,8 +10,8 @@ import (
 	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
-const (
-	Type = "faultkind"
+var (
+	Type = component.MustNewType("faultkind")
 )
 
 func NewFactory() processor.Factory {

@@ -10,8 +10,8 @@ import (
 	"go.opentelemetry.io/collector/processor/processorhelper"
 )
 
-const (
-	Type = "apptype"
+var (
+	Type = component.MustNewType("apptype")
 )
 
 func NewFactory() processor.Factory {

@@ -11,8 +11,11 @@ import (
 )
 
 const (
-	Type            = "spanfault"
 	TracesStability = component.StabilityLevelAlpha
+)
+
+var (
+	Type = component.MustNewType("spanfault")
 )
 
 func NewFactory() exporter.Factory {

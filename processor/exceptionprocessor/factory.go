@@ -13,8 +13,11 @@ import (
 )
 
 const (
-	Type            = "exception"
 	ServiceCacheKey = "service"
+)
+
+var (
+	Type = component.MustNewType("exception")
 )
 
 func NewFactory() processor.Factory {

@@ -12,8 +12,11 @@ import (
 )
 
 const (
-	Type            = "spanaggregation"
 	TracesStability = component.StabilityLevelAlpha
+)
+
+var (
+	Type = component.MustNewType("spanaggregation")
 )
 
 func NewFactory() exporter.Factory {

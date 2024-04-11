@@ -11,10 +11,13 @@ import (
 )
 
 const (
-	Type             = "metadata"
 	TracesStability  = component.StabilityLevelAlpha
 	MetricsStability = component.StabilityLevelAlpha
 	LogsStability    = component.StabilityLevelAlpha
+)
+
+var (
+	Type = component.MustNewType("metadata")
 )
 
 func NewFactory() exporter.Factory {
