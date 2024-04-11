@@ -17,6 +17,8 @@ const (
 	scopeVersionKey      = "Scope[\"version\"]"
 	spanNameKey          = "SpanName"
 	statusCodeKey        = "StatusCode"
+	bodyKey              = "Body"
+	severityTextKey      = "SeverityText"
 	spanSource           = "Span"
 	metricSource         = "Metric"
 	logSource            = "Log"
@@ -196,6 +198,8 @@ func (exporter *MetadataExporter) ConsumeLogs(ctx context.Context, ld plog.Logs)
 			for k := 0; k < logs.Len(); k++ {
 				log := logs.At(k)
 				log.Attributes().Range(func(k string, v pcommon.Value) bool {
+					exporter.consumeAttribute(ctx, logSource, bodyKey, log.Body())
+					exporter.consumeAttribute(ctx, logSource, severityTextKey, pcommon.NewValueStr(log.SeverityText()))
 					k = fmt.Sprintf("LogAttributes['%s']", k)
 					exporter.consumeAttribute(ctx, logSource, k, v)
 					return true
