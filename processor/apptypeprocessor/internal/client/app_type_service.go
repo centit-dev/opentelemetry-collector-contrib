@@ -9,6 +9,7 @@ import (
 	"github.com/teanoon/opentelemetry-collector-contrib/pkg/spangroup"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	conventions "go.opentelemetry.io/collector/semconv/v1.22.0"
 	"go.uber.org/zap"
 )
 
@@ -16,6 +17,7 @@ type softwareType int16
 
 const (
 	serverSoftware = "server.software"
+	serverUrl      = "server.url"
 	appType        = "application.type"
 )
 
@@ -128,6 +130,9 @@ func (service *AppTypeService) setAttributes(attributes *pcommon.Map, groups []s
 			attributes.PutStr(appType, record.Name)
 		case int16(typeServerSoftware):
 			attributes.PutStr(serverSoftware, record.Name)
+			if url, ok := attributes.Get(conventions.AttributeDBConnectionString); ok {
+				attributes.PutStr(serverUrl, url.Str())
+			}
 		}
 	}
 }
