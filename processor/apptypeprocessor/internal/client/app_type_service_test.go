@@ -11,4 +11,9 @@ func TestExtractHostAndPort(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "localhost", host)
 	assert.Equal(t, "3306", port)
+
+	host, port, err = extractHostAndPort("mysql://smartobserv_mysql.smartobserv-local/dbname")
+	assert.Nil(t, err)
+	assert.Equal(t, "smartobserv_mysql.smartobserv-local", host)
+	assert.Equal(t, "", port)
 }
