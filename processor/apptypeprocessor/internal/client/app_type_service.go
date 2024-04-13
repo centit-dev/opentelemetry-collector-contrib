@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent"
@@ -17,7 +18,8 @@ type softwareType int16
 
 const (
 	serverSoftware = "server.software"
-	serverUrl      = "server.url"
+	serverHost     = "server.host"
+	serverPort     = "server.port"
 	appType        = "application.type"
 )
 
@@ -131,7 +133,13 @@ func (service *AppTypeService) setAttributes(attributes *pcommon.Map, groups []s
 		case int16(typeServerSoftware):
 			attributes.PutStr(serverSoftware, record.Name)
 			if url, ok := attributes.Get(conventions.AttributeDBConnectionString); ok {
-				attributes.PutStr(serverUrl, url.Str())
+				host, port, err := extractHostAndPort(url.Str())
+				if err != nil {
+					service.logger.Sugar().Errorf("Error when extracting host and port from connection string: %s\n", err)
+				} else {
+					attributes.PutStr(serverHost, host)
+					attributes.PutStr(serverPort, port)
+				}
 			}
 		}
 	}
@@ -141,4 +149,16 @@ func (service *AppTypeService) setAttributes(attributes *pcommon.Map, groups []s
 func (service *AppTypeService) Shutdown(_ context.Context) error {
 	service.ticker.Stop()
 	return service.client.Shutdown()
+}
+
+func extractHostAndPort(connectionString string) (string, string, error) {
+	u, err := url.Parse(connectionString)
+	if err != nil {
+		return "", "", err
+	}
+
+	host := u.Hostname()
+	port := u.Port()
+
+	return host, port, nil
 }
