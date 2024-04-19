@@ -136,6 +136,9 @@ func (service *SpanFaultServiceImpl) Save(ctx context.Context, items []*spanTree
 		if cause == nil {
 			cause = tree.rootSpan.SpanFault
 		}
+		cause.PlatformName = tree.rootSpan.PlatformName
+		cause.AppCluster = tree.rootSpan.AppCluster
+		cause.InstanceName = tree.rootSpan.InstanceName
 		cause.RootServiceName = tree.rootSpan.ServiceName
 		cause.RootSpanName = tree.rootSpan.SpanName
 		cause.RootDuration = tree.rootSpan.duration
