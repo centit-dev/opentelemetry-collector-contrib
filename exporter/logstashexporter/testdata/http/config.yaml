@@ -1,0 +1,6 @@
+logstash:
+  type: http
+  http_config:
+    endpoint: "http://127.0.0.1:1234"
+    username: admin
+    password: 123456

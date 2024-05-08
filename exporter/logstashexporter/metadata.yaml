@@ -1,0 +1,10 @@
+type: logstash
+scope_name: otelcol/logstash
+
+status:
+  class: exporter
+  stability:
+    alpha: [logs]
+  distributions: [contrib]
+  codeowners:
+    active: [kris]
