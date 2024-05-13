@@ -1,0 +1,41 @@
+receivers:
+  filelog:
+    include: [ testdata/simple.log ]
+    start_at: beginning
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>\d{4}-\d{2}-\d{2}) (?P<sev>[A-Z]*) (?P<msg>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d'
+        severity:
+          parse_from: attributes.sev
+
+processors:
+  batch:
+
+exporters:
+  logstash:
+    dryrun: true
+    type: http
+    http_config:
+      endpoint: "http://47.120.61.117:1234"
+      username: admin
+      password: 123456
+
+extensions:
+  delaymonitor:
+
+service:
+  extensions: [delaymonitor]
+  telemetry:
+    logs:
+      level: INFO
+    metrics:
+      address: '0.0.0.0:8888'
+      level: detailed
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: [batch]
+      exporters: [logstash]
