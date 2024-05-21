@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -17,6 +18,8 @@ const (
 	scopeVersionKey      = "Scope[\"version\"]"
 	spanNameKey          = "SpanName"
 	statusCodeKey        = "StatusCode"
+	httpRequestBodyKey   = "http.request.body"
+	httpResponseBodyKey  = "http.response.body"
 	bodyKey              = "Body"
 	severityTextKey      = "SeverityText"
 	spanSource           = "Span"
@@ -79,6 +82,9 @@ func (exporter *MetadataExporter) ConsumeTraces(ctx context.Context, td ptrace.T
 				exporter.consumeAttribute(ctx, spanSource, statusCodeKey, pcommon.NewValueStr(span.Status().Code().String()))
 				spanAttributes := span.Attributes()
 				spanAttributes.Range(func(k string, v pcommon.Value) bool {
+					if strings.HasPrefix(k, httpRequestBodyKey) || strings.HasPrefix(k, httpResponseBodyKey) {
+						v = pcommon.NewValueStr("")
+					}
 					k = fmt.Sprintf("SpanAttributes['%s']", k)
 					exporter.consumeAttribute(ctx, spanSource, k, v)
 					return true
