@@ -2,13 +2,16 @@ package nginxprocessor
 
 import (
 	"context"
+	"strings"
 
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	conventions "go.opentelemetry.io/collector/semconv/v1.22.0"
 )
 
 const (
-	scopeNginx = "nginx"
+	scopeNginx      = "nginx"
+	platformNameKey = "service.platform"
 )
 
 type scopeGroup struct {
@@ -81,7 +84,9 @@ func (np *nginxProcessor) processResourceSpans(newTraces *ptrace.Traces, resourc
 		if !ok {
 			created = newTraces.ResourceSpans().AppendEmpty()
 			resourceSpans.Resource().CopyTo(created.Resource())
-			created.Resource().Attributes().PutStr(conventions.AttributeK8SPodName, podName)
+			attributes := created.Resource().Attributes()
+			rewriteServiceName(&attributes)
+			attributes.PutStr(conventions.AttributeK8SPodName, podName)
 			created.SetSchemaUrl(resourceSpans.SchemaUrl())
 		}
 
@@ -112,4 +117,22 @@ func (np *nginxProcessor) isNginxScope(scope *ptrace.ScopeSpans) (string, bool) 
 	}
 	// skip if the pod name is not available
 	return "", false
+}
+
+func rewriteServiceName(attributes *pcommon.Map) {
+	serviceNameValue, ok := attributes.Get(conventions.AttributeServiceName)
+	if !ok {
+		return
+	}
+	serviceName := serviceNameValue.Str()
+	if !strings.Contains(serviceName, ":") {
+		return
+	}
+	platformServiceNames := strings.Split(serviceName, ":")
+	if len(platformServiceNames) != 2 {
+		return
+	}
+	platformName, serviceName := platformServiceNames[0], platformServiceNames[1]
+	attributes.PutStr(conventions.AttributeServiceName, serviceName)
+	attributes.PutStr(platformNameKey, platformName)
 }
