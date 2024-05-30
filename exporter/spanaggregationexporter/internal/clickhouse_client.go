@@ -22,6 +22,10 @@ type ClickHouseConfig struct {
 	ConnMaxLifetimeInHours int `mapstructure:"conn_max_lifetime_in_hours"`
 	// Database is the database name to export.
 	Database string `mapstructure:"database"`
+	// Username is the username to connect to clickhouse.
+	Username string `mapstructure:"username"`
+	// Password is the password to connect to clickhouse.
+	Password string `mapstructure:"password"`
 	// enable debug mode to print SQLs
 	Debug bool `mapstructure:"debug"`
 }
@@ -36,6 +40,8 @@ func CreateClient(config *ClickHouseConfig, logger *zap.Logger) (*ClickHouseClie
 		Addr: []string{config.Endpoint},
 		Auth: clickhouse.Auth{
 			Database: config.Database,
+			Username: config.Username,
+			Password: config.Password,
 		},
 		DialTimeout: time.Second * time.Duration(config.DialTimeoutInSeconds),
 		Compression: &clickhouse.Compression{
