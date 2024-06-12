@@ -107,6 +107,18 @@ func (sfc *SpanFaultCreate) SetFaultKind(s string) *SpanFaultCreate {
 	return sfc
 }
 
+// SetGap sets the "Gap" field.
+func (sfc *SpanFaultCreate) SetGap(i int64) *SpanFaultCreate {
+	sfc.mutation.SetGap(i)
+	return sfc
+}
+
+// SetSelfDuration sets the "SelfDuration" field.
+func (sfc *SpanFaultCreate) SetSelfDuration(i int64) *SpanFaultCreate {
+	sfc.mutation.SetSelfDuration(i)
+	return sfc
+}
+
 // SetResourceAttributes sets the "ResourceAttributes" field.
 func (sfc *SpanFaultCreate) SetResourceAttributes(s *schema.Attributes) *SpanFaultCreate {
 	sfc.mutation.SetResourceAttributes(s)
@@ -194,6 +206,12 @@ func (sfc *SpanFaultCreate) check() error {
 	}
 	if _, ok := sfc.mutation.FaultKind(); !ok {
 		return &ValidationError{Name: "FaultKind", err: errors.New(`ent: missing required field "SpanFault.FaultKind"`)}
+	}
+	if _, ok := sfc.mutation.Gap(); !ok {
+		return &ValidationError{Name: "Gap", err: errors.New(`ent: missing required field "SpanFault.Gap"`)}
+	}
+	if _, ok := sfc.mutation.SelfDuration(); !ok {
+		return &ValidationError{Name: "SelfDuration", err: errors.New(`ent: missing required field "SpanFault.SelfDuration"`)}
 	}
 	if _, ok := sfc.mutation.ResourceAttributes(); !ok {
 		return &ValidationError{Name: "ResourceAttributes", err: errors.New(`ent: missing required field "SpanFault.ResourceAttributes"`)}
@@ -287,6 +305,14 @@ func (sfc *SpanFaultCreate) createSpec() (*SpanFault, *sqlgraph.CreateSpec) {
 	if value, ok := sfc.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
 		_node.FaultKind = value
+	}
+	if value, ok := sfc.mutation.Gap(); ok {
+		_spec.SetField(spanfault.FieldGap, field.TypeInt64, value)
+		_node.Gap = value
+	}
+	if value, ok := sfc.mutation.SelfDuration(); ok {
+		_spec.SetField(spanfault.FieldSelfDuration, field.TypeInt64, value)
+		_node.SelfDuration = value
 	}
 	if value, ok := sfc.mutation.ResourceAttributes(); ok {
 		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)

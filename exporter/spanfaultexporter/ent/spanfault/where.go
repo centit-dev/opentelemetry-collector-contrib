@@ -130,6 +130,16 @@ func FaultKind(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldFaultKind, v))
 }
 
+// Gap applies equality check predicate on the "Gap" field. It's identical to GapEQ.
+func Gap(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldGap, v))
+}
+
+// SelfDuration applies equality check predicate on the "SelfDuration" field. It's identical to SelfDurationEQ.
+func SelfDuration(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldSelfDuration, v))
+}
+
 // ResourceAttributes applies equality check predicate on the "ResourceAttributes" field. It's identical to ResourceAttributesEQ.
 func ResourceAttributes(v *schema.Attributes) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldResourceAttributes, v))
@@ -943,6 +953,86 @@ func FaultKindEqualFold(v string) predicate.SpanFault {
 // FaultKindContainsFold applies the ContainsFold predicate on the "FaultKind" field.
 func FaultKindContainsFold(v string) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldContainsFold(FieldFaultKind, v))
+}
+
+// GapEQ applies the EQ predicate on the "Gap" field.
+func GapEQ(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldGap, v))
+}
+
+// GapNEQ applies the NEQ predicate on the "Gap" field.
+func GapNEQ(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldGap, v))
+}
+
+// GapIn applies the In predicate on the "Gap" field.
+func GapIn(vs ...int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldGap, vs...))
+}
+
+// GapNotIn applies the NotIn predicate on the "Gap" field.
+func GapNotIn(vs ...int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldGap, vs...))
+}
+
+// GapGT applies the GT predicate on the "Gap" field.
+func GapGT(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldGap, v))
+}
+
+// GapGTE applies the GTE predicate on the "Gap" field.
+func GapGTE(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldGap, v))
+}
+
+// GapLT applies the LT predicate on the "Gap" field.
+func GapLT(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldGap, v))
+}
+
+// GapLTE applies the LTE predicate on the "Gap" field.
+func GapLTE(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldGap, v))
+}
+
+// SelfDurationEQ applies the EQ predicate on the "SelfDuration" field.
+func SelfDurationEQ(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldSelfDuration, v))
+}
+
+// SelfDurationNEQ applies the NEQ predicate on the "SelfDuration" field.
+func SelfDurationNEQ(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldSelfDuration, v))
+}
+
+// SelfDurationIn applies the In predicate on the "SelfDuration" field.
+func SelfDurationIn(vs ...int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldSelfDuration, vs...))
+}
+
+// SelfDurationNotIn applies the NotIn predicate on the "SelfDuration" field.
+func SelfDurationNotIn(vs ...int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldSelfDuration, vs...))
+}
+
+// SelfDurationGT applies the GT predicate on the "SelfDuration" field.
+func SelfDurationGT(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldSelfDuration, v))
+}
+
+// SelfDurationGTE applies the GTE predicate on the "SelfDuration" field.
+func SelfDurationGTE(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldSelfDuration, v))
+}
+
+// SelfDurationLT applies the LT predicate on the "SelfDuration" field.
+func SelfDurationLT(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldSelfDuration, v))
+}
+
+// SelfDurationLTE applies the LTE predicate on the "SelfDuration" field.
+func SelfDurationLTE(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldSelfDuration, v))
 }
 
 // ResourceAttributesEQ applies the EQ predicate on the "ResourceAttributes" field.

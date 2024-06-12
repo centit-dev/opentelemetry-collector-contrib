@@ -25,6 +25,8 @@ var (
 		{Name: "SpanName", Type: field.TypeString},
 		{Name: "SpanKind", Type: field.TypeString},
 		{Name: "FaultKind", Type: field.TypeString},
+		{Name: "Gap", Type: field.TypeInt64},
+		{Name: "SelfDuration", Type: field.TypeInt64},
 		{Name: "ResourceAttributes", Type: field.TypeOther, SchemaType: map[string]string{"clickhouse": "Map(String, String)"}},
 		{Name: "SpanAttributes", Type: field.TypeOther, SchemaType: map[string]string{"clickhouse": "Map(String, String)"}},
 	}

@@ -44,6 +44,10 @@ type SpanFault struct {
 	SpanKind string `json:"SpanKind,omitempty"`
 	// FaultKind holds the value of the "FaultKind" field.
 	FaultKind string `json:"FaultKind,omitempty"`
+	// Gap holds the value of the "Gap" field.
+	Gap int64 `json:"Gap,omitempty"`
+	// SelfDuration holds the value of the "SelfDuration" field.
+	SelfDuration int64 `json:"SelfDuration,omitempty"`
 	// ResourceAttributes holds the value of the "ResourceAttributes" field.
 	ResourceAttributes *schema.Attributes `json:"ResourceAttributes,omitempty"`
 	// SpanAttributes holds the value of the "SpanAttributes" field.
@@ -58,7 +62,7 @@ func (*SpanFault) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case spanfault.FieldResourceAttributes, spanfault.FieldSpanAttributes:
 			values[i] = new(schema.Attributes)
-		case spanfault.FieldRootDuration:
+		case spanfault.FieldRootDuration, spanfault.FieldGap, spanfault.FieldSelfDuration:
 			values[i] = new(sql.NullInt64)
 		case spanfault.FieldID, spanfault.FieldPlatformName, spanfault.FieldAppCluster, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldParentSpanId, spanfault.FieldSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldSpanKind, spanfault.FieldFaultKind:
 			values[i] = new(sql.NullString)
@@ -163,6 +167,18 @@ func (sf *SpanFault) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sf.FaultKind = value.String
 			}
+		case spanfault.FieldGap:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field Gap", values[i])
+			} else if value.Valid {
+				sf.Gap = value.Int64
+			}
+		case spanfault.FieldSelfDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field SelfDuration", values[i])
+			} else if value.Valid {
+				sf.SelfDuration = value.Int64
+			}
 		case spanfault.FieldResourceAttributes:
 			if value, ok := values[i].(*schema.Attributes); !ok {
 				return fmt.Errorf("unexpected type %T for field ResourceAttributes", values[i])
@@ -249,6 +265,12 @@ func (sf *SpanFault) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("FaultKind=")
 	builder.WriteString(sf.FaultKind)
+	builder.WriteString(", ")
+	builder.WriteString("Gap=")
+	builder.WriteString(fmt.Sprintf("%v", sf.Gap))
+	builder.WriteString(", ")
+	builder.WriteString("SelfDuration=")
+	builder.WriteString(fmt.Sprintf("%v", sf.SelfDuration))
 	builder.WriteString(", ")
 	builder.WriteString("ResourceAttributes=")
 	builder.WriteString(fmt.Sprintf("%v", sf.ResourceAttributes))

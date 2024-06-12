@@ -224,6 +224,48 @@ func (sfu *SpanFaultUpdate) SetNillableFaultKind(s *string) *SpanFaultUpdate {
 	return sfu
 }
 
+// SetGap sets the "Gap" field.
+func (sfu *SpanFaultUpdate) SetGap(i int64) *SpanFaultUpdate {
+	sfu.mutation.ResetGap()
+	sfu.mutation.SetGap(i)
+	return sfu
+}
+
+// SetNillableGap sets the "Gap" field if the given value is not nil.
+func (sfu *SpanFaultUpdate) SetNillableGap(i *int64) *SpanFaultUpdate {
+	if i != nil {
+		sfu.SetGap(*i)
+	}
+	return sfu
+}
+
+// AddGap adds i to the "Gap" field.
+func (sfu *SpanFaultUpdate) AddGap(i int64) *SpanFaultUpdate {
+	sfu.mutation.AddGap(i)
+	return sfu
+}
+
+// SetSelfDuration sets the "SelfDuration" field.
+func (sfu *SpanFaultUpdate) SetSelfDuration(i int64) *SpanFaultUpdate {
+	sfu.mutation.ResetSelfDuration()
+	sfu.mutation.SetSelfDuration(i)
+	return sfu
+}
+
+// SetNillableSelfDuration sets the "SelfDuration" field if the given value is not nil.
+func (sfu *SpanFaultUpdate) SetNillableSelfDuration(i *int64) *SpanFaultUpdate {
+	if i != nil {
+		sfu.SetSelfDuration(*i)
+	}
+	return sfu
+}
+
+// AddSelfDuration adds i to the "SelfDuration" field.
+func (sfu *SpanFaultUpdate) AddSelfDuration(i int64) *SpanFaultUpdate {
+	sfu.mutation.AddSelfDuration(i)
+	return sfu
+}
+
 // SetResourceAttributes sets the "ResourceAttributes" field.
 func (sfu *SpanFaultUpdate) SetResourceAttributes(s *schema.Attributes) *SpanFaultUpdate {
 	sfu.mutation.SetResourceAttributes(s)
@@ -321,6 +363,18 @@ func (sfu *SpanFaultUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := sfu.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
+	}
+	if value, ok := sfu.mutation.Gap(); ok {
+		_spec.SetField(spanfault.FieldGap, field.TypeInt64, value)
+	}
+	if value, ok := sfu.mutation.AddedGap(); ok {
+		_spec.AddField(spanfault.FieldGap, field.TypeInt64, value)
+	}
+	if value, ok := sfu.mutation.SelfDuration(); ok {
+		_spec.SetField(spanfault.FieldSelfDuration, field.TypeInt64, value)
+	}
+	if value, ok := sfu.mutation.AddedSelfDuration(); ok {
+		_spec.AddField(spanfault.FieldSelfDuration, field.TypeInt64, value)
 	}
 	if value, ok := sfu.mutation.ResourceAttributes(); ok {
 		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)
@@ -543,6 +597,48 @@ func (sfuo *SpanFaultUpdateOne) SetNillableFaultKind(s *string) *SpanFaultUpdate
 	return sfuo
 }
 
+// SetGap sets the "Gap" field.
+func (sfuo *SpanFaultUpdateOne) SetGap(i int64) *SpanFaultUpdateOne {
+	sfuo.mutation.ResetGap()
+	sfuo.mutation.SetGap(i)
+	return sfuo
+}
+
+// SetNillableGap sets the "Gap" field if the given value is not nil.
+func (sfuo *SpanFaultUpdateOne) SetNillableGap(i *int64) *SpanFaultUpdateOne {
+	if i != nil {
+		sfuo.SetGap(*i)
+	}
+	return sfuo
+}
+
+// AddGap adds i to the "Gap" field.
+func (sfuo *SpanFaultUpdateOne) AddGap(i int64) *SpanFaultUpdateOne {
+	sfuo.mutation.AddGap(i)
+	return sfuo
+}
+
+// SetSelfDuration sets the "SelfDuration" field.
+func (sfuo *SpanFaultUpdateOne) SetSelfDuration(i int64) *SpanFaultUpdateOne {
+	sfuo.mutation.ResetSelfDuration()
+	sfuo.mutation.SetSelfDuration(i)
+	return sfuo
+}
+
+// SetNillableSelfDuration sets the "SelfDuration" field if the given value is not nil.
+func (sfuo *SpanFaultUpdateOne) SetNillableSelfDuration(i *int64) *SpanFaultUpdateOne {
+	if i != nil {
+		sfuo.SetSelfDuration(*i)
+	}
+	return sfuo
+}
+
+// AddSelfDuration adds i to the "SelfDuration" field.
+func (sfuo *SpanFaultUpdateOne) AddSelfDuration(i int64) *SpanFaultUpdateOne {
+	sfuo.mutation.AddSelfDuration(i)
+	return sfuo
+}
+
 // SetResourceAttributes sets the "ResourceAttributes" field.
 func (sfuo *SpanFaultUpdateOne) SetResourceAttributes(s *schema.Attributes) *SpanFaultUpdateOne {
 	sfuo.mutation.SetResourceAttributes(s)
@@ -670,6 +766,18 @@ func (sfuo *SpanFaultUpdateOne) sqlSave(ctx context.Context) (_node *SpanFault, 
 	}
 	if value, ok := sfuo.mutation.FaultKind(); ok {
 		_spec.SetField(spanfault.FieldFaultKind, field.TypeString, value)
+	}
+	if value, ok := sfuo.mutation.Gap(); ok {
+		_spec.SetField(spanfault.FieldGap, field.TypeInt64, value)
+	}
+	if value, ok := sfuo.mutation.AddedGap(); ok {
+		_spec.AddField(spanfault.FieldGap, field.TypeInt64, value)
+	}
+	if value, ok := sfuo.mutation.SelfDuration(); ok {
+		_spec.SetField(spanfault.FieldSelfDuration, field.TypeInt64, value)
+	}
+	if value, ok := sfuo.mutation.AddedSelfDuration(); ok {
+		_spec.AddField(spanfault.FieldSelfDuration, field.TypeInt64, value)
 	}
 	if value, ok := sfuo.mutation.ResourceAttributes(); ok {
 		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)

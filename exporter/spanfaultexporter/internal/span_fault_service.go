@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/reactivex/rxgo/v2"
@@ -108,7 +109,17 @@ func (service *SpanFaultServiceImpl) Start(ctx context.Context) {
 func (service *SpanFaultServiceImpl) Save(ctx context.Context, items []*spanTreeItem) error {
 	// create the new trees
 	trees := make(map[string]*spanTree)
+	childrenGroup := make(map[string][]*spanTreeItem)
+
 	for _, item := range items {
+		if item.ParentSpanId != "" {
+			if siblings, exists := childrenGroup[item.ParentSpanId]; exists {
+				childrenGroup[item.ParentSpanId] = append(siblings, item)
+			} else {
+				childrenGroup[item.ParentSpanId] = []*spanTreeItem{item}
+			}
+		}
+
 		tree, ok := trees[item.ID]
 		if !ok {
 			tree = &spanTree{
@@ -121,20 +132,20 @@ func (service *SpanFaultServiceImpl) Save(ctx context.Context, items []*spanTree
 	}
 
 	for _, tree := range trees {
-		var cause *ent.SpanFault
+		var cause *spanTreeItem
 		var depth int16 = -1
 		for _, span := range tree.spans {
 			spanDepth := span.Depth(&tree.spans)
 			if spanDepth > depth && span.FaultKind != "" {
 				depth = spanDepth
-				cause = span.SpanFault
+				cause = span
 			}
 		}
 		if tree.rootSpan == nil {
 			continue
 		}
 		if cause == nil {
-			cause = tree.rootSpan.SpanFault
+			cause = tree.rootSpan
 		}
 		cause.PlatformName = tree.rootSpan.PlatformName
 		cause.AppCluster = tree.rootSpan.AppCluster
@@ -142,9 +153,77 @@ func (service *SpanFaultServiceImpl) Save(ctx context.Context, items []*spanTree
 		cause.RootServiceName = tree.rootSpan.ServiceName
 		cause.RootSpanName = tree.rootSpan.SpanName
 		cause.RootDuration = tree.rootSpan.duration
-		service.faultChannel <- rxgo.Of(cause)
+		if cause.parent != nil {
+			cause.Gap = cause.Timestamp.Sub(cause.parent.Timestamp).Nanoseconds()
+		}
+		if children, exists := childrenGroup[cause.ID]; exists {
+			cause.SelfDuration = service.calculateSelfDuration(cause, children)
+		} else {
+			cause.SelfDuration = cause.duration
+		}
+		service.faultChannel <- rxgo.Of(cause.SpanFault)
 	}
 	return nil
+}
+
+func (service *SpanFaultServiceImpl) calculateSelfDuration(span *spanTreeItem, children []*spanTreeItem) int64 {
+	if len(children) == 0 {
+		return span.duration
+	}
+
+	sort.Slice(children, func(i, j int) bool {
+		return children[i].Timestamp.Before(children[j].Timestamp)
+	})
+	maxEndTime := span.Timestamp.Add(time.Duration(span.duration))
+	intervals := make([][]int64, 0, len(children))
+	for _, child := range children {
+		if len(intervals) == 0 {
+			intervals = append(intervals, []int64{child.Timestamp.UnixNano(), child.Timestamp.UnixNano() + child.duration, child.duration})
+			continue
+		}
+
+		last_entry := intervals[len(intervals)-1]
+		last_start := last_entry[0]
+		last_end := last_entry[1]
+
+		current_end := child.Timestamp.UnixNano() + child.duration
+		if child.Timestamp.UnixNano() > last_end {
+			// not overlap:
+			// last:  |---------|
+			// next:                |---------|
+			intervals = append(intervals, []int64{child.Timestamp.UnixNano(), current_end, child.duration})
+		} else if current_end > last_end {
+			// overlaps:
+			// last:  |---------|
+			// next:       |---------|
+			intervals[len(intervals)-1] = []int64{last_start, current_end, current_end - last_start}
+		}
+		// sorting by start time ascending ganrantees start_time > last_start_time
+		// so this is impossible
+		// last:         |---------|
+		// next: |---------|
+
+		// lastly, if the last end time is greater than the parent end time, we need to adjust the last interval
+		// last:            |---------|
+		// parent: |---------|
+		last_entry = intervals[len(intervals)-1]
+		last_start = last_entry[0]
+		last_end = last_entry[1]
+		if last_end > maxEndTime.UnixNano() {
+			intervals[len(intervals)-1] = []int64{last_start, maxEndTime.UnixNano(), maxEndTime.UnixNano() - last_start}
+			// and there is no point to continue
+			break
+		}
+	}
+	selfDuration := span.duration
+	for _, interval := range intervals {
+		selfDuration -= interval[2]
+	}
+	// client error may cause negative self duration
+	if selfDuration < 0 {
+		selfDuration = 0
+	}
+	return selfDuration
 }
 
 // addSpan adds a span to the tree and find out the root span
