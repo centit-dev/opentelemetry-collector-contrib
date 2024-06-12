@@ -48,6 +48,10 @@ type SpanFaultMutation struct {
 	_SpanName           *string
 	_SpanKind           *string
 	_FaultKind          *string
+	_Gap                *int64
+	add_Gap             *int64
+	_SelfDuration       *int64
+	add_SelfDuration    *int64
 	_ResourceAttributes **schema.Attributes
 	_SpanAttributes     **schema.Attributes
 	clearedFields       map[string]struct{}
@@ -661,6 +665,118 @@ func (m *SpanFaultMutation) ResetFaultKind() {
 	m._FaultKind = nil
 }
 
+// SetGap sets the "Gap" field.
+func (m *SpanFaultMutation) SetGap(i int64) {
+	m._Gap = &i
+	m.add_Gap = nil
+}
+
+// Gap returns the value of the "Gap" field in the mutation.
+func (m *SpanFaultMutation) Gap() (r int64, exists bool) {
+	v := m._Gap
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGap returns the old "Gap" field's value of the SpanFault entity.
+// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SpanFaultMutation) OldGap(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGap is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGap requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGap: %w", err)
+	}
+	return oldValue.Gap, nil
+}
+
+// AddGap adds i to the "Gap" field.
+func (m *SpanFaultMutation) AddGap(i int64) {
+	if m.add_Gap != nil {
+		*m.add_Gap += i
+	} else {
+		m.add_Gap = &i
+	}
+}
+
+// AddedGap returns the value that was added to the "Gap" field in this mutation.
+func (m *SpanFaultMutation) AddedGap() (r int64, exists bool) {
+	v := m.add_Gap
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetGap resets all changes to the "Gap" field.
+func (m *SpanFaultMutation) ResetGap() {
+	m._Gap = nil
+	m.add_Gap = nil
+}
+
+// SetSelfDuration sets the "SelfDuration" field.
+func (m *SpanFaultMutation) SetSelfDuration(i int64) {
+	m._SelfDuration = &i
+	m.add_SelfDuration = nil
+}
+
+// SelfDuration returns the value of the "SelfDuration" field in the mutation.
+func (m *SpanFaultMutation) SelfDuration() (r int64, exists bool) {
+	v := m._SelfDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSelfDuration returns the old "SelfDuration" field's value of the SpanFault entity.
+// If the SpanFault object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SpanFaultMutation) OldSelfDuration(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSelfDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSelfDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSelfDuration: %w", err)
+	}
+	return oldValue.SelfDuration, nil
+}
+
+// AddSelfDuration adds i to the "SelfDuration" field.
+func (m *SpanFaultMutation) AddSelfDuration(i int64) {
+	if m.add_SelfDuration != nil {
+		*m.add_SelfDuration += i
+	} else {
+		m.add_SelfDuration = &i
+	}
+}
+
+// AddedSelfDuration returns the value that was added to the "SelfDuration" field in this mutation.
+func (m *SpanFaultMutation) AddedSelfDuration() (r int64, exists bool) {
+	v := m.add_SelfDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSelfDuration resets all changes to the "SelfDuration" field.
+func (m *SpanFaultMutation) ResetSelfDuration() {
+	m._SelfDuration = nil
+	m.add_SelfDuration = nil
+}
+
 // SetResourceAttributes sets the "ResourceAttributes" field.
 func (m *SpanFaultMutation) SetResourceAttributes(s *schema.Attributes) {
 	m._ResourceAttributes = &s
@@ -767,7 +883,7 @@ func (m *SpanFaultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SpanFaultMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 17)
 	if m._Timestamp != nil {
 		fields = append(fields, spanfault.FieldTimestamp)
 	}
@@ -806,6 +922,12 @@ func (m *SpanFaultMutation) Fields() []string {
 	}
 	if m._FaultKind != nil {
 		fields = append(fields, spanfault.FieldFaultKind)
+	}
+	if m._Gap != nil {
+		fields = append(fields, spanfault.FieldGap)
+	}
+	if m._SelfDuration != nil {
+		fields = append(fields, spanfault.FieldSelfDuration)
 	}
 	if m._ResourceAttributes != nil {
 		fields = append(fields, spanfault.FieldResourceAttributes)
@@ -847,6 +969,10 @@ func (m *SpanFaultMutation) Field(name string) (ent.Value, bool) {
 		return m.SpanKind()
 	case spanfault.FieldFaultKind:
 		return m.FaultKind()
+	case spanfault.FieldGap:
+		return m.Gap()
+	case spanfault.FieldSelfDuration:
+		return m.SelfDuration()
 	case spanfault.FieldResourceAttributes:
 		return m.ResourceAttributes()
 	case spanfault.FieldSpanAttributes:
@@ -886,6 +1012,10 @@ func (m *SpanFaultMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldSpanKind(ctx)
 	case spanfault.FieldFaultKind:
 		return m.OldFaultKind(ctx)
+	case spanfault.FieldGap:
+		return m.OldGap(ctx)
+	case spanfault.FieldSelfDuration:
+		return m.OldSelfDuration(ctx)
 	case spanfault.FieldResourceAttributes:
 		return m.OldResourceAttributes(ctx)
 	case spanfault.FieldSpanAttributes:
@@ -990,6 +1120,20 @@ func (m *SpanFaultMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFaultKind(v)
 		return nil
+	case spanfault.FieldGap:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGap(v)
+		return nil
+	case spanfault.FieldSelfDuration:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSelfDuration(v)
+		return nil
 	case spanfault.FieldResourceAttributes:
 		v, ok := value.(*schema.Attributes)
 		if !ok {
@@ -1015,6 +1159,12 @@ func (m *SpanFaultMutation) AddedFields() []string {
 	if m.add_RootDuration != nil {
 		fields = append(fields, spanfault.FieldRootDuration)
 	}
+	if m.add_Gap != nil {
+		fields = append(fields, spanfault.FieldGap)
+	}
+	if m.add_SelfDuration != nil {
+		fields = append(fields, spanfault.FieldSelfDuration)
+	}
 	return fields
 }
 
@@ -1025,6 +1175,10 @@ func (m *SpanFaultMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case spanfault.FieldRootDuration:
 		return m.AddedRootDuration()
+	case spanfault.FieldGap:
+		return m.AddedGap()
+	case spanfault.FieldSelfDuration:
+		return m.AddedSelfDuration()
 	}
 	return nil, false
 }
@@ -1040,6 +1194,20 @@ func (m *SpanFaultMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRootDuration(v)
+		return nil
+	case spanfault.FieldGap:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGap(v)
+		return nil
+	case spanfault.FieldSelfDuration:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSelfDuration(v)
 		return nil
 	}
 	return fmt.Errorf("unknown SpanFault numeric field %s", name)
@@ -1115,6 +1283,12 @@ func (m *SpanFaultMutation) ResetField(name string) error {
 		return nil
 	case spanfault.FieldFaultKind:
 		m.ResetFaultKind()
+		return nil
+	case spanfault.FieldGap:
+		m.ResetGap()
+		return nil
+	case spanfault.FieldSelfDuration:
+		m.ResetSelfDuration()
 		return nil
 	case spanfault.FieldResourceAttributes:
 		m.ResetResourceAttributes()

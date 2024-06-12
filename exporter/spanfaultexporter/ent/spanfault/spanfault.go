@@ -37,6 +37,10 @@ const (
 	FieldSpanKind = "SpanKind"
 	// FieldFaultKind holds the string denoting the faultkind field in the database.
 	FieldFaultKind = "FaultKind"
+	// FieldGap holds the string denoting the gap field in the database.
+	FieldGap = "Gap"
+	// FieldSelfDuration holds the string denoting the selfduration field in the database.
+	FieldSelfDuration = "SelfDuration"
 	// FieldResourceAttributes holds the string denoting the resourceattributes field in the database.
 	FieldResourceAttributes = "ResourceAttributes"
 	// FieldSpanAttributes holds the string denoting the spanattributes field in the database.
@@ -61,6 +65,8 @@ var Columns = []string{
 	FieldSpanName,
 	FieldSpanKind,
 	FieldFaultKind,
+	FieldGap,
+	FieldSelfDuration,
 	FieldResourceAttributes,
 	FieldSpanAttributes,
 }
@@ -146,6 +152,16 @@ func BySpanKind(opts ...sql.OrderTermOption) OrderOption {
 // ByFaultKind orders the results by the FaultKind field.
 func ByFaultKind(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFaultKind, opts...).ToFunc()
+}
+
+// ByGap orders the results by the Gap field.
+func ByGap(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGap, opts...).ToFunc()
+}
+
+// BySelfDuration orders the results by the SelfDuration field.
+func BySelfDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSelfDuration, opts...).ToFunc()
 }
 
 // ByResourceAttributes orders the results by the ResourceAttributes field.
