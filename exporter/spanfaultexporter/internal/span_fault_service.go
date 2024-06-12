@@ -153,10 +153,13 @@ func (service *SpanFaultServiceImpl) Save(ctx context.Context, items []*spanTree
 		cause.RootServiceName = tree.rootSpan.ServiceName
 		cause.RootSpanName = tree.rootSpan.SpanName
 		cause.RootDuration = tree.rootSpan.duration
-		if cause.parent != nil {
-			cause.Gap = cause.Timestamp.Sub(cause.parent.Timestamp).Nanoseconds()
+		if cause.ParentSpanId != "" {
+			parent, ok := tree.spans[cause.ParentSpanId]
+			if ok {
+				cause.Gap = cause.Timestamp.Sub(parent.Timestamp).Nanoseconds()
+			}
 		}
-		if children, exists := childrenGroup[cause.ID]; exists {
+		if children, exists := childrenGroup[cause.SpanId]; exists {
 			cause.SelfDuration = service.calculateSelfDuration(cause, children)
 		} else {
 			cause.SelfDuration = cause.duration
