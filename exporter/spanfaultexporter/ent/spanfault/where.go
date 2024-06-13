@@ -140,6 +140,11 @@ func SelfDuration(v int64) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldSelfDuration, v))
 }
 
+// Duration applies equality check predicate on the "Duration" field. It's identical to DurationEQ.
+func Duration(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldDuration, v))
+}
+
 // ResourceAttributes applies equality check predicate on the "ResourceAttributes" field. It's identical to ResourceAttributesEQ.
 func ResourceAttributes(v *schema.Attributes) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldEQ(FieldResourceAttributes, v))
@@ -1033,6 +1038,46 @@ func SelfDurationLT(v int64) predicate.SpanFault {
 // SelfDurationLTE applies the LTE predicate on the "SelfDuration" field.
 func SelfDurationLTE(v int64) predicate.SpanFault {
 	return predicate.SpanFault(sql.FieldLTE(FieldSelfDuration, v))
+}
+
+// DurationEQ applies the EQ predicate on the "Duration" field.
+func DurationEQ(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldEQ(FieldDuration, v))
+}
+
+// DurationNEQ applies the NEQ predicate on the "Duration" field.
+func DurationNEQ(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNEQ(FieldDuration, v))
+}
+
+// DurationIn applies the In predicate on the "Duration" field.
+func DurationIn(vs ...int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldIn(FieldDuration, vs...))
+}
+
+// DurationNotIn applies the NotIn predicate on the "Duration" field.
+func DurationNotIn(vs ...int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldNotIn(FieldDuration, vs...))
+}
+
+// DurationGT applies the GT predicate on the "Duration" field.
+func DurationGT(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGT(FieldDuration, v))
+}
+
+// DurationGTE applies the GTE predicate on the "Duration" field.
+func DurationGTE(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldGTE(FieldDuration, v))
+}
+
+// DurationLT applies the LT predicate on the "Duration" field.
+func DurationLT(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLT(FieldDuration, v))
+}
+
+// DurationLTE applies the LTE predicate on the "Duration" field.
+func DurationLTE(v int64) predicate.SpanFault {
+	return predicate.SpanFault(sql.FieldLTE(FieldDuration, v))
 }
 
 // ResourceAttributesEQ applies the EQ predicate on the "ResourceAttributes" field.

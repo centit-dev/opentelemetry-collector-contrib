@@ -71,6 +71,7 @@ func (SpanFault) Fields() []ent.Field {
 		field.String("FaultKind").StorageKey("FaultKind"),
 		field.Int64("Gap").StorageKey("Gap"),
 		field.Int64("SelfDuration").StorageKey("SelfDuration"),
+		field.Int64("Duration").StorageKey("Duration"),
 		field.Other("ResourceAttributes", &Attributes{}).
 			SchemaType(map[string]string{
 				"clickhouse": "Map(String, String)",

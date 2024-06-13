@@ -48,6 +48,8 @@ type SpanFault struct {
 	Gap int64 `json:"Gap,omitempty"`
 	// SelfDuration holds the value of the "SelfDuration" field.
 	SelfDuration int64 `json:"SelfDuration,omitempty"`
+	// Duration holds the value of the "Duration" field.
+	Duration int64 `json:"Duration,omitempty"`
 	// ResourceAttributes holds the value of the "ResourceAttributes" field.
 	ResourceAttributes *schema.Attributes `json:"ResourceAttributes,omitempty"`
 	// SpanAttributes holds the value of the "SpanAttributes" field.
@@ -62,7 +64,7 @@ func (*SpanFault) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case spanfault.FieldResourceAttributes, spanfault.FieldSpanAttributes:
 			values[i] = new(schema.Attributes)
-		case spanfault.FieldRootDuration, spanfault.FieldGap, spanfault.FieldSelfDuration:
+		case spanfault.FieldRootDuration, spanfault.FieldGap, spanfault.FieldSelfDuration, spanfault.FieldDuration:
 			values[i] = new(sql.NullInt64)
 		case spanfault.FieldID, spanfault.FieldPlatformName, spanfault.FieldAppCluster, spanfault.FieldInstanceName, spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldParentSpanId, spanfault.FieldSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldSpanKind, spanfault.FieldFaultKind:
 			values[i] = new(sql.NullString)
@@ -179,6 +181,12 @@ func (sf *SpanFault) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				sf.SelfDuration = value.Int64
 			}
+		case spanfault.FieldDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field Duration", values[i])
+			} else if value.Valid {
+				sf.Duration = value.Int64
+			}
 		case spanfault.FieldResourceAttributes:
 			if value, ok := values[i].(*schema.Attributes); !ok {
 				return fmt.Errorf("unexpected type %T for field ResourceAttributes", values[i])
@@ -271,6 +279,9 @@ func (sf *SpanFault) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("SelfDuration=")
 	builder.WriteString(fmt.Sprintf("%v", sf.SelfDuration))
+	builder.WriteString(", ")
+	builder.WriteString("Duration=")
+	builder.WriteString(fmt.Sprintf("%v", sf.Duration))
 	builder.WriteString(", ")
 	builder.WriteString("ResourceAttributes=")
 	builder.WriteString(fmt.Sprintf("%v", sf.ResourceAttributes))
