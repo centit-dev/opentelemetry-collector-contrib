@@ -35,7 +35,7 @@ func (repo *SpanFaultRepositoryImpl) SaveAll(ctx context.Context, creates []*ent
 			"%s, %s, %s, "+
 			"%s, %s, %s, "+
 			"%s, %s, %s, %s, %s, %s, "+
-			"%s, %s, "+
+			"%s, %s, %s, "+
 			"%s, %s) "+
 			"VALUES %s",
 		spanfault.Table,
@@ -43,7 +43,7 @@ func (repo *SpanFaultRepositoryImpl) SaveAll(ctx context.Context, creates []*ent
 		spanfault.FieldPlatformName, spanfault.FieldAppCluster, spanfault.FieldInstanceName,
 		spanfault.FieldRootServiceName, spanfault.FieldRootSpanName, spanfault.FieldRootDuration,
 		spanfault.FieldParentSpanId, spanfault.FieldSpanId, spanfault.FieldServiceName, spanfault.FieldSpanName, spanfault.FieldSpanKind, spanfault.FieldFaultKind,
-		spanfault.FieldGap, spanfault.FieldSelfDuration,
+		spanfault.FieldGap, spanfault.FieldSelfDuration, spanfault.FieldDuration,
 		spanfault.FieldResourceAttributes, spanfault.FieldSpanAttributes,
 		values,
 	)
@@ -64,13 +64,13 @@ func (repo *SpanFaultRepositoryImpl) buildValues(entities ...*ent.SpanFault) str
 				"'%s', '%s', '%s', "+
 				"'%s', '%s', %v, "+
 				"'%s', '%s', '%s', '%s', '%s', '%s', "+
-				"'%d', '%d', "+
+				"'%d', '%d', '%d', "+
 				"%v, %v)",
 			date, nanoseconds, entity.ID,
 			entity.PlatformName, entity.AppCluster, entity.InstanceName,
 			entity.RootServiceName, entity.RootSpanName, entity.RootDuration,
 			entity.ParentSpanId, entity.SpanId, entity.ServiceName, entity.SpanName, entity.SpanKind, entity.FaultKind,
-			entity.Gap, entity.SelfDuration,
+			entity.Gap, entity.SelfDuration, entity.Duration,
 			formatMap(entity.ResourceAttributes), formatMap(entity.SpanAttributes),
 		)
 	}

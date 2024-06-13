@@ -74,6 +74,7 @@ func (t *TraceExporter) buildFaultTreeItem(attributes *pcommon.Map, span *ptrace
 	if faultKindValue, exists := span.Attributes().Get(faultKindKey); exists {
 		faultKind = faultKindValue.Str()
 	}
+	duration := span.EndTimestamp().AsTime().Sub(span.StartTimestamp().AsTime()).Nanoseconds()
 	fault := &ent.SpanFault{
 		Timestamp:          span.StartTimestamp().AsTime(),
 		ID:                 span.TraceID().String(),
@@ -88,8 +89,8 @@ func (t *TraceExporter) buildFaultTreeItem(attributes *pcommon.Map, span *ptrace
 		FaultKind:          faultKind,
 		ResourceAttributes: attributesToMap(*attributes),
 		SpanAttributes:     attributesToMap(span.Attributes()),
+		Duration:           duration,
 	}
-	duration := span.EndTimestamp().AsTime().Sub(span.StartTimestamp().AsTime()).Nanoseconds()
 	return &spanTreeItem{fault, duration, nil, 0}
 }
 

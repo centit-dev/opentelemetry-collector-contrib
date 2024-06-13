@@ -41,6 +41,8 @@ const (
 	FieldGap = "Gap"
 	// FieldSelfDuration holds the string denoting the selfduration field in the database.
 	FieldSelfDuration = "SelfDuration"
+	// FieldDuration holds the string denoting the duration field in the database.
+	FieldDuration = "Duration"
 	// FieldResourceAttributes holds the string denoting the resourceattributes field in the database.
 	FieldResourceAttributes = "ResourceAttributes"
 	// FieldSpanAttributes holds the string denoting the spanattributes field in the database.
@@ -67,6 +69,7 @@ var Columns = []string{
 	FieldFaultKind,
 	FieldGap,
 	FieldSelfDuration,
+	FieldDuration,
 	FieldResourceAttributes,
 	FieldSpanAttributes,
 }
@@ -162,6 +165,11 @@ func ByGap(opts ...sql.OrderTermOption) OrderOption {
 // BySelfDuration orders the results by the SelfDuration field.
 func BySelfDuration(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSelfDuration, opts...).ToFunc()
+}
+
+// ByDuration orders the results by the Duration field.
+func ByDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDuration, opts...).ToFunc()
 }
 
 // ByResourceAttributes orders the results by the ResourceAttributes field.

@@ -119,6 +119,12 @@ func (sfc *SpanFaultCreate) SetSelfDuration(i int64) *SpanFaultCreate {
 	return sfc
 }
 
+// SetDuration sets the "Duration" field.
+func (sfc *SpanFaultCreate) SetDuration(i int64) *SpanFaultCreate {
+	sfc.mutation.SetDuration(i)
+	return sfc
+}
+
 // SetResourceAttributes sets the "ResourceAttributes" field.
 func (sfc *SpanFaultCreate) SetResourceAttributes(s *schema.Attributes) *SpanFaultCreate {
 	sfc.mutation.SetResourceAttributes(s)
@@ -212,6 +218,9 @@ func (sfc *SpanFaultCreate) check() error {
 	}
 	if _, ok := sfc.mutation.SelfDuration(); !ok {
 		return &ValidationError{Name: "SelfDuration", err: errors.New(`ent: missing required field "SpanFault.SelfDuration"`)}
+	}
+	if _, ok := sfc.mutation.Duration(); !ok {
+		return &ValidationError{Name: "Duration", err: errors.New(`ent: missing required field "SpanFault.Duration"`)}
 	}
 	if _, ok := sfc.mutation.ResourceAttributes(); !ok {
 		return &ValidationError{Name: "ResourceAttributes", err: errors.New(`ent: missing required field "SpanFault.ResourceAttributes"`)}
@@ -313,6 +322,10 @@ func (sfc *SpanFaultCreate) createSpec() (*SpanFault, *sqlgraph.CreateSpec) {
 	if value, ok := sfc.mutation.SelfDuration(); ok {
 		_spec.SetField(spanfault.FieldSelfDuration, field.TypeInt64, value)
 		_node.SelfDuration = value
+	}
+	if value, ok := sfc.mutation.Duration(); ok {
+		_spec.SetField(spanfault.FieldDuration, field.TypeInt64, value)
+		_node.Duration = value
 	}
 	if value, ok := sfc.mutation.ResourceAttributes(); ok {
 		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)

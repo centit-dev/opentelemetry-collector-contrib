@@ -266,6 +266,27 @@ func (sfu *SpanFaultUpdate) AddSelfDuration(i int64) *SpanFaultUpdate {
 	return sfu
 }
 
+// SetDuration sets the "Duration" field.
+func (sfu *SpanFaultUpdate) SetDuration(i int64) *SpanFaultUpdate {
+	sfu.mutation.ResetDuration()
+	sfu.mutation.SetDuration(i)
+	return sfu
+}
+
+// SetNillableDuration sets the "Duration" field if the given value is not nil.
+func (sfu *SpanFaultUpdate) SetNillableDuration(i *int64) *SpanFaultUpdate {
+	if i != nil {
+		sfu.SetDuration(*i)
+	}
+	return sfu
+}
+
+// AddDuration adds i to the "Duration" field.
+func (sfu *SpanFaultUpdate) AddDuration(i int64) *SpanFaultUpdate {
+	sfu.mutation.AddDuration(i)
+	return sfu
+}
+
 // SetResourceAttributes sets the "ResourceAttributes" field.
 func (sfu *SpanFaultUpdate) SetResourceAttributes(s *schema.Attributes) *SpanFaultUpdate {
 	sfu.mutation.SetResourceAttributes(s)
@@ -375,6 +396,12 @@ func (sfu *SpanFaultUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := sfu.mutation.AddedSelfDuration(); ok {
 		_spec.AddField(spanfault.FieldSelfDuration, field.TypeInt64, value)
+	}
+	if value, ok := sfu.mutation.Duration(); ok {
+		_spec.SetField(spanfault.FieldDuration, field.TypeInt64, value)
+	}
+	if value, ok := sfu.mutation.AddedDuration(); ok {
+		_spec.AddField(spanfault.FieldDuration, field.TypeInt64, value)
 	}
 	if value, ok := sfu.mutation.ResourceAttributes(); ok {
 		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)
@@ -639,6 +666,27 @@ func (sfuo *SpanFaultUpdateOne) AddSelfDuration(i int64) *SpanFaultUpdateOne {
 	return sfuo
 }
 
+// SetDuration sets the "Duration" field.
+func (sfuo *SpanFaultUpdateOne) SetDuration(i int64) *SpanFaultUpdateOne {
+	sfuo.mutation.ResetDuration()
+	sfuo.mutation.SetDuration(i)
+	return sfuo
+}
+
+// SetNillableDuration sets the "Duration" field if the given value is not nil.
+func (sfuo *SpanFaultUpdateOne) SetNillableDuration(i *int64) *SpanFaultUpdateOne {
+	if i != nil {
+		sfuo.SetDuration(*i)
+	}
+	return sfuo
+}
+
+// AddDuration adds i to the "Duration" field.
+func (sfuo *SpanFaultUpdateOne) AddDuration(i int64) *SpanFaultUpdateOne {
+	sfuo.mutation.AddDuration(i)
+	return sfuo
+}
+
 // SetResourceAttributes sets the "ResourceAttributes" field.
 func (sfuo *SpanFaultUpdateOne) SetResourceAttributes(s *schema.Attributes) *SpanFaultUpdateOne {
 	sfuo.mutation.SetResourceAttributes(s)
@@ -778,6 +826,12 @@ func (sfuo *SpanFaultUpdateOne) sqlSave(ctx context.Context) (_node *SpanFault, 
 	}
 	if value, ok := sfuo.mutation.AddedSelfDuration(); ok {
 		_spec.AddField(spanfault.FieldSelfDuration, field.TypeInt64, value)
+	}
+	if value, ok := sfuo.mutation.Duration(); ok {
+		_spec.SetField(spanfault.FieldDuration, field.TypeInt64, value)
+	}
+	if value, ok := sfuo.mutation.AddedDuration(); ok {
+		_spec.AddField(spanfault.FieldDuration, field.TypeInt64, value)
 	}
 	if value, ok := sfuo.mutation.ResourceAttributes(); ok {
 		_spec.SetField(spanfault.FieldResourceAttributes, field.TypeOther, value)
