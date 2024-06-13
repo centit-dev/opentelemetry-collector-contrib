@@ -2,6 +2,7 @@ package nginxprocessor
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,41 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
-var np = CreateTraceProcessor()
+var np = CreateTraceProcessor(nil)
+
+func TestProcessTracesWithNginxSpansBaggage(t *testing.T) {
+	// given a trace with nginx span
+	traces := ptrace.NewTraces()
+	resourceSpans := traces.ResourceSpans().AppendEmpty()
+	scoped := resourceSpans.ScopeSpans().AppendEmpty()
+	scoped.Scope().SetName(scopeNginx)
+	span := scoped.Spans().AppendEmpty()
+	span.Attributes().PutStr(conventions.AttributeK8SPodName, "nice-pod")
+
+	expectBizCode := "13770321976"
+	expectTransID := "98ASDF78SDF"
+	baggage := fmt.Sprintf("biz_code=%s, trans_id=%s, good-key=good-value1;good-value2, more-key=more-value", expectBizCode, expectTransID)
+	span.Attributes().PutStr(baggageKey, baggage)
+
+	// when processResourceSpans is called
+	traces, _ = np.ProcessTraces(context.Background(), traces)
+
+	// then the span is collected in a pod name group
+	assert.Equal(t, 1, traces.ResourceSpans().Len())
+	processed := traces.ResourceSpans().At(0).Resource()
+	podName, _ := processed.Attributes().Get(conventions.AttributeK8SPodName)
+	assert.Equal(t, "nice-pod", podName.Str())
+	assert.Equal(t, 1, traces.ResourceSpans().At(0).ScopeSpans().Len())
+	processedScopeSpans := traces.ResourceSpans().At(0).ScopeSpans().At(0)
+	assert.Equal(t, 1, processedScopeSpans.Spans().Len())
+	processedSpan := processedScopeSpans.Spans().At(0)
+	bizCode, ok := processedSpan.Attributes().Get(BizCodeKey)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, expectBizCode, bizCode.AsString())
+	transID, ok := processedSpan.Attributes().Get(TransIDKey)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, expectTransID, transID.AsString())
+}
 
 func TestProcessTracesWithNginxSpans(t *testing.T) {
 	// given a trace with nginx span

@@ -2,16 +2,24 @@ package nginxprocessor
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"strings"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	conventions "go.opentelemetry.io/collector/semconv/v1.22.0"
+	"go.opentelemetry.io/otel/baggage"
 )
 
 const (
 	scopeNginx      = "nginx"
 	platformNameKey = "service.platform"
+
+	baggageKey        = "source.baggage"
+	baggageBizCodeKey = "biz_code"
+	baggageTransIDKey = "trans_id"
+	BizCodeKey        = "source.biz_code"
+	TransIDKey        = "source.trans_id"
 )
 
 type scopeGroup struct {
@@ -20,10 +28,11 @@ type scopeGroup struct {
 }
 
 type nginxProcessor struct {
+	logger *zap.Logger
 }
 
-func CreateTraceProcessor() *nginxProcessor {
-	return &nginxProcessor{}
+func CreateTraceProcessor(logger *zap.Logger) *nginxProcessor {
+	return &nginxProcessor{logger: logger}
 }
 
 func (np *nginxProcessor) ProcessTraces(ctx context.Context, traces ptrace.Traces) (ptrace.Traces, error) {
@@ -111,12 +120,33 @@ func (np *nginxProcessor) isNginxScope(scope *ptrace.ScopeSpans) (string, bool) 
 	}
 
 	for i := 0; i < spans.Len(); i++ {
+		np.ParseBaggage(spans.At(i))
 		if podName, ok := spans.At(i).Attributes().Get(conventions.AttributeK8SPodName); ok {
 			return podName.Str(), true
 		}
 	}
 	// skip if the pod name is not available
 	return "", false
+}
+
+func (np *nginxProcessor) ParseBaggage(span ptrace.Span) {
+	raw, ok := span.Attributes().Get(baggageKey)
+	if !ok {
+		return
+	}
+	value, err := baggage.Parse(raw.AsString())
+	if err != nil {
+		np.logger.Error("fail to parse baggage", zap.Error(err), zap.String("raw", raw.AsString()))
+		return
+	}
+	bizCode := value.Member(baggageBizCodeKey)
+	if bizCode.Value() != "" {
+		span.Attributes().PutStr(BizCodeKey, bizCode.Value())
+	}
+	transID := value.Member(baggageTransIDKey)
+	if transID.Value() != "" {
+		span.Attributes().PutStr(TransIDKey, transID.Value())
+	}
 }
 
 func rewriteServiceName(attributes *pcommon.Map) {
