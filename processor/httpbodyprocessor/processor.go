@@ -1,24 +1,33 @@
 package httpbodyprocessor
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.uber.org/zap"
 )
 
 const (
-	httpRequestBodyKey  = "http.request.body"
-	httpResponseBodyKey = "http.response.body"
+	httpRequestBodyKey     = "http.request.body"
+	httpResponseBodyKey    = "http.response.body"
+	httpReqContentTypeKey  = "http.request.header.content-type"
+	httpRespContentTypeKey = "http.response.header.content-type"
+
+	httpContentTypeXMLKey  = "text/xml"
+	httpContentTypeJsonKey = "application/json"
 )
 
 type Processor struct {
+	logger *zap.Logger
 }
 
-func NewProcessor() *Processor {
-	return &Processor{}
+func NewProcessor(logger *zap.Logger) *Processor {
+	return &Processor{logger}
 }
 
 func (processor *Processor) ProcessTraces(ctx context.Context, traces ptrace.Traces) (ptrace.Traces, error) {
@@ -38,21 +47,72 @@ func (processor *Processor) ProcessTraces(ctx context.Context, traces ptrace.Tra
 }
 
 func (processor *Processor) processHttpRequestBody(attributes *pcommon.Map) {
+	contentType, ok := attributes.Get(httpReqContentTypeKey)
+	if !ok {
+		return
+	}
 	value, ok := attributes.Get(httpRequestBodyKey)
 	if !ok {
 		return
 	}
-	processJson(attributes, httpRequestBodyKey, &value)
+	switch ParseHttpContentType(contentType) {
+	case httpContentTypeJsonKey:
+		processJson(attributes, httpRequestBodyKey, &value)
+	case httpContentTypeXMLKey:
+		if err := processXml(attributes, httpRequestBodyKey, &value); err != nil {
+			processor.logger.Error("process req xml fail", zap.Error(err))
+			return
+		}
+	default:
+		processor.logger.Error("unreconize http req content type",
+			zap.String("content-type", contentType.AsString()))
+		return
+	}
 	attributes.Remove(httpRequestBodyKey)
 }
 
 func (processor *Processor) processResponseBody(attributes *pcommon.Map) {
+	contentType, ok := attributes.Get(httpRespContentTypeKey)
+	if !ok {
+		return
+	}
 	value, ok := attributes.Get(httpResponseBodyKey)
 	if !ok {
 		return
 	}
-	processJson(attributes, httpResponseBodyKey, &value)
+	switch ParseHttpContentType(contentType) {
+	case httpContentTypeJsonKey:
+		processJson(attributes, httpResponseBodyKey, &value)
+	case httpContentTypeXMLKey:
+		if err := processXml(attributes, httpResponseBodyKey, &value); err != nil {
+			processor.logger.Error("process resp xml fail", zap.Error(err))
+			return
+		}
+	default:
+		processor.logger.Error("unreconize http resp content type",
+			zap.String("content-type", contentType.AsString()))
+		return
+	}
 	attributes.Remove(httpResponseBodyKey)
+}
+
+func processXml(attributes *pcommon.Map, prefix string, value *pcommon.Value) error {
+	xmlValue := value.Str()
+	if xmlValue == "" {
+		return nil
+	}
+	decoder := xml.NewDecoder(bytes.NewReader([]byte(xmlValue)))
+	var root Node
+	if err := decoder.Decode(&root); err != nil {
+		return err
+	}
+	// 平坦化处理
+	flatMap := make(map[string]string)
+	flattenNode(prefix, root, flatMap)
+	for k, v := range flatMap {
+		attributes.PutStr(k, v)
+	}
+	return nil
 }
 
 func processJson(attributes *pcommon.Map, prefix string, value *pcommon.Value) {
@@ -68,6 +128,37 @@ func processJson(attributes *pcommon.Map, prefix string, value *pcommon.Value) {
 	flattenJson(input, prefix, &output)
 	for key, value := range output {
 		attributes.PutStr(key, value)
+	}
+}
+
+type Node struct {
+	XMLName xml.Name
+	Content string     `xml:",chardata"`
+	Nodes   []Node     `xml:",any"`
+	Attr    []xml.Attr `xml:",attr"`
+}
+
+// flattenNode 递归地平坦化 XML 节点
+func flattenNode(prefix string, node Node, flatMap map[string]string) {
+	fullKey := node.XMLName.Local
+	if prefix != "" {
+		fullKey = prefix + "." + node.XMLName.Local
+	}
+
+	// 添加节点的属性
+	for _, attr := range node.Attr {
+		attrKey := fullKey + "." + attr.Name.Local
+		flatMap[attrKey] = attr.Value
+	}
+
+	// 递归处理子节点
+	for _, child := range node.Nodes {
+		flattenNode(fullKey, child, flatMap)
+	}
+
+	// 如果当前节点是叶子节点，添加节点的文本内容
+	if len(node.Nodes) == 0 && node.Content != "" {
+		flatMap[fullKey] = node.Content
 	}
 }
 
@@ -91,4 +182,17 @@ func flattenJson(input map[string]interface{}, parentKey string, output *map[str
 			(*output)[currentKey] = fmt.Sprintf("%v", value)
 		}
 	}
+}
+
+func ParseHttpContentType(value pcommon.Value) string {
+	switch value.Type() {
+	case pcommon.ValueTypeStr:
+		return value.Str()
+	case pcommon.ValueTypeSlice:
+		vs := value.Slice()
+		if vs.Len() > 0 {
+			return vs.At(0).Str()
+		}
+	}
+	return ""
 }
