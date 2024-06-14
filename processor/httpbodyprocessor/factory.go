@@ -26,6 +26,6 @@ func createDefaultConfig() component.Config {
 }
 
 func createTraceProcessor(ctx context.Context, params processor.CreateSettings, cfg component.Config, nextConsumer consumer.Traces) (processor.Traces, error) {
-	processor := NewProcessor()
+	processor := NewProcessor(params.Logger)
 	return processorhelper.NewTracesProcessor(ctx, params, cfg, nextConsumer, processor.ProcessTraces)
 }
