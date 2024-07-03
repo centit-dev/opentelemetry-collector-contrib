@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/ent"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/internal/handler"
 	"github.com/teanoon/opentelemetry-collector-contrib/pkg/spangroup"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	conventions "go.opentelemetry.io/collector/semconv/v1.22.0"
 	"go.uber.org/zap"
 )
 
@@ -132,12 +132,16 @@ func (service *AppTypeService) setAttributes(attributes *pcommon.Map, groups []s
 			attributes.PutStr(appType, record.Name)
 		case int16(typeServerSoftware):
 			attributes.PutStr(serverSoftware, record.Name)
-			if url, ok := attributes.Get(conventions.AttributeDBConnectionString); ok {
-				host, port, err := extractHostAndPort(url.Str())
-				if err != nil {
-					service.logger.Sugar().Errorf("Error when extracting host and port from connection string: %s\n", err)
-				} else {
+
+			h := handler.GetHandler(record.Name)
+			if h == nil {
+				service.logger.Sugar().Warnf("unsupport component: %s", record.Name)
+			} else {
+				host, port := h.GetHostPort(attributes)
+				if host != "" {
 					attributes.PutStr(serverHost, host)
+				}
+				if port != "" {
 					attributes.PutStr(serverPort, port)
 				}
 			}
