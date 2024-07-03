@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/internal/client"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/apptypeprocessor/internal/handler"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor"
@@ -30,6 +31,8 @@ func createDefaultConfig() component.Config {
 
 func createTraceProcessor(ctx context.Context, params processor.CreateSettings, cfg component.Config, nextConsumer consumer.Traces) (processor.Traces, error) {
 	config := cfg.(*Config)
+
+	handler.InitHandlers()
 	databaseClient, err := client.CreateClient(&config.Postgres, params.Logger)
 	if err != nil {
 		params.Logger.Sugar().Errorf("Error when creating %s: %s\n", Type, err)
