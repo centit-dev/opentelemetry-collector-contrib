@@ -99,6 +99,21 @@ func TestFlattenXML(t *testing.T) {
 	assert.Equal(t, flatMap["http.request.body.ProvBOSS.Head.TransactionId"], "C24572825869")
 }
 
+func TestProcessUnknowContentType(t *testing.T) {
+	attrs := pcommon.NewMap()
+	attrs.PutStr(httpReqContentTypeKey, httpContentTypeXMLKey)
+	attrs.PutStr(httpRequestBodyKey, xmlString)
+
+	sli := attrs.PutEmptySlice(httpRespContentTypeKey)
+	sliVal := sli.AppendEmpty()
+	sliVal.FromRaw(httpContentTypeXMLKey)
+	attrs.PutStr(httpResponseBodyKey, "abcdaaksjflaksjfoihow")
+
+	p := NewProcessor(nil)
+
+	p.processResponseBody(&attrs)
+}
+
 func TestProcessXml(t *testing.T) {
 	attrs := pcommon.NewMap()
 	attrs.PutStr(httpReqContentTypeKey, httpContentTypeXMLKey)
@@ -162,4 +177,39 @@ func TestProcessJson(t *testing.T) {
 	object := make(map[string]interface{})
 	err := json.Unmarshal([]byte(jsonString), &object)
 	assert.Nil(t, err)
+}
+
+var jsonString = `
+{
+	"val": "hellp"
+}
+`
+
+func TestParseHttpContentTypeByBody(t *testing.T) {
+	jsonVal := pcommon.NewValueStr(jsonString)
+	xmlVal := pcommon.NewValueStr(xmlString)
+	type args struct {
+		value pcommon.Value
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "json",
+			args: args{jsonVal},
+			want: httpContentTypeJsonKey,
+		},
+		{
+			name: "xml",
+			args: args{xmlVal},
+			want: httpContentTypeXMLKey,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, ParseHttpContentTypeByBody(tt.args.value), "ParseHttpContentTypeByBody(%v)", tt.args.value)
+		})
+	}
 }
