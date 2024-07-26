@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"strings"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -21,6 +22,8 @@ const (
 	httpContentTypeXMLKey  = "text/xml"
 	httpContentTypeJsonKey = "application/json"
 )
+
+const UnknowContentTypeBodyOutputLen = 5
 
 type Processor struct {
 	logger *zap.Logger
@@ -47,15 +50,11 @@ func (processor *Processor) ProcessTraces(ctx context.Context, traces ptrace.Tra
 }
 
 func (processor *Processor) processHttpRequestBody(attributes *pcommon.Map) {
-	contentType, ok := attributes.Get(httpReqContentTypeKey)
-	if !ok {
-		return
-	}
 	value, ok := attributes.Get(httpRequestBodyKey)
 	if !ok {
 		return
 	}
-	switch ParseHttpContentType(contentType) {
+	switch ParseHttpContentTypeByBody(value) {
 	case httpContentTypeJsonKey:
 		processJson(attributes, httpRequestBodyKey, &value)
 	case httpContentTypeXMLKey:
@@ -64,23 +63,24 @@ func (processor *Processor) processHttpRequestBody(attributes *pcommon.Map) {
 			return
 		}
 	default:
+		bodyOuput := value.Str()
+		if bodyOuput != "" && len(bodyOuput) > UnknowContentTypeBodyOutputLen {
+			bodyOuput = bodyOuput[:UnknowContentTypeBodyOutputLen] + "..."
+		}
 		processor.logger.Error("unreconize http req content type",
-			zap.String("content-type", contentType.AsString()))
+			zap.String("body", bodyOuput))
 		return
 	}
 	attributes.Remove(httpRequestBodyKey)
 }
 
 func (processor *Processor) processResponseBody(attributes *pcommon.Map) {
-	contentType, ok := attributes.Get(httpRespContentTypeKey)
-	if !ok {
-		return
-	}
 	value, ok := attributes.Get(httpResponseBodyKey)
 	if !ok {
 		return
 	}
-	switch ParseHttpContentType(contentType) {
+
+	switch ParseHttpContentTypeByBody(value) {
 	case httpContentTypeJsonKey:
 		processJson(attributes, httpResponseBodyKey, &value)
 	case httpContentTypeXMLKey:
@@ -89,8 +89,12 @@ func (processor *Processor) processResponseBody(attributes *pcommon.Map) {
 			return
 		}
 	default:
+		bodyOuput := value.Str()
+		if bodyOuput != "" && len(bodyOuput) > UnknowContentTypeBodyOutputLen {
+			bodyOuput = bodyOuput[:UnknowContentTypeBodyOutputLen] + "..."
+		}
 		processor.logger.Error("unreconize http resp content type",
-			zap.String("content-type", contentType.AsString()))
+			zap.String("body", bodyOuput))
 		return
 	}
 	attributes.Remove(httpResponseBodyKey)
@@ -181,6 +185,18 @@ func flattenJson(input map[string]interface{}, parentKey string, output *map[str
 			}
 			(*output)[currentKey] = fmt.Sprintf("%v", value)
 		}
+	}
+}
+
+func ParseHttpContentTypeByBody(value pcommon.Value) string {
+	content := value.Str()
+	content = strings.TrimSpace(content)
+	if strings.HasPrefix(content, "{") {
+		return httpContentTypeJsonKey
+	} else if strings.HasPrefix(content, "<") {
+		return httpContentTypeXMLKey
+	} else {
+		return ""
 	}
 }
 
