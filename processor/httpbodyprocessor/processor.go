@@ -21,6 +21,12 @@ const (
 
 	httpContentTypeXMLKey  = "text/xml"
 	httpContentTypeJsonKey = "application/json"
+
+	HttpReqContextTypeAttrKey  = "http.request.content_type"
+	HttpRespContextTypeAttrKey = "http.request.content_type"
+	httpJsonAttrValue          = "json"
+	httpXmlAttrValue           = "xml"
+	httpOtherAttrValue         = "other"
 )
 
 const UnknowContentTypeBodyOutputLen = 5
@@ -56,13 +62,16 @@ func (processor *Processor) processHttpRequestBody(attributes *pcommon.Map) {
 	}
 	switch ParseHttpContentTypeByBody(value) {
 	case httpContentTypeJsonKey:
+		attributes.PutStr(HttpReqContextTypeAttrKey, httpJsonAttrValue)
 		processJson(attributes, httpRequestBodyKey, &value)
 	case httpContentTypeXMLKey:
+		attributes.PutStr(HttpReqContextTypeAttrKey, httpXmlAttrValue)
 		if err := processXml(attributes, httpRequestBodyKey, &value); err != nil {
 			processor.logger.Error("process req xml fail", zap.Error(err))
 			return
 		}
 	default:
+		attributes.PutStr(HttpReqContextTypeAttrKey, httpOtherAttrValue)
 		bodyOuput := value.Str()
 		if bodyOuput != "" && len(bodyOuput) > UnknowContentTypeBodyOutputLen {
 			bodyOuput = bodyOuput[:UnknowContentTypeBodyOutputLen] + "..."
@@ -82,13 +91,16 @@ func (processor *Processor) processResponseBody(attributes *pcommon.Map) {
 
 	switch ParseHttpContentTypeByBody(value) {
 	case httpContentTypeJsonKey:
+		attributes.PutStr(HttpRespContextTypeAttrKey, httpJsonAttrValue)
 		processJson(attributes, httpResponseBodyKey, &value)
 	case httpContentTypeXMLKey:
+		attributes.PutStr(HttpRespContextTypeAttrKey, httpXmlAttrValue)
 		if err := processXml(attributes, httpResponseBodyKey, &value); err != nil {
 			processor.logger.Error("process resp xml fail", zap.Error(err))
 			return
 		}
 	default:
+		attributes.PutStr(HttpRespContextTypeAttrKey, httpOtherAttrValue)
 		bodyOuput := value.Str()
 		if bodyOuput != "" && len(bodyOuput) > UnknowContentTypeBodyOutputLen {
 			bodyOuput = bodyOuput[:UnknowContentTypeBodyOutputLen] + "..."
