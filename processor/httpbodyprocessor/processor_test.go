@@ -112,6 +112,10 @@ func TestProcessUnknowContentType(t *testing.T) {
 	p := NewProcessor(nil)
 
 	p.processResponseBody(&attrs)
+
+	value, ok := attrs.Get(HttpRespContextTypeAttrKey)
+	assert.Equal(t, ok, true)
+	assert.Equal(t, value.Str(), httpOtherAttrValue)
 }
 
 func TestProcessXml(t *testing.T) {
@@ -170,6 +174,14 @@ func TestProcessXml(t *testing.T) {
 	v, ok = attrs.Get("http.response.body.ProvBOSS.Head.IssueDate")
 	assert.Equal(t, ok, true)
 	assert.Equal(t, v.Str(), "20240613121139")
+
+	v, ok = attrs.Get(HttpRespContextTypeAttrKey)
+	assert.Equal(t, ok, true)
+	assert.Equal(t, v.Str(), httpXmlAttrValue)
+
+	v, ok = attrs.Get(HttpReqContextTypeAttrKey)
+	assert.Equal(t, ok, true)
+	assert.Equal(t, v.Str(), httpXmlAttrValue)
 }
 
 func TestProcessJson(t *testing.T) {
