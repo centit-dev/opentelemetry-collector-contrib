@@ -22,7 +22,7 @@ func InitHandlers() {
 
 		handlers["rocketmq"] = &DefaultComponentHandler{UrlKey: RocketmqConnectionAttrName}
 		handlers["rabbitmq"] = &RabbitmqHandler{}
-		handlers["activemq"] = &DefaultComponentHandler{UrlKey: ActivemqConnectionAttrName}
+		handlers["activemq"] = &ActivemqHandler{}
 		handlers["memcached"] = &DefaultComponentHandler{UrlKey: conventions.AttributeDBConnectionString}
 
 		handlers["default"] = &DefaultDBHandler{}

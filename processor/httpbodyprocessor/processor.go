@@ -23,7 +23,7 @@ const (
 	httpContentTypeJsonKey = "application/json"
 
 	HttpReqContextTypeAttrKey  = "http.request.content_type"
-	HttpRespContextTypeAttrKey = "http.request.content_type"
+	HttpRespContextTypeAttrKey = "http.response.content_type"
 	httpJsonAttrValue          = "json"
 	httpXmlAttrValue           = "xml"
 	httpOtherAttrValue         = "other"
