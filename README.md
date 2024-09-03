@@ -1,47 +1,101 @@
----
-
-<p align="center">
-  <strong>
-    <a href="https://opentelemetry.io/docs/collector/getting-started/">Getting Started</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://github.com/open-telemetry/opentelemetry-collector/blob/main/CONTRIBUTING.md">Getting Involved</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://cloud-native.slack.com/archives/C01N6P7KR6W">Getting In Touch</a>
-  </strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/open-telemetry/opentelemetry-collector-contrib/actions/workflows/build-and-test.yml?query=branch%3Amain">
-    <img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/open-telemetry/opentelemetry-collector-contrib/build-and-test.yml?branch=main&style=for-the-badge">
-  </a>
-  <a href="https://goreportcard.com/report/github.com/open-telemetry/opentelemetry-collector-contrib">
-    <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/open-telemetry/opentelemetry-collector-contrib?style=for-the-badge">
-  </a>
-  <a href="https://codecov.io/gh/open-telemetry/opentelemetry-collector-contrib/branch/main/">
-    <img alt="Codecov Status" src="https://img.shields.io/codecov/c/github/open-telemetry/opentelemetry-collector-contrib?style=for-the-badge">
-  </a>
-  <a href="https://github.com/open-telemetry/opentelemetry-collector-contrib/releases">
-    <img alt="GitHub release (latest by date including pre-releases)" src="https://img.shields.io/github/v/release/open-telemetry/opentelemetry-collector-contrib?include_prereleases&style=for-the-badge">
-  </a>
-  <img alt="Beta" src="https://img.shields.io/badge/status-beta-informational?style=for-the-badge&logo=data:image/png;base64,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">
-</p>
-
-<p align="center">
-  <strong>
-    <a href="https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/vision.md">Vision</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/monitoring.md">Monitoring</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security-best-practices.md">Security</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-  </strong>
-</p>
-
----
+# 更新日志
+* fix: activemq 解析host:port
+* feat: 添加http content type属性
+* feat: 解析http响应的content type
+* feat: apptypeprocessor支持更多组件
+* feat: httpbody解析xml body
+* 解析nginxprocessor中的baggage
+* 添加spanfault exporter duration
+* 修复无效的gap/selfDuration
+* 修复spanfault库版本
+* 添加spanfault存储属性(gap, selfduration)
+* 修复(spanfault, spanaggregation): exporter auth添加username/password
+* 修复(nginx): 添加platform.name
+* feat(httpbody): 限制http body的值
+* feat(httpbodyprocessor): 添加processor
+* 添加delaymonitor扩展
+* feat(nginxprocessor): 添加nginx processor
+* 修复版本0.99 => 0.98
+* 添加logstash exporter
+* 修复(spanfault): 记录root platform和app cluster
+* 测试: 更新测试用例
+* 测试: 添加一些测试用例
+* feat(apptype): 通过host和port收集server
+* 修复(metadata): 不记录log body的值
+* feat(apptype): 添加db.connection_string作为server.url
+* 升级版本并修复代码
+* feat(log): 导出log severity和body以供搜索
+* 修复(exception): 添加exception.definition.name
+* 修复(metadata): 使用正确的ttl天数
+* 修复(metadata): 修复测试
+* fix(metadata): 缓存黑名单
+* fix(apptype): 使用正确的软件分类
+* fix(metadata): 修复导出application structure
+* feat(metadata): 只采集不在黑名单中的属性
+* fix(metadata): 修复导出
+* spanfault: span kind使用正确的字符串
+* spanfault: 添加spankind
+* spanfault: 记录正常trace
+* spanfault: 记录resource/span attributes
+* app type processor: 修复bug
+* spanfault: 修复nil ref并正确记录FaultKind
+* app type processor: 随数据库变更
+* exceptionprocessor: 随数据库变更
+* app type: 区分应用和客户端的软件类型
+* spanfault: 记录root duration/fault span
+* exceptionprocessor: 取消锁
+* spanaggregation: 使用正确的platform键名
+* spanfault: 使用正确的platform键名
+* spanfault: 使用groupbytrace简化逻辑
+* metadataexport: 控制goroutine数量
+* spanaggregation: 使用groupbytrace简化逻辑并提升性能
+* metadataexport: 异步导出
+* spanaggregation: 改进性能，修复重复保存的bug
+* k8sattributesProcessor: 修复cluster info
+* metadataexport: 关闭遗漏事务连接
+* spanfaultexporter: 修复npe
+* metadataexport: 正确关闭事务连接
+* spanfaultexporter: 优化队列和查询
+* spanfaultexporter: 创建尽可能少的记录
+* metadataexport: 导出application structure
+* exceptionprocessor: 记录exception.definition.id
+* exceptionprocessor: 记录exception.id
+* metadataexport: Attributes取值使用单引号
+* metadataexport: 添加SpanName
+* k8sattributesProcessor添加k8s.cluster.name，取代k8s.cluster.uid
+* metadataexport: 记录metrcs/logs属性名
+* k8sattributesProcessor添加k8s.service.name
+* k8sattributesProcessor添加k8s.cluster.uid
+* metadataexport: 记录完整的字段属性名并添加更多字段
+* k8sattributesProcessor添加k8s.pod.ip
+* metadataexport: 刷新validDate和移除过期key/value
+* 添加metadataexporter
+* spanmetrics: 根据fault kind统计trace的errorRates
+* spanmetrics: 移除delta calls
+* 添加span fault
+* spanaggregation: 改进监听方案
+* spanaggregation: 意外小升级ent
+* faultkind: 修复无数据的问题
+* spanaggregation: 修复单引号不能保存的问题
+* faultkind: 定义SystemFault
+* 添加fault kind processor
+* 清理span aggregation exporter依赖
+* 优化span group命名
+* spangroup使用pkg路径，以便在external中使用
+* 为exception category processor添加repository
+* 自定义模块使用官方版本v0.89.0
+* 添加span aggregation exporter
+* apptypeprocessor不再监测tomcat/netty
+* 添加AppTypeProcessor
+* 抽取公共类span group
+* add exception processor
+* k8sattributesProcessor fix context config
+* fix dev
+* span metrics add sum and percentile
 
 # OpenTelemetry Collector Contrib
 
-This is a repository for OpenTelemetry Collector components that are not suitable for the  [core repository](https://github.com/open-telemetry/opentelemetry-collector) of the collector. 
+This is a repository for OpenTelemetry Collector components that are not suitable for the  [core repository](https://github.com/open-telemetry/opentelemetry-collector) of the collector.
 
 The official distributions, core and contrib, are available as part of the [opentelemetry-collector-releases](https://github.com/open-telemetry/opentelemetry-collector-releases) repository. Some of the components in this repository are part of the "core" distribution, such as the Jaeger and Prometheus components, but most of the components here are only available as part of the "contrib" distribution. Users of the OpenTelemetry Collector are also encouraged to build their own custom distributions with the [OpenTelemetry Collector Builder](https://github.com/open-telemetry/opentelemetry-collector/tree/main/cmd/builder), using the components they need from the core repository, the contrib repository, and possibly third-party or internal repositories.
 
@@ -136,7 +190,7 @@ is a maintainer they are responsible for merging the PR as well.
 The facilitator is not required to perform a thorough review, but they are encouraged to
 enforce Collector best practices and consistency across the codebase and component
 behavior. The facilitators will typically rely on codeowner's detailed review of the code
-when making the final approval decision. 
+when making the final approval decision.
 
 We recommend maintainers and approvers to keep an eye on the
 [project board](https://github.com/orgs/open-telemetry/projects/3). All newly created
